@@ -1,0 +1,313 @@
+# دليل التصميم الأساسي - ألفا الذهبية
+
+## 1. إعدادات أساسية ثابتة
+
+### CSS الأساسي الثابت (لا تغيير عليه)
+```css
+:root {
+    --gold: #977e2b;
+    --gold-hover: #b89635;
+    --gold-light: rgba(151, 126, 43, 0.1);
+    --dark-gray: #2c2c2c;
+    --medium-gray: #666;
+    --light-gray: #f8f9fa;
+    --white: #ffffff;
+    --border-color: #e5e7eb;
+    --success: #28a745;
+    --error: #dc3545;
+}
+
+body {
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    direction: rtl;
+    background: var(--light-gray);
+    color: var(--dark-gray);
+}
+```
+
+### قواعد الأرقام والتواريخ (إجبارية)
+```javascript
+// جميع الأرقام بدون فواصل وإنجليزية
+function formatNumber(num) {
+    return num.toString(); // بدون فواصل
+}
+
+// جميع التواريخ YYYY/MM/DD
+function formatDate(date) {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}/${month}/${day}`;
+}
+```
+
+## 2. البطاقات (Cards)
+
+```css
+.card {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--light-gray);
+}
+
+.card-body {
+    padding: 24px;
+}
+
+.card-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+```
+
+## 3. الأزرار (Buttons)
+
+```css
+.btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: var(--gold);
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    background: var(--gold-hover);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: var(--medium-gray);
+    color: var(--white);
+}
+```
+
+## 4. النماذج (Forms)
+
+```css
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--medium-gray);
+    margin-bottom: 6px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px var(--gold-light);
+}
+```
+
+## 5. الجداول (Tables)
+
+```css
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--white);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.modern-table th {
+    background: var(--light-gray);
+    padding: 12px 16px;
+    text-align: right;
+    font-weight: 600;
+    font-size: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modern-table td {
+    padding: 12px 16px;
+    text-align: right;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 13px;
+}
+
+.modern-table tbody tr:hover {
+    background: var(--gold-light);
+}
+```
+
+## 6. الرسائل (Messages)
+
+```css
+.message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.message.success {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.message.error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+```
+
+## 7. التحميل (Loading)
+
+```css
+.spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border-color);
+    border-top: 2px solid var(--gold);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.page-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+```
+
+## 8. الهاتف المحمول (Mobile)
+
+```css
+@media (max-width: 768px) {
+    .container {
+        padding: 16px;
+    }
+    
+    .card {
+        border-radius: 0;
+        margin-left: -16px;
+        margin-right: -16px;
+    }
+    
+    .form-control {
+        font-size: 16px; /* منع التكبير على iOS */
+    }
+}
+```
+
+## 9. قواعد إجبارية
+
+### الألوان - فقط هذه الألوان
+- **الذهبي**: `var(--gold)` للأزرار والعناصر المهمة
+- **الرمادي الداكن**: `var(--dark-gray)` للنصوص
+- **الأبيض**: `var(--white)` للخلفيات
+- **الرمادي الفاتح**: `var(--light-gray)` للحدود
+
+### الخط - فقط Cairo
+```css
+font-family: 'Cairo', sans-serif;
+```
+
+### الأرقام - فقط إنجليزية بدون فواصل
+```javascript
+// صحيح
+"12345"
+
+// خطأ
+"12,345" أو "١٢٣٤٥"
+```
+
+### التواريخ - فقط YYYY/MM/DD
+```javascript
+// صحيح
+"2024/01/15"
+
+// خطأ
+"15/01/2024" أو "Jan 15, 2024"
+```
+
+## 10. HTML الأساسي
+
+```html
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عنوان الصفحة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">العنوان</h1>
+            </div>
+            <div class="card-body">
+                <!-- المحتوى هنا -->
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+```
+
+## خلاصة - 5 قواعد فقط
+
+1. **استخدم المتغيرات CSS المحددة أعلاه**
+2. **الخط Cairo فقط**
+3. **الأرقام إنجليزية بدون فواصل**
+4. **التواريخ YYYY/MM/DD**
+5. **اتبع أمثلة HTML/CSS المرفقة**

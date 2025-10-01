@@ -1,0 +1,21 @@
+<?php
+// ابدأ الجلسة
+session_start();
+
+// إذا لم يكن المستخدم مسجلاً، أو انتهت صلاحية جلسته
+if (empty($_SESSION['user_logged_in']) || (time() - $_SESSION['login_time']) > 604800) {
+    
+    // دمّر الجلسة الحالية
+    session_unset();
+    session_destroy();
+    
+    // أعد توجيهه لصفحة الدخول
+    header('Location: https://alfagolden.com/system/login.php');
+    exit;
+}
+
+// أبقِ المستخدم مسجلاً طالما أنه نشط
+$_SESSION['login_time'] = time();
+
+// <-- ضع كود صفحتك هنا -->
+?>

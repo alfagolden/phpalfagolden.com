@@ -1,0 +1,1375 @@
+<?php
+$baserow_url = "https://base.alfagolden.com";
+$table_id = 704;
+$token = "h5qAt85gtiJDAzpH51WrXPywhmnhrPWy";
+$quote_id = isset($_GET['quote_id']) ? intval($_GET['quote_id']) : 1;
+
+function fetchQuoteData($quote_id, $baserow_url, $table_id, $token) {
+    $url = "{$baserow_url}/api/database/rows/table/{$table_id}/{$quote_id}/?user_field_names=true";
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Token {$token}"]);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    return ($httpCode == 200) ? json_decode($response, true) : null;
+}
+
+function extractValue($field, $default = '') {
+    return (is_array($field) && !empty($field) && isset($field[0]['value'])) 
+        ? (is_array($field[0]['value']) ? ($field[0]['value']['value'] ?? $default) : $field[0]['value']) 
+        : ($field ?: $default);
+}
+
+function formatGregorianDateToYMD($dateStr) {
+    if (!$dateStr) return '';
+    $date = new DateTime($dateStr);
+    return $date->format('Y/m/d');
+}
+
+function formatNumberForDisplay($num) {
+    return number_format($num, 0, '.', '');
+}
+
+$quote_data = fetchQuoteData($quote_id, $baserow_url, $table_id, $token);
+if (!$quote_data) die("لا يمكن الحصول على بيانات العرض. تأكد من صحة رقم العرض.");
+
+$data = [
+    'quote_number' => $quote_data['الرقم التست'] ?? '', 
+    'date' => $quote_data['تاريخ'] ?? '',
+    'title_before' => extractValue($quote_data['قبل الاسم']), 
+    'client_name' => extractValue($quote_data['اسم العميل']),
+    'title_after' => extractValue($quote_data['بعد الاسم']), 
+    'project' => extractValue($quote_data['المشروع']),
+    'address' => extractValue($quote_data['العنوان']), 
+    'opening_text' => $quote_data['جملة البداية'] ?? '',
+    'introductory_sentence' => $quote_data['الجملة التمهيدية'] ?? '', 
+    'elevators_count' => $quote_data['عدد المصاعد'] ?? '',
+    'stops_count' => extractValue($quote_data['عدد الوقفات']), 
+    'capacity' => extractValue($quote_data['الحمولة']),
+    'people_count' => extractValue($quote_data['عدد الاشخاص']), 
+    'entrance_count' => $quote_data['عدد جهات الدخول'] ?? '',
+    'machine_position' => extractValue($quote_data['وضع الماكينة']), 
+    'machine_type' => $quote_data['نوع المكينة'] ?? '',
+    'control_device' => $quote_data['جهاز تشغيل المصعد'] ?? '', 
+    'operation_method' => $quote_data['طريقة التشغيل'] ?? '',
+    'stops_names' => $quote_data['مسميات الوقفات'] ?? '', 
+    'electrical_current' => $quote_data['التيار الكهربائي'] ?? '',
+    'well_material' => extractValue($quote_data['البئر - مبني من']), 
+    'well_dimensions' => extractValue($quote_data['البئر - المقاس الداخلي']),
+    'door_operation_method' => $quote_data['طريقة تشغيل الأبواب'] ?? '',
+    'door_dimensions' => $quote_data['مقاسات الابواب'] ?? '',
+    'internal_door' => $quote_data['الباب الداخلي'] ?? '',
+    'elevator_rails' => $quote_data['سكك الصاعدة'] ?? '', 
+    'counterweight_rails' => $quote_data['سكك ثقل الموازنة'] ?? '',
+    'traction_ropes' => $quote_data['حبال الجر'] ?? '', 
+    'flexible_cable' => $quote_data['الكابل المرن'] ?? '',
+    'carrier_frame' => $quote_data['الاطار الحامل للصاعدة'] ?? '', 
+    'cabin_finishing' => $quote_data['الصاعدة - التشطيب'] ?? '',
+    'cabin_dimensions' => extractValue($quote_data['الصاعدة - المقاسات الداخلية']), 
+    'ceiling' => $quote_data['السقف'] ?? '',
+    'emergency_lighting' => $quote_data['اضاءة الطوارئ'] ?? '', 
+    'cabin_movement_device' => $quote_data['جهاز تحريك الصاعدة'] ?? '',
+    'flooring' => $quote_data['الأرضية'] ?? '', 
+    'internal_cop' => $quote_data['لوحة الطلب الداخلية COP'] ?? '',
+    'external_panel_finishing' => $quote_data['لوحة الطلب الخارجية - التشطيب'] ?? '',
+    'external_main_stop' => $quote_data['لوحة الطلب الخارجية - الوقفة الرئيسية'] ?? '',
+    'external_other_stops' => $quote_data['لوحة الطلب الخارجية - الوقفات الاخرى'] ?? '',
+    'preparatory_work' => $quote_data['الأعمال التحضيرية'] ?? '', 
+    'warranty_maintenance' => $quote_data['الضمان والصيانة المجانية'] ?? '',
+    'supply_installation' => $quote_data['التوريد والتركيب'] ?? '', 
+    'closing_sentence' => $quote_data['الجملة الختامية'] ?? '',
+    'price_before_vat' => formatNumberForDisplay($quote_data['السعر قبل ضريبة القيمة المضافة (VAT)'] ?? 0),
+    'vat_amount' => formatNumberForDisplay($quote_data['ضريبة القيمة المضافة (VAT) 15%'] ?? 0),
+    'total_price_with_vat' => formatNumberForDisplay($quote_data['السعر شامل ضريبة القيمة المضافة (VAT) 15%'] ?? 0),
+    'price_details' => $quote_data['تفاصيل السعر'] ?? '',
+    'discount_amount' => formatNumberForDisplay($quote_data['مبلغ التخفيض'] ?? 0),
+    'brand' => extractValue($quote_data['البراند']), 
+    'machine_brand' => extractValue($quote_data['الماكينة'])
+];
+
+$formattedDate = formatGregorianDateToYMD($data['date']);
+$quote_type = (stripos($data['brand'], 'elite') !== false || stripos($data['brand'], 'إليت') !== false) ? 'ELITE' : 'PRO';
+
+$additions = [];
+if (!empty($data['price_details'])) {
+    $price_details = json_decode($data['price_details'], true);
+    if (json_last_error() === JSON_ERROR_NONE && isset($price_details['additions'])) {
+        foreach ($price_details['additions'] as $idx => $addition) {
+            $price_details['additions'][$idx]['price'] = formatNumberForDisplay($addition['price']);
+            $price_details['additions'][$idx]['total'] = formatNumberForDisplay($addition['total']);
+        }
+        $additions = $price_details['additions'];
+    }
+}
+
+function renderTable($items) {
+    $html = '<table class="modern-table"><tbody>';
+    foreach ($items as $label => $value) {
+        if (!empty(trim($value))) {
+            $html .= "<tr><td class=\"table-label\">".htmlspecialchars($label)."</td><td>".htmlspecialchars($value)."</td></tr>";
+        }
+    }
+    $html .= '</tbody></table>';
+    return $html;
+}
+
+function renderSection($title, $icon, $content, $isLongText = false) {
+    $contentClass = $isLongText ? 'long-text' : '';
+    return "
+    <div class=\"card section-card\">
+        <div class=\"card-header\">
+            <h2 class=\"card-title\">
+                <i class=\"fas fa-{$icon} section-icon\"></i>
+                {$title}
+            </h2>
+        </div>
+        <div class=\"card-body\">
+            <div class=\"{$contentClass}\">{$content}</div>
+        </div>
+    </div>";
+}
+
+$safety_devices = [
+    'أجهزة الاتصال الكهربائية' => $quote_data['أجهزة الطوارئ والأمان - أجهزة الاتصال الكهربائية'] ?? '',
+    'أجهزة الطوارئ' => $quote_data['أجهزة الطوارئ والأمان - أجهزة الطوارئ'] ?? '',
+    'أجهزة الإنارة' => $quote_data['أجهزة الطوارئ والأمان - أجهزة الانارة'] ?? '',
+    'أجهزة الأمان' => $quote_data['أجهزة الطوارئ والأمان - أجهزة الأمان'] ?? '',
+    'ستارة ضوئية' => $quote_data['أجهزة الطوارئ والأمان - ستارة ضوئية'] ?? '',
+    'جهاز منظم السرعة' => $quote_data['أجهزة الطوارئ والأمان - جهاز منظم السرعة'] ?? '',
+    'مخففات الصدمات' => $quote_data['أجهزة الطوارئ والأمان - مخففات الصدمات'] ?? '',
+    'جهاز نهاية المشوار' => $quote_data['أجهزة الطوارئ والأمان - جهاز نهاية المشوار'] ?? '',
+    'كامة تأمين فتح الباب' => $quote_data['أجهزة الطوارئ والأمان - كامة تأمين فتح الباب'] ?? '',
+    'مزايت الصاعدة' => $quote_data['أجهزة الطوارئ والأمان - مزايت الصاعدة'] ?? '',
+    'مفتاح الباب الخارجي' => $quote_data['أجهزة الطوارئ والأمان - مفتاح الباب الخارجى'] ?? '',
+    'التوصيلات الكهربائية' => $quote_data['أجهزة الطوارئ والأمان - التوصيلات الكهربائية'] ?? ''
+];
+?>
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عرض سعر رقم <?= htmlspecialchars($data['quote_number']) ?> - شركة ألفا الذهبية للمصاعد</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <style>
+        :root {
+            --gold: #977e2b; --gold-hover: #b89635; --gold-light: rgba(151, 126, 43, 0.1);
+            --dark-gray: #2c2c2c; --medium-gray: #666; --light-gray: #f8f9fa; --white: #ffffff;
+            --border-color: #e5e7eb; --shadow: 0 2px 8px rgba(0, 0, 0, 0.1); --save-bar: #364153;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Cairo', sans-serif; font-size: 14px; line-height: 1.5; direction: rtl;
+            background: var(--light-gray); color: var(--dark-gray); padding-top: 70px;
+            background-image: linear-gradient(rgba(255,255,255,0.95), rgba(255,255,255,0.95)), url('https://alfagolden.com/bk.jpg');
+            background-size: cover; background-position: center bottom; background-attachment: fixed;
+        }
+        
+        .save-toolbar {
+            position: fixed; top: 0; left: 0; right: 0; height: 60px; background: var(--save-bar);
+            display: flex; align-items: center; justify-content: flex-end; padding: 0 20px; z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .save-btn {
+            background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white; padding: 8px 20px; border-radius: 8px; display: flex; align-items: center;
+            justify-content: center; font-size: 14px; cursor: pointer; transition: all 0.3s ease; gap: 8px;
+        }
+        
+        .save-btn:hover {
+            background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        
+        .card {
+            background: var(--white); border-radius: 12px; box-shadow: var(--shadow);
+            border: 1px solid var(--border-color); margin-bottom: 20px; overflow: hidden;
+            break-inside: avoid; page-break-inside: avoid;
+        }
+        
+        .section-card { min-height: 120px; }
+        
+        .card-header { padding: 20px 24px; border-bottom: 1px solid var(--border-color); background: var(--light-gray); }
+        
+        .card-body { padding: 24px; }
+        
+        .card-title {
+            font-size: 18px; font-weight: 600; margin: 0; display: flex; align-items: center;
+            gap: 8px; color: var(--dark-gray);
+        }
+        
+        .cover-card {
+            background: linear-gradient(to bottom, var(--white) 50%, var(--gold) 50%);
+            margin-bottom: 30px; min-height: 100vh; display: flex; flex-direction: column;
+            padding: 0; position: relative; overflow: hidden;
+        }
+        
+        .cover-card::before {
+            content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 20px;
+            background: radial-gradient(ellipse at center, transparent 0%, transparent 30%, var(--gold) 100%);
+            transform: translateY(-50%); z-index: 2;
+        }
+        
+        .cover-top-section {
+            flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 60px 40px; background: var(--white); position: relative; z-index: 3; text-align: center;
+        }
+        
+        .cover-bottom-section {
+            flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 60px 40px; background: var(--gold); color: var(--white); position: relative;
+            z-index: 3; text-align: center;
+            background-image: linear-gradient(to bottom, rgba(151, 126, 43, 0.9) 0%, rgba(151, 126, 43, 0.7) 50%, rgba(151, 126, 43, 0.4) 100%), url('https://alfagolden.com/q.jpg');
+            background-size: cover; background-position: center bottom; background-repeat: no-repeat;
+        }
+        
+        .cover-logo {
+            width: 300px; margin-bottom: 30px; background: var(--white); padding: 20px;
+            border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .cover-meta-info {
+            position: absolute; top: 20px; right: 20px; font-size: 13px; color: var(--medium-gray);
+            text-align: right; background: rgba(255,255,255,0.95); padding: 15px; border-radius: 8px;
+            box-shadow: var(--shadow); z-index: 4;
+        }
+        
+        .cover-quote-title { margin-bottom: 30px; }
+        
+        .cover-quote-title h1 {
+            font-size: 42px; font-weight: 700; color: var(--white); margin-bottom: 10px;
+            line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .cover-quote-title h2 {
+            font-size: 32px; font-weight: 600; color: var(--white); line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .cover-client-info {
+            margin-bottom: 25px; font-size: 28px; font-weight: 600; line-height: 1.6;
+            color: var(--white); text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .cover-client-info .title-parts { color: rgba(255,255,255,0.9); margin: 0 10px; }
+        
+        .cover-client-info .client-name { color: var(--white); font-weight: 700; }
+        
+        .cover-project-info {
+            font-size: 20px; color: rgba(255,255,255,0.9); line-height: 1.6; margin-bottom: 25px;
+        }
+        
+        .cover-project-info div { margin-bottom: 5px; }
+        
+        .cover-specs {
+            display: flex; justify-content: center; gap: 15px; font-size: 16px;
+            color: rgba(255,255,255,0.9); background: rgba(0,0,0,0.1); padding: 15px;
+            border-radius: 8px; flex-wrap: wrap;
+        }
+        
+        .opening-text {
+            text-align: center; font-weight: 600; font-size: 16px; margin-bottom: 20px;
+            color: var(--gold); line-height: 1.7;
+        }
+        
+        .intro-text { line-height: 1.7; text-align: justify; margin-bottom: 20px; font-size: 14px; }
+        
+        .specs-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px; margin-bottom: 20px;
+        }
+        
+        .spec-item {
+            border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden;
+            transition: transform 0.2s ease; background: var(--white);
+        }
+        
+        .spec-item:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+        
+        .spec-label {
+            background: var(--light-gray); padding: 12px 16px; font-weight: 600; font-size: 13px;
+            text-align: center; border-bottom: 1px solid var(--border-color); color: var(--medium-gray);
+        }
+        
+        .spec-value {
+            padding: 16px; font-size: 14px; min-height: 55px; display: flex; align-items: center;
+            justify-content: center; text-align: center; font-weight: 500;
+        }
+        
+        .spec-highlight { color: var(--gold); font-weight: 600; }
+        
+        .modern-table {
+            width: 100%; border-collapse: collapse; background: var(--white); border-radius: 8px;
+            overflow: hidden; border: 1px solid var(--border-color); margin: 15px 0;
+        }
+        
+        .modern-table th {
+            background: var(--light-gray); padding: 12px 16px; text-align: right; font-weight: 600;
+            font-size: 12px; border-bottom: 1px solid var(--border-color);
+        }
+        
+        .modern-table td {
+            padding: 12px 16px; text-align: right; border-bottom: 1px solid var(--border-color);
+            font-size: 13px; vertical-align: top;
+        }
+        
+        .modern-table tbody tr:hover { background: var(--gold-light); }
+        
+        .modern-table tbody tr:last-child td { border-bottom: none; }
+        
+        .table-label { background: var(--light-gray); font-weight: 600; width: 40%; color: var(--medium-gray); }
+        
+        .long-text { line-height: 1.7; text-align: justify; font-size: 14px; word-wrap: break-word; }
+        
+        .section-icon {
+            width: 24px; height: 24px; background: var(--gold); border-radius: 6px; display: inline-flex;
+            align-items: center; justify-content: center; color: var(--white); font-size: 12px;
+            margin-left: 8px; flex-shrink: 0;
+        }
+        
+        .price-card { border: 2px solid var(--gold); background: var(--white); }
+        
+        .price-row {
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 0;
+            font-size: 14px; border-bottom: 1px solid var(--border-color);
+        }
+        
+        .price-row:last-child {
+            border-bottom: none; margin-top: 15px; padding-top: 20px; border-top: 2px solid var(--gold);
+            font-weight: 700; font-size: 16px; color: var(--gold);
+        }
+        
+        .price-value {
+            font-weight: 600; color: var(--gold); display: flex; align-items: center;
+            justify-content: flex-end; gap: 6px; direction: ltr;
+        }
+        
+        .sar-icon { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
+        
+        .approval-btn {
+            display: block; width: 100%; max-width: 280px; margin: 25px auto; padding: 12px 24px;
+            background: var(--gold); color: var(--white); text-decoration: none; border-radius: 8px;
+            font-size: 14px; font-weight: 600; text-align: center;
+            box-shadow: 0 4px 15px rgba(151, 126, 43, 0.3); transition: all 0.3s ease;
+            border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        
+        .approval-btn:hover {
+            background: var(--gold-hover); transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(151, 126, 43, 0.4); color: var(--white); text-decoration: none;
+        }
+        
+        .final-cover-company { font-size: 28px; font-weight: 700; margin-bottom: 15px; color: var(--gold); }
+        
+        .final-cover-department { font-size: 24px; font-weight: 600; margin-bottom: 25px; color: var(--dark-gray); }
+        
+        .final-cover-signature { width: 150px; margin: 20px auto; }
+        
+        .contact-info {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px; margin-bottom: 30px;
+        }
+        
+        .contact-section h3 { font-size: 18px; margin-bottom: 15px; color: var(--white); }
+        
+        .contact-item {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 14px;
+        }
+        
+        .contact-icon {
+            width: 20px; height: 20px; background: rgba(255, 255, 255, 0.2); border-radius: 4px;
+            display: flex; align-items: center; justify-content: center; color: var(--white); flex-shrink: 0;
+        }
+        
+        .social-media { display: flex; justify-content: flex-start; gap: 20px; margin-top: 30px; direction: ltr; }
+        
+        .social-link {
+            width: 45px; height: 45px; background: rgba(255, 255, 255, 0.2); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; color: var(--white);
+            text-decoration: none; transition: all 0.3s ease;
+        }
+        
+        .social-link:hover { background: var(--white); color: var(--gold); transform: translateY(-2px); }
+        
+        .pdf-loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            color: white; z-index: 10000;
+        }
+        
+        .pdf-loader.active { display: flex; }
+        
+        .loader-logo {
+            width: 120px; height: auto; margin-bottom: 30px; background: white; padding: 15px;
+            border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .loader {
+            width: 80px; height: 80px; border: 6px solid rgba(255, 255, 255, 0.3);
+            border-top: 6px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px;
+        }
+        
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .loader-title { font-size: 24px; font-weight: 700; margin-bottom: 10px; text-align: center; }
+        
+        .progress-bar {
+            width: 300px; height: 6px; background: rgba(255, 255, 255, 0.3); border-radius: 3px;
+            overflow: hidden; margin-bottom: 15px;
+        }
+        
+        .progress-fill { height: 100%; background: white; border-radius: 3px; width: 0%; transition: width 0.3s ease; }
+        
+        .progress-text { font-size: 14px; opacity: 0.8; text-align: center; }
+        
+        .pdf-workspace {
+            position: absolute; top: -9999px; left: -9999px; width: 210mm; background: white;
+            font-family: 'Cairo', sans-serif; direction: rtl; overflow: hidden;
+        }
+        
+        .pdf-page {
+            width: 210mm; height: 297mm; background: white; position: relative; page-break-after: always;
+            overflow: hidden; display: flex; flex-direction: column; font-family: 'Cairo', sans-serif;
+            font-size: 8pt; line-height: 1.4; color: var(--dark-gray);
+        }
+        
+        .pdf-page.cover-page { padding: 0; }
+        
+        .pdf-page.content-page {
+            padding: 0 5mm 5mm 5mm; position: relative;
+        }
+        .pdf-page .pdf-header {
+            position: absolute;
+            top: 1.5mm;
+            left: 5mm;
+            height: 3mm;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 0;
+            width: calc(100% - 10mm);
+        }
+        .pdf-page .pdf-footer-logo {
+            position: absolute;
+            left: 5mm;
+            bottom: 5mm;
+            height: 12mm;
+            width: auto;
+            opacity: 0.85;
+        }
+        
+        .pdf-page .pdf-content { margin-top: 16mm; flex: 1; overflow: hidden; padding: 0; }
+        
+        .pdf-page .card {
+            background: var(--white); border-radius: 2mm; box-shadow: none;
+            border: 0.1mm solid var(--border-color); margin-bottom: 3mm; page-break-inside: avoid;
+        }
+        
+        .pdf-page .section-card { min-height: auto; max-height: none; }
+        
+        .pdf-page .card-header { padding: 2.5mm 3.5mm; border-bottom: 0.1mm solid var(--border-color); background: var(--light-gray); }
+        
+        .pdf-page .card-body { padding: 3.5mm; }
+        
+        .pdf-page .card-title { font-size: 9pt; gap: 1.5mm; }
+        
+        .pdf-page .section-icon { width: 4.5mm; height: 4.5mm; font-size: 3mm; border-radius: 1mm; margin-left: 1.5mm; }
+        
+        .pdf-page .modern-table {
+            width: 100%; border-collapse: collapse; background: var(--white); border-radius: 1.5mm;
+            overflow: hidden; border: 0.1mm solid var(--border-color); margin: 2.5mm 0;
+        }
+        
+        .pdf-page .modern-table th, .pdf-page .modern-table td {
+            padding: 2mm 3mm; font-size: 7pt; border-bottom: 0.1mm solid var(--border-color);
+        }
+        
+        .pdf-page .modern-table th { background: var(--light-gray); font-weight: 600; font-size: 7pt; }
+        
+        .pdf-page .modern-table .table-label { background: var(--light-gray); }
+        
+        .pdf-page .specs-grid {
+            grid-template-columns: repeat(auto-fit, minmax(45mm, 1fr)); gap: 2.5mm; margin-bottom: 3mm;
+        }
+        
+        .pdf-page .spec-item { border: 0.1mm solid var(--border-color); border-radius: 1.5mm; }
+        
+        .pdf-page .spec-label { padding: 2mm 3mm; font-size: 6.5pt; }
+        
+        .pdf-page .spec-value { padding: 3mm; font-size: 7.5pt; min-height: auto; }
+        
+        .pdf-page .price-card { border: 0.3mm solid var(--gold); }
+        
+        .pdf-page .price-row { padding: 3mm 0; font-size: 7.5pt; border-bottom: 0.1mm solid var(--border-color); }
+        
+        .pdf-page .price-row:last-child {
+            margin-top: 3mm; padding-top: 4.5mm; border-top: 0.3mm solid var(--gold); font-size: 9pt;
+        }
+        
+        .pdf-page .sar-icon { width: 3mm; height: 3mm; }
+        
+        .pdf-page .opening-text { font-size: 8pt; margin-bottom: 3.5mm; }
+        
+        .pdf-page .intro-text { font-size: 7.5pt; margin-bottom: 3.5mm; }
+        
+        .pdf-page .long-text { font-size: 7.5pt; }
+        
+        @media (max-width: 768px) {
+            body { padding-top: 60px; font-size: 14px; }
+            .save-toolbar { height: 50px; padding: 0 15px; }
+            .save-btn { padding: 6px 15px; font-size: 12px; }
+            .container { padding: 16px; }
+            .cover-card { padding: 40px 20px; }
+            .cover-logo { width: 250px; }
+            .cover-quote-title h1 { font-size: 32px; }
+            .cover-quote-title h2 { font-size: 24px; }
+            .cover-meta-info { position: static; margin-bottom: 20px; }
+            .cover-specs { flex-direction: column; gap: 8px; text-align: center; }
+            .specs-grid { grid-template-columns: 1fr; }
+            .contact-info { grid-template-columns: 1fr; }
+            .social-media { justify-content: center; }
+            .form-control { font-size: 16px; }
+        }
+        
+        @media print {
+            body { background: white; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            .save-toolbar { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="save-toolbar">
+        <button class="save-btn" id="saveBtn" title="حفظ الملف">
+            <i class="fas fa-download"></i>
+            حفظ الملف
+        </button>
+    </div>
+
+    <div class="pdf-loader" id="pdfLoader">
+        <img src="https://alfagolden.com/images/logo.png" alt="الشعار" class="loader-logo">
+        <div class="loader"></div>
+        <div class="loader-title">جارٍ إنشاء ملف PDF</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">جارٍ التحضير...</div>
+    </div>
+
+    <div class="pdf-workspace" id="pdfWorkspace"></div>
+
+    <div class="container" id="mainContent">
+        <div class="card cover-card">
+            <div class="cover-top-section">
+                <div class="cover-meta-info">
+                    <div><strong>رقم العرض:</strong> <?= htmlspecialchars($data['quote_number']) ?></div>
+                    <div><strong>التاريخ:</strong> <?= $formattedDate ?></div>
+                </div>
+                <img src="https://alfagolden.com/images/logo.png" alt="شعار شركة ألفا الذهبية" class="cover-logo">
+            </div>
+            <div class="cover-bottom-section">
+                <div class="cover-quote-title">
+                    <h1>عرض سعر</h1>
+                    <h2>ALFA <?= strtoupper($quote_type) ?></h2>
+                </div>
+                <div class="cover-client-info">
+                    <span class="title-parts"><?= htmlspecialchars($data['title_before']) ?></span>
+                    <span class="client-name"><?= htmlspecialchars($data['client_name']) ?></span>
+                    <span class="title-parts"><?= htmlspecialchars($data['title_after']) ?></span>
+                </div>
+                <div class="cover-project-info">
+                    <div><strong>المشروع:</strong> <?= htmlspecialchars($data['project']) ?></div>
+                    <div><strong>العنوان:</strong> <?= htmlspecialchars($data['address']) ?></div>
+                </div>
+                <div class="cover-specs">
+                    <span>عدد المصاعد: <?= htmlspecialchars($data['elevators_count']) ?></span>
+                    <span>|</span>
+                    <span>عدد الوقفات: <?= htmlspecialchars($data['stops_count']) ?></span>
+                    <span>|</span>
+                    <span>الحمولة: <?= htmlspecialchars($data['capacity']) ?> kg</span>
+                </div>
+            </div>
+        </div>
+
+        <?php if (!empty($data['opening_text'])): ?>
+        <div class="card">
+            <div class="card-body">
+                <div class="opening-text"><?= nl2br(htmlspecialchars($data['opening_text'])) ?></div>
+                <div class="opening-text" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--dark-gray);"><?= htmlspecialchars($data['title_before']) ?> /</span>
+                    <span style="color: var(--gold); font-weight: 700;"><?= htmlspecialchars($data['client_name']) ?></span>
+                    <span style="color: var(--dark-gray);"><?= htmlspecialchars($data['title_after']) ?></span>
+                </div>
+                <?php if (!empty($data['introductory_sentence'])): ?>
+                <div class="intro-text"><?= nl2br(htmlspecialchars($data['introductory_sentence'])) ?></div>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <div class="card section-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-clipboard-list section-icon"></i>
+                    المواصفات العامة
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="specs-grid">
+                    <?php
+                    $specs = [
+                        ['label' => 'نوع المصعد', 'value' => 'MRL'],
+                        ['label' => 'نوع المبنى', 'value' => 'مبنى سكني'],
+                        ['label' => 'عدد المصاعد', 'value' => $data['elevators_count'], 'highlight' => true],
+                        ['label' => 'السرعة', 'value' => '1.0 m/s'],
+                        ['label' => 'وضع الماكينة', 'value' => $data['machine_position']],
+                        ['label' => 'عدد الوقفات', 'value' => $data['stops_count'], 'highlight' => true],
+                        ['label' => 'الحمولة', 'value' => $data['capacity'] . ' kg', 'highlight' => true],
+                        ['label' => 'عدد الأشخاص', 'value' => $data['people_count'], 'highlight' => true],
+                        ['label' => 'عدد جهات الدخول', 'value' => $data['entrance_count']],
+                        ['label' => 'البراند', 'value' => $data['brand']]
+                    ];
+                    
+                    foreach ($specs as $spec): ?>
+                    <div class="spec-item">
+                        <div class="spec-label"><?= $spec['label'] ?></div>
+                        <div class="spec-value <?= isset($spec['highlight']) ? 'spec-highlight' : '' ?>">
+                            <?= htmlspecialchars($spec['value']) ?>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?= renderTable([
+                    'طريقة التشغيل' => $data['operation_method'],
+                    'مسميات الوقفات' => $data['stops_names'],
+                    'التيار الكهربائي' => $data['electrical_current']
+                ]) ?>
+            </div>
+        </div>
+
+        <?php if (!empty($data['machine_type'])): 
+            echo renderSection('نوع الماكينة', 'cog', nl2br(htmlspecialchars($data['machine_type'])), true);
+        endif; ?>
+
+        <?php if (!empty($data['control_device'])): 
+            echo renderSection('جهاز تشغيل المصعد', 'sliders-h', nl2br(htmlspecialchars($data['control_device'])), true);
+        endif; ?>
+
+        <?= renderSection('البئر', 'circle', renderTable([
+            'مبني من' => $data['well_material'],
+            'المقاس الداخلي' => $data['well_dimensions']
+        ])) ?>
+
+        <?= renderSection('الأبواب الخارجية والداخلية', 'door-open', renderTable([
+            'طريقة التشغيل' => $data['door_operation_method'],
+            'التشطيب' => $data['cabin_finishing'], 
+            'مقاساتها' => $data['door_dimensions'],
+            'الباب الداخلي' => $data['internal_door']
+        ])) ?>
+
+        <?= renderSection('الدلائل والتعليق', 'link', renderTable([
+            'سكك الصاعدة' => $data['elevator_rails'],
+            'سكك ثقل الموازنة' => $data['counterweight_rails'],
+            'حبال الجر' => $data['traction_ropes'],
+            'الكابل المرن' => $data['flexible_cable'],
+            'الإطار الحامل للصاعدة' => $data['carrier_frame']
+        ])) ?>
+
+        <?= renderSection('الصاعدة', 'home', renderTable([
+            'التشطيب' => $data['cabin_finishing'],
+            'المقاسات الداخلية' => $data['cabin_dimensions'],
+            'السقف' => $data['ceiling'],
+            'إضاءة الطوارئ' => $data['emergency_lighting'],
+            'جهاز تحريك الصاعدة' => $data['cabin_movement_device'],
+            'الأرضية' => $data['flooring']
+        ])) ?>
+
+        <?= renderSection('لوحات التحكم', 'tablet-alt', renderTable([
+            'لوحة الطلب الداخلية COP' => $data['internal_cop'],
+            'التشطيب الخارجي' => $data['external_panel_finishing'],
+            'الوقفة الرئيسية' => $data['external_main_stop'],
+            'الوقفات الأخرى' => $data['external_other_stops']
+        ])) ?>
+
+        <?= renderSection('أجهزة الطوارئ والأمان', 'shield-alt', renderTable($safety_devices)) ?>
+
+        <?php if (!empty($additions)): ?>
+        <div class="card section-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-plus section-icon"></i>
+                    الإضافات
+                </h2>
+            </div>
+            <div class="card-body">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>اسم الإضافة</th>
+                            <th>السعر الوحدة</th>
+                            <th>التأثير</th>
+                            <th>طريقة الحساب</th>
+                            <th>الإجمالي</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($additions as $addition): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($addition['name']) ?></td>
+                            <td>
+                                <span class="price-value">
+            <img src="https://alfagolden.com/images/sar.png" alt="ر.س" class="sar-icon" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;object-fit:contain;margin-left:2px;" loading="lazy" />
+            <?= htmlspecialchars($addition['price']) ?>
+                                </span>
+                            </td>
+                            <td><?= htmlspecialchars($addition['effect']) ?></td>
+                            <td><?= htmlspecialchars($addition['calculation']) ?></td>
+                            <td>
+                                <span class="price-value">
+                                    <img src="https://alfagolden.com/images/sar.svg" alt="ر.س" class="sar-icon">
+                                    <?= htmlspecialchars($addition['total']) ?>
+                                </span>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <?php
+        if (!empty($data['preparatory_work'])) 
+            echo renderSection('الأعمال التحضيرية', 'hard-hat', nl2br(htmlspecialchars($data['preparatory_work'])), true);
+            
+        if (!empty($data['supply_installation'])) 
+            echo renderSection('التوريد والتركيب', 'box', nl2br(htmlspecialchars($data['supply_installation'])), true);
+        ?>
+
+        <div class="card price-card section-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-dollar-sign section-icon"></i>
+                    السعر والدفعات
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="price-breakdown">
+                    <?php if ((float)$data['discount_amount'] > 0): ?>
+                    <div class="price-row">
+                        <span>مبلغ الخصم:</span>
+                        <span class="price-value">
+            <img src="https://alfagolden.com/images/sar.png" alt="ر.س" class="sar-icon" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;object-fit:contain;margin-left:2px;" loading="lazy" />
+            -<?= htmlspecialchars($data['discount_amount']) ?>
+                        </span>
+                    </div>
+                    <?php endif; ?>
+                    <div class="price-row">
+                        <span>السعر بدون ضريبة:</span>
+                        <span class="price-value">
+            <img src="https://alfagolden.com/images/sar.png" alt="ر.س" class="sar-icon" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;object-fit:contain;margin-left:2px;" loading="lazy" />
+            <?= htmlspecialchars($data['price_before_vat']) ?>
+                        </span>
+                    </div>
+                    <div class="price-row">
+                        <span>ضريبة القيمة المضافة (15%):</span>
+                        <span class="price-value">
+            <img src="https://alfagolden.com/images/sar.png" alt="ر.س" class="sar-icon" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;object-fit:contain;margin-left:2px;" loading="lazy" />
+            <?= htmlspecialchars($data['vat_amount']) ?>
+                        </span>
+                    </div>
+                    <div class="price-row">
+                        <span>السعر الإجمالي شامل الضريبة:</span>
+                        <span class="price-value">
+            <img src="https://alfagolden.com/images/sar.png" alt="ر.س" class="sar-icon" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;object-fit:contain;margin-left:2px;" loading="lazy" />
+            <?= htmlspecialchars($data['total_price_with_vat']) ?>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <?php if (!empty($data['warranty_maintenance'])) 
+            echo renderSection('الضمان والصيانة المجانية', 'tools', nl2br(htmlspecialchars($data['warranty_maintenance'])), true);
+        ?>
+
+        <div class="card cover-card">
+            <div class="cover-top-section">
+                <img src="https://alfagolden.com/images/logo.png" alt="شعار شركة ألفا الذهبية" class="cover-logo">
+                <div class="final-cover-company">شركة ألفا الذهبية للمصاعد</div>
+                <div class="final-cover-department">إدارة العقــــود والمبيعـــات</div>
+                <img src="https://alfagolden.com/sign.png" alt="توقيع الشركة" class="final-cover-signature">
+                <?php if (!empty($data['closing_sentence'])): ?>
+                <div class="long-text" style="font-size: 16px; color: var(--gold); font-weight: 600; margin-top: 20px; text-align: center;">
+                    <?= nl2br(htmlspecialchars($data['closing_sentence'])) ?>
+                </div>
+                <?php endif; ?>
+                
+                <a href="https://alfagolden.com/system/q/approve.php?quote_id=<?= htmlspecialchars($quote_id) ?>" 
+                   class="approval-btn" target="_blank">
+                    <i class="fas fa-check-circle"></i>
+                    اضغط للموافقة على العرض
+                </a>
+            </div>
+            
+            <div class="cover-bottom-section">
+                <div class="contact-info">
+                    <div class="contact-section">
+                        <h3>أرقام التواصل</h3>
+                        <div class="contact-item"><i class="fas fa-phone contact-icon"></i> 0148400009</div>
+                        <div class="contact-item"><i class="fas fa-mobile-alt contact-icon"></i> 0506086333</div>
+                        <div class="contact-item"><i class="fas fa-phone contact-icon"></i> 0112522227</div>
+                        <div class="contact-item"><i class="fas fa-mobile-alt contact-icon"></i> 0506023111</div>
+                    </div>
+                    
+                    <div class="contact-section">
+                        <h3>عناوين الفروع</h3>
+                        <div class="contact-item"><i class="fas fa-building contact-icon"></i> المدينة المنورة - القصواء - شارع الأمير سلطان</div>
+                        <div class="contact-item"><i class="fas fa-building contact-icon"></i> الرياض - الملقا - شارع الخير</div>
+                    </div>
+                </div>
+                
+                <div class="social-media">
+                    <a href="https://x.com/alfagolden0" class="social-link" target="_blank">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="https://www.facebook.com/alfagolden2" class="social-link" target="_blank">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="https://www.instagram.com/alfagolden2/" class="social-link" target="_blank">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="https://www.youtube.com/@alfa.golden" class="social-link" target="_blank">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+    <script>
+        const quoteData = {
+            quote_number: '<?= htmlspecialchars($data['quote_number']) ?>',
+            date: '<?= $formattedDate ?>',
+            client_name: '<?= htmlspecialchars($data['client_name']) ?>',
+            title_before: '<?= htmlspecialchars($data['title_before']) ?>',
+            title_after: '<?= htmlspecialchars($data['title_after']) ?>',
+            project: '<?= htmlspecialchars($data['project']) ?>',
+            address: '<?= htmlspecialchars($data['address']) ?>',
+            elevators_count: '<?= htmlspecialchars($data['elevators_count']) ?>',
+            stops_count: '<?= htmlspecialchars($data['stops_count']) ?>',
+            capacity: '<?= htmlspecialchars($data['capacity']) ?>',
+            quote_type: '<?= $quote_type ?>',
+            closing_sentence: `<?= addslashes(nl2br(htmlspecialchars($data['closing_sentence']))) ?>`,
+            quote_id: '<?= $quote_id ?>'
+        };
+
+        class SmartPDFGenerator {
+            constructor() {
+                this.workspace = document.getElementById('pdfWorkspace');
+                this.progressFill = document.getElementById('progressFill');
+                this.progressText = document.getElementById('progressText');
+                this.pdfLoader = document.getElementById('pdfLoader');
+                this.pages = [];
+                this.pageWidthMM = 210;
+                this.pageHeightMM = 297;
+                this.contentMarginLeftRightMM = 5;
+                this.contentMarginTopBottomMM = 2;
+                this.headerHeightMM = 6;
+                this.maxContentHeightMM = this.pageHeightMM - this.headerHeightMM - (this.contentMarginTopBottomMM * 2);
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                document.getElementById('saveBtn').addEventListener('click', () => {
+                    this.generatePDF();
+                });
+            }
+
+            updateProgress(percentage, text) {
+                this.progressFill.style.width = percentage + '%';
+                this.progressText.textContent = text;
+            }
+
+            showLoader() {
+                this.pdfLoader.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            hideLoader() {
+                this.pdfLoader.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+
+            async generatePDF() {
+                try {
+                    this.showLoader();
+                    this.updateProgress(0, 'جارٍ التحضير...');
+
+                    await this.waitForLibraries();
+                    this.updateProgress(20, 'تم تحميل المكتبات...');
+
+                    this.updateProgress(40, 'جارٍ استخراج المحتوى...');
+                    const elementsHTML = this.extractElementsHTMLFromMainContent();
+
+                    this.updateProgress(60, 'جارٍ تنظيم الصفحات...');
+                    await this.createSmartPDFPages(elementsHTML);
+
+                    this.updateProgress(80, 'جارٍ إنشاء PDF...');
+                    await this.createPDFFile();
+
+                    this.updateProgress(100, 'تم الانتهاء!');
+                    setTimeout(() => this.hideLoader(), 2000);
+
+                } catch (error) {
+                    this.updateProgress(0, 'خطأ: ' + error.message);
+                    this.progressText.style.color = '#ff6b6b';
+                    setTimeout(() => this.hideLoader(), 3000);
+                }
+            }
+
+            async waitForLibraries() {
+                return new Promise((resolve) => {
+                    const checkLibs = () => {
+                        if (typeof html2canvas !== 'undefined' && typeof window.jspdf !== 'undefined') {
+                            resolve();
+                        } else {
+                            setTimeout(checkLibs, 100);
+                        }
+                    };
+                    checkLibs();
+                });
+            }
+
+            extractElementsHTMLFromMainContent() {
+                const elements = [];
+                const contentCards = document.querySelectorAll('#mainContent .card:not(.cover-card)');
+                contentCards.forEach(card => {
+                    const cardBody = card.querySelector('.card-body');
+                    if (cardBody && cardBody.textContent.trim().length > 10) {
+                        elements.push(card.outerHTML);
+                    }
+                });
+                return elements;
+            }
+
+            async createSmartPDFPages(elementsHTML) {
+                this.pages = [];
+                this.pages.push(this.createCoverPageHTML('start'));
+
+                let currentPageDOM = this.createContentPageHTML();
+                let currentContentHeightMM = 0;
+
+                for (let i = 0; i < elementsHTML.length; i++) {
+                    const cardHTML = elementsHTML[i];
+                    
+                    const tempMeasurementDiv = document.createElement('div');
+                    tempMeasurementDiv.className = 'pdf-page content-page';
+                    tempMeasurementDiv.innerHTML = `<div class="pdf-content">${cardHTML}</div>`;
+                    this.workspace.appendChild(tempMeasurementDiv);
+                    
+                    await new Promise(resolve => setTimeout(resolve, 10)); 
+                    const measuredCardBody = tempMeasurementDiv.querySelector('.card-body');
+                    const cardHeightPX = measuredCardBody ? measuredCardBody.scrollHeight + (measuredCardBody.offsetTop - tempMeasurementDiv.querySelector('.card').offsetTop) + 10 : 0;
+                    
+                    // الحل الجذري: نسبة تحويل ثابتة لجميع الأجهزة
+                    const FIXED_MM_TO_PX_RATIO = 3.78;
+                    const cardHeightMM = cardHeightPX / FIXED_MM_TO_PX_RATIO;
+                    
+                    this.workspace.removeChild(tempMeasurementDiv);
+
+                    if (currentContentHeightMM > 0 && (currentContentHeightMM + cardHeightMM + 3) > this.maxContentHeightMM) {
+                        this.pages.push(currentPageDOM);
+                        currentPageDOM = this.createContentPageHTML();
+                        currentContentHeightMM = 0;
+                    }
+
+                    const pageContentDiv = currentPageDOM.querySelector('.pdf-content');
+                    pageContentDiv.innerHTML += cardHTML;
+                    currentContentHeightMM += (cardHeightMM + 3);
+                }
+
+                if (currentContentHeightMM > 0) {
+                    this.pages.push(currentPageDOM);
+                }
+
+                this.pages.push(this.createCoverPageHTML('end'));
+            }
+
+            createCoverPageHTML(type) {
+                let logoSrc = "https://alfagolden.com/images/logo.png";
+                let signatureSrc = "https://alfagolden.com/sign.png";
+                let bottomBgImg = "https://alfagolden.com/q.jpg";
+
+                let topSectionContent;
+                let bottomSectionContent;
+                let approveBtnHTML = '';
+                let closingSentenceHTML = '';
+
+                if (type === 'start') {
+                    topSectionContent = `
+                        <div style="
+                            position: absolute; top: 8mm; right: 8mm; font-size: 9pt;
+                            color: var(--medium-gray); text-align: right;
+                            background: rgba(255,255,255,0.95); padding: 4mm; border-radius: 4px;
+                            box-shadow: 0 1px 4px rgba(0,0,0,0.1); line-height: 1.5;
+                        ">
+                            <div><strong>رقم العرض:</strong> ${quoteData.quote_number}</div>
+                            <div><strong>التاريخ:</strong> ${quoteData.date}</div>
+                        </div>
+                        
+                        <img src="${logoSrc}" alt="شعار شركة ألفا الذهبية" style="
+                            width: 40%; max-width: 84mm; margin-bottom: 15mm; background: white; padding: 5mm;
+                            border-radius: 6px; box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+                            display: block;
+                        ">
+                    `;
+                    bottomSectionContent = `
+                        <div style="margin-bottom: 12mm;">
+                            <h1 style="
+                                font-size: 20pt; font-weight: 700; color: white; margin-bottom: 2mm;
+                                line-height: 1.2; text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+                            ">عرض سعر</h1>
+                            <h2 style="
+                                font-size: 15pt; font-weight: 600; color: white; line-height: 1.2;
+                                text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+                            ">ALFA ${quoteData.quote_type.toUpperCase()}</h2>
+                        </div>
+                        
+                        <div style="
+                            margin-bottom: 12mm; font-size: 13pt; font-weight: 600; line-height: 1.6;
+                            color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+                        ">
+                            <span style="color: rgba(255,255,255,0.9); margin: 0 3mm;">${quoteData.title_before}</span>
+                            <span style="color: white; font-weight: 700;">${quoteData.client_name}</span>
+                            <span style="color: rgba(255,255,255,0.9); margin: 0 3mm;">${quoteData.title_after}</span>
+                        </div>
+                        
+                        <div style="
+                            font-size: 10pt; color: rgba(255,255,255,0.9); line-height: 1.6;
+                            margin-bottom: 10mm; text-align: center;
+                        ">
+                            <div style="margin-bottom: 1mm;"><strong>المشروع:</strong> ${quoteData.project}</div>
+                            <div><strong>العنوان:</strong> ${quoteData.address}</div>
+                        </div>
+                        
+                        <div style="
+                            display: flex; justify-content: center; gap: 3mm; font-size: 8pt;
+                            color: rgba(255,255,255,0.9); background: rgba(0,0,0,0.1);
+                            padding: 3mm; border-radius: 3mm; flex-wrap: wrap;
+                        ">
+                            <span>عدد المصاعد: ${quoteData.elevators_count}</span>
+                            <span>|</span>
+                            <span>عدد الوقفات: ${quoteData.stops_count}</span>
+                            <span>|</span>
+                            <span>الحمولة: ${quoteData.capacity} kg</span>
+                        </div>
+                    `;
+                } else {
+                    if (quoteData.closing_sentence.trim().length > 0) {
+                        closingSentenceHTML = `
+                            <div style="font-size: 10pt; color: var(--gold); font-weight: 600; margin-top: 8mm; text-align: center; line-height: 1.6;">
+                                ${quoteData.closing_sentence}
+                            </div>
+                        `;
+                    }
+
+                    approveBtnHTML = `
+                        <div class="approval-btn-pdf" style="
+                            width: 70mm; padding: 4mm 6mm;
+                            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%);
+                            color: white; text-decoration: none; border-radius: 6px; font-size: 10pt;
+                            font-weight: 600; text-align: center;
+                            box-shadow: 0 2px 8px rgba(151, 126, 43, 0.3); margin: 6mm auto 0 auto;
+                            display: flex; align-items: center; justify-content: center; gap: 2mm;
+                        ">
+                            <i class="fas fa-check-circle"></i>
+                            اضغط للموافقة على العرض
+                        </div>
+                    `;
+
+                    topSectionContent = `
+                        <img src="${logoSrc}" alt="شعار شركة ألفا الذهبية" style="
+                            width: 40%; max-width: 84mm; margin-bottom: 8mm; background: white; padding: 4mm;
+                            border-radius: 6px; box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+                            display: block;
+                        ">
+                        
+                        <div style="font-size: 13pt; font-weight: 600; margin-bottom: 2mm; color: var(--dark-gray);">
+                            إدارة العقــــود والمبيعـــات
+                        </div>
+                        
+                        <img src="${signatureSrc}" alt="توقيع الشركة" style="
+                            width: 20mm; margin: 0.5mm auto 8mm auto;
+                        ">
+                        ${closingSentenceHTML}
+                        ${approveBtnHTML}
+                    `;
+                    
+                    bottomSectionContent = `
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; margin-bottom: 6mm; text-align: right;">
+                            <div>
+                                <h3 style="font-size: 11pt; margin-bottom: 6px; color: white;">أرقام التواصل</h3>
+                                <div style="font-size: 9pt; line-height: 1.8;">
+                                    <div style="margin-bottom: 3px; display: flex; align-items: center; justify-content: flex-end; direction: ltr;">
+                                        0148400009 <i class="fas fa-phone" style="margin-right: 3px; width: 4mm;"></i> 
+                                    </div>
+                                    <div style="margin-bottom: 3px; display: flex; align-items: center; justify-content: flex-end; direction: ltr;">
+                                        0506086333 <i class="fas fa-mobile-alt" style="margin-right: 3px; width: 4mm;"></i>
+                                    </div>
+                                    <div style="margin-bottom: 3px; display: flex; align-items: center; justify-content: flex-end; direction: ltr;">
+                                        0112522227 <i class="fas fa-phone" style="margin-right: 3px; width: 4mm;"></i>
+                                    </div>
+                                    <div style="display: flex; align-items: center; justify-content: flex-end; direction: ltr;">
+                                        0506023111 <i class="fas fa-mobile-alt" style="margin-right: 3px; width: 4mm;"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h3 style="font-size: 11pt; margin-bottom: 6px; color: white;">عناوين الفروع</h3>
+                                <div style="font-size: 9pt; line-height: 1.8; direction: rtl; text-align: right;">
+                                    <div style="margin-bottom: 3px; display: flex; align-items: flex-start; justify-content: flex-end; text-align: right; direction: rtl;">
+                                        <i class="fas fa-building" style="margin-left: 3px; width: 4mm; margin-top: 1mm;"></i>
+                                        <span>المدينة المنورة - القصواء - شارع الأمير سلطان</span>
+                                    </div>
+                                    <div style="display: flex; align-items: flex-start; justify-content: flex-end; text-align: right; direction: rtl;">
+                                        <i class="fas fa-building" style="margin-left: 3px; width: 4mm; margin-top: 1mm;"></i>
+                                        <span>الرياض - الملقا - شارع الخير</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: flex-end; gap: 4mm; margin-top: 12mm; direction: ltr;">
+                            <a href="https://x.com/alfagolden0" style="
+                                width: 8mm; height: 8mm; background: rgba(255, 255, 255, 0.2); border-radius: 2mm; 
+                                display: flex; align-items: center; justify-content: center;
+                                color: white; text-decoration: none;
+                            ">
+                                <i class="fab fa-twitter" style="font-size: 5mm;"></i>
+                            </a>
+                            <a href="https://www.facebook.com/alfagolden2" style="
+                                width: 8mm; height: 8mm; background: rgba(255, 255, 255, 0.2); border-radius: 2mm; 
+                                display: flex; align-items: center; justify-content: center;
+                                color: white; text-decoration: none;
+                            ">
+                                <i class="fab fa-facebook-f" style="font-size: 5mm;"></i>
+                            </a>
+                            <a href="https://www.instagram.com/alfagolden2/" style="
+                                width: 8mm; height: 8mm; background: rgba(255, 255, 255, 0.2); border-radius: 2mm; 
+                                display: flex; align-items: center; justify-content: center;
+                                color: white; text-decoration: none;
+                            ">
+                                <i class="fab fa-instagram" style="font-size: 5mm;"></i>
+                            </a>
+                            <a href="https://www.youtube.com/@alfa.golden" style="
+                                width: 8mm; height: 8mm; background: rgba(255, 255, 255, 0.2); border-radius: 2mm; 
+                                display: flex; align-items: center; justify-content: center;
+                                color: white; text-decoration: none;
+                            ">
+                                <i class="fab fa-youtube" style="font-size: 5mm;"></i>
+                            </a>
+                        </div>
+                    `;
+                }
+
+                const page = document.createElement('div');
+                page.className = 'pdf-page cover-page';
+                page.innerHTML = `
+                    <div style="
+                        width: 210mm; height: 297mm;
+                        background: linear-gradient(to bottom, var(--white) 50%, var(--gold) 50%);
+                        display: flex; flex-direction: column; font-family: 'Cairo', sans-serif;
+                        direction: rtl; position: relative; overflow: hidden;
+                    ">
+                        <div style="
+                            position: absolute; top: 50%; left: 0; right: 0; height: 30px;
+                            background: radial-gradient(ellipse at center, transparent 0%, transparent 40%, var(--gold) 100%);
+                            transform: translateY(-50%); z-index: 2;
+                        "></div>
+                        
+                        <div style="
+                            flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+                            padding: 25mm 20mm; background: var(--white); text-align: center;
+                            position: relative; z-index: 3;
+                        ">
+                            ${topSectionContent}
+                        </div>
+
+                        <div style="
+                            flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+                            padding: 25mm 20mm; background: var(--gold); color: var(--white); text-align: center;
+                            position: relative; z-index: 3;
+                            background-image: 
+                                linear-gradient(to bottom, 
+                                    rgba(151, 126, 43, 0.9) 0%, 
+                                    rgba(151, 126, 43, 0.7) 50%, 
+                                    rgba(151, 126, 43, 0.4) 100%
+                                ),
+                                url(${bottomBgImg});
+                            background-size: cover; background-position: center bottom; background-repeat: no-repeat;
+                        ">
+                            ${bottomSectionContent}
+                        </div>
+                    </div>
+                `;
+                return page;
+            }
+
+            createContentPageHTML() {
+                const page = document.createElement('div');
+                page.className = 'pdf-page content-page';
+                page.innerHTML = `
+                    <div class="pdf-header" style="
+                        position: absolute;
+                        top: 0mm;
+                        left: 0mm;
+                        width: 210mm;
+                        height: 15mm;
+                        background: linear-gradient(90deg, var(--gold) 0%, var(--gold-hover) 100%);
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        padding: 0 8mm;
+                        z-index: 10;
+                        border-radius: 0;
+                    ">
+                        <div style="display: flex; flex-direction: column; align-items: flex-start; color: #fff; font-size: 9pt; font-weight: 600;">
+                            <span>رقم العرض: ${quoteData.quote_number}</span>
+                            <span>التاريخ: ${quoteData.date}</span>
+                        </div>
+                        <img src="https://alfagolden.com/llogo.png" alt="شعار ألفا الذهبية" style="height: 11mm; width: auto; display: block; margin-left: 0; margin-right: 0;" />
+                    </div>
+                    <div class="pdf-content" style="min-height: 230mm; position: relative; padding-top: 2mm;">
+                        <!-- سيتم إضافة المحتوى هنا -->
+                    </div>
+                `;
+                return page;
+            }
+
+            async createPDFFile() {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4',
+                    compress: true
+                });
+
+                const totalPages = this.pages.length;
+                for (let i = 0; i < totalPages; i++) {
+                    const pageDOM = this.pages[i];
+                    this.updateProgress(80 + (i / totalPages) * 15, `معالجة الصفحة ${i + 1}/${totalPages}...`);
+                    
+                    const isCover = pageDOM.classList.contains('cover-page');
+                    const footerDiv = document.createElement('div');
+                    
+                    let bgColor = isCover ? '#fff' : 'var(--gold)';
+                    let textColor = isCover ? 'var(--gold)' : '#fff';
+                    footerDiv.style.position = 'absolute';
+                    footerDiv.style.left = '50%';
+                    footerDiv.style.transform = 'translateX(-50%)';
+                    footerDiv.style.bottom = '-1px';
+                    footerDiv.style.width = '28mm';
+                    footerDiv.style.height = '7mm';
+                    footerDiv.style.background = bgColor;
+                    footerDiv.style.color = textColor;
+                    footerDiv.style.display = 'flex';
+                    footerDiv.style.alignItems = 'center';
+                    footerDiv.style.justifyContent = 'center';
+                    footerDiv.style.fontWeight = 'bold';
+                    footerDiv.style.fontSize = '9pt';
+                    footerDiv.style.letterSpacing = '0.5px';
+                    footerDiv.style.lineHeight = '1';
+                    footerDiv.style.overflow = 'hidden';
+                    footerDiv.style.borderBottomLeftRadius = '0';
+                    footerDiv.style.borderBottomRightRadius = '0';
+                    footerDiv.style.borderTopLeftRadius = '1.2mm';
+                    footerDiv.style.borderTopRightRadius = '1.2mm';
+                    footerDiv.style.boxShadow = '0 1px 6px rgba(0,0,0,0.07)';
+                    footerDiv.style.zIndex = '100';
+                    footerDiv.textContent = `${i + 1} / ${totalPages}`;
+                    pageDOM.appendChild(footerDiv);
+
+                    this.workspace.appendChild(pageDOM);
+                    
+                    try {
+                        let approvalBtnRectMM = null;
+                        if (i === totalPages - 1 && isCover) {
+                            const approvalBtn = pageDOM.querySelector('.approval-btn-pdf');
+                            if (approvalBtn) {
+                                const rect = approvalBtn.getBoundingClientRect();
+                                const pageRect = pageDOM.getBoundingClientRect();
+                                const xPx = rect.left - pageRect.left;
+                                const yPx = rect.top - pageRect.top;
+                                const widthPx = rect.width;
+                                const heightPx = rect.height;
+                                const pxPerMM_X = pageDOM.offsetWidth / 210;
+                                const pxPerMM_Y = pageDOM.offsetHeight / 297;
+                                approvalBtnRectMM = {
+                                    x: xPx / pxPerMM_X,
+                                    y: yPx / pxPerMM_Y,
+                                    w: widthPx / pxPerMM_X,
+                                    h: heightPx / pxPerMM_Y
+                                };
+                            }
+                        }
+
+                        // الحل الجذري: إعدادات html2canvas ثابتة لجميع الأجهزة
+                        const canvas = await html2canvas(pageDOM, {
+                            scale: 3,  // دقة ثابتة لجميع الأجهزة
+                            useCORS: true,
+                            allowTaint: true,
+                            backgroundColor: '#ffffff',
+                            logging: false,
+                            width: pageDOM.offsetWidth,
+                            height: pageDOM.offsetHeight
+                        });
+                        
+                        if (i > 0) pdf.addPage();
+                        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                        pdf.addImage(imgData, 'JPEG', 0, 0, this.pageWidthMM, this.pageHeightMM);
+                        
+                        if (approvalBtnRectMM) {
+                            const linkUrl = `https://alfagolden.com/system/q/approve.php?quote_id=${quoteData.quote_id}`;
+                            pdf.link(approvalBtnRectMM.x, approvalBtnRectMM.y, approvalBtnRectMM.w, approvalBtnRectMM.h, { url: linkUrl });
+                        }
+                    } catch (error) {
+                        console.error(`خطأ في الصفحة ${i + 1}:`, error);
+                    } finally {
+                        pageDOM.removeChild(footerDiv);
+                        this.workspace.removeChild(pageDOM);
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                this.updateProgress(95, 'جارٍ حفظ الملف...');
+                
+                let beforeName = quoteData.title_before ? quoteData.title_before.replace(/[/\\:*?"<>|]/g, '') : '';
+                let clientName = quoteData.client_name ? quoteData.client_name.replace(/[/\\:*?"<>|]/g, '') : '';
+                let fileName = `عرض سعر (${beforeName} ${clientName}) #${quoteData.quote_number}.pdf`;
+                pdf.save(fileName);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.fonts.ready.then(() => {
+                new SmartPDFGenerator();
+            }).catch(err => {
+                new SmartPDFGenerator();
+            });
+        });
+    </script>
+</body>
+</html>

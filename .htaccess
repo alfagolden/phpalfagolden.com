@@ -1,0 +1,23 @@
+RewriteEngine On
+
+# إذا لم يكن الملف موجودًا ولا المجلد، وجدت نسخة .html → أعد التوجيه إليها
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.+)$ $1.html [L,QSA]
+
+# إعدادات رفع الملفات - ضع هذا في ملف .htaccess
+php_value upload_max_filesize 50M
+php_value post_max_size 50M
+php_value max_execution_time 300
+php_value max_input_time 300
+php_value memory_limit 256M
+
+# أو إذا كان الخادم لا يدعم php_value، استخدم:
+# <IfModule mod_php7.c>
+#   php_admin_value upload_max_filesize 50M
+#   php_admin_value post_max_size 50M
+#   php_admin_value max_execution_time 300
+#   php_admin_value max_input_time 300
+#   php_admin_value memory_limit 256M
+# </IfModule>
