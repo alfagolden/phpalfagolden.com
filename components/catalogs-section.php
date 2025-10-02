@@ -66,7 +66,7 @@ function fetchCatalogsFromBase($tableId) {
             return [];
         }
         $results = $response['results'];
-   
+   echo($results);
         
         // حد 8 سجلات فقط
         return $results;
