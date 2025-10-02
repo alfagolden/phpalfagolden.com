@@ -341,7 +341,7 @@ $statuses = ['نشط', 'غير نشط'];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة الكتالوجات - Baserow</title>
+    <title>إدارة الصفحة الرئيسية - Baserow</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -434,7 +434,7 @@ $statuses = ['نشط', 'غير نشط'];
 </head>
 <body>
     <div class="container mx-auto p-6 max-w-7xl">
-        <h1 class="text-3xl font-bold text-teal-800 text-center mb-8">إدارة الكتالوجات</h1>
+        <h1 class="text-3xl font-bold text-teal-800 text-center mb-8">إدارة الصفحة الرئيسية</h1>
 
         <!-- Tabs for Locations -->
         <div class="flex mb-6 border-b border-gray-200">
