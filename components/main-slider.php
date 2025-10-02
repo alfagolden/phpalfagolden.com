@@ -58,7 +58,7 @@ function makeApiRequestSlider($endpoint, $method = 'GET', $data = null, $params 
     return $decoded;
 }
 
-function fetchCatalogsFromBase($tableId) {
+function fetchCatalogsFromBaseSlider($tableId) {
     global $API_CONFIG, $FIELDS;
     try {
         $siteFilter = 'سلايدر الهيدر'; // لو القيمة في الجدول فعلاً "كتلوجات"، سيبها كده. لو "كتالوجات"، غيّرها.
@@ -94,12 +94,12 @@ function fetchCatalogsFromBase($tableId) {
     }
 }
 // جلب بيانات السلايدر
-$sliderData_MainSlider = fetchCatalogsFromBase($API_CONFIG['sliderTableId']);
+$sliderData_MainSlider = fetchCatalogsFromBaseSlider($API_CONFIG['sliderTableId']);
 
 // تنظيف البيانات
 function sanitizeData_Slider($data) {
     if (is_array($data)) {
-        return array_map('sanitizeData_Slider', $data);
+        return array_map('sanitizeData_SliderSlider', $data);
     }
     return htmlspecialchars($data ?? '', ENT_QUOTES, 'UTF-8');
 }
@@ -113,8 +113,8 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
    - السجلات بدون اسم تُدفع لآخر القائمة
 */
 usort($sliderData_MainSlider, function($a, $b) {
-    $an = isset($a['الاسم']) ? mb_strtolower(trim($a['الاسم']), 'UTF-8') : '';
-    $bn = isset($b['الاسم']) ? mb_strtolower(trim($b['الاسم']), 'UTF-8') : '';
+    $an = isset($a[$FIELDS['slider']['name_ar']]) ? mb_strtolower(trim($a[$FIELDS['slider']['name_ar']]), 'UTF-8') : '';
+    $bn = isset($b[$FIELDS['slider']['name_ar']]) ? mb_strtolower(trim($b[$FIELDS['slider']['name_ar']]), 'UTF-8') : '';
 
     // ضع العناصر الفارغة في النهاية
     if ($an === '' && $bn === '') return 0;
