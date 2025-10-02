@@ -575,7 +575,7 @@ $statuses = ['نشط', 'غير نشط'];
                             <button type="button" onclick="clearAddImage()" class="mt-2 btn btn-danger">إزالة الصورة</button>
                         </div>
                     </div>
-                    <!--<input name="link" type="url" placeholder="الرابط" class="input">-->
+                    <input name="link" type="url" placeholder="الرابط" class="input">
                     <input name="file_id" type="text" placeholder="معرف الملف" class="input">
                     <textarea name="description_ar" placeholder="نص الوصف (بالعربية)" class="textarea col-span-2"></textarea>
                     <textarea name="description_en" placeholder="نص الوصف (بالإنجليزية)" class="textarea col-span-2"></textarea>
