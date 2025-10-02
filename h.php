@@ -103,8 +103,8 @@ ini_set('display_errors', 1);
 
     <main role="main">
         <?php include 'components/main-slider.php'; ?>
-        <!--<?php include 'components/catalogs-section.php'; ?>-->
-        <?php include 'components/clients-section.php'; ?>
+        <?php include 'components/catalogs-section.php'; ?>
+        <!--<?php include 'components/clients-section.php'; ?>-->
         <?php include 'components/products-section.php'; ?>
         <?php include 'components/image-gallery.php'; ?>
 
