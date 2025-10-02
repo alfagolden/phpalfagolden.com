@@ -674,9 +674,7 @@ usort($filteredQuotes, function($a, $b) use ($FIELDS, $sortBy, $sortDir) {
                                             <button onclick="editQuote(<?= $quote['id'] ?>)" class="btn-action btn-edit" title="تعديل">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <button onclick="editWordQuote(<?= $quote['id'] ?>)" class="btn-action btn-word" title="تعديل Word">
-                                                <i class="fas fa-file-word"></i>
-                                            </button>
+
                                             <button onclick="openStatusModal(<?= $quote['id'] ?>, '<?= htmlspecialchars($quoteStatus['status']) ?>', '<?= htmlspecialchars($quoteStatus['rejection_reason']) ?>')" class="btn-action btn-status" title="تحديث الحالة">
                                                 <i class="fas fa-check"></i>
                                             </button>
