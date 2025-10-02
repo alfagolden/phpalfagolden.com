@@ -169,7 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
             'field_7076' => $description_ar, // نص
             'field_7077' => $description_en // نص-en
         ];
-        $ch = curl_init(BASE_URL . TABLE_ID . '/?user_field_names=false');
+        $ch = curl_init(BASE_URL.TABLE_ID . '/?user_field_names=false');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
