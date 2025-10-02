@@ -141,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
     $description_en = $_POST['description_en'] ?? '';
     $link = $_POST['link'] ?? '';
     $file_id = $_POST['file_id'] ?? '';
-    $location = 'كتالوجات'; // فلتر ثابت
+    $location = 'كتلوجات'; // فلتر ثابت
     $catalog_image = '';
     // Handle image upload
     if (isset($_FILES['catalog_image']) && $_FILES['catalog_image']['error'] === UPLOAD_ERR_OK) {
