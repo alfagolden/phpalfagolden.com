@@ -27,7 +27,7 @@ $FIELDS = [
     ]
 ];
 
-function makeApiRequest($endpoint, $method = 'GET', $data = null, $params = []) {
+function makeApiRequestSlider($endpoint, $method = 'GET', $data = null, $params = []) {
     global $API_CONFIG;
     $url = $API_CONFIG['baseUrl'] . '/api/database/' . $endpoint;
     if (!empty($params)) {
@@ -67,7 +67,7 @@ function fetchCatalogsFromBase($tableId) {
         $pageSize = 100; // جلب 100 سجل في كل صفحة
 
         do {
-            $response = makeApiRequest("rows/table/{$tableId}/", 'GET', null, [
+            $response = makeApiRequestSlider("rows/table/{$tableId}/", 'GET', null, [
                 'page' => $page,
                 'size' => $pageSize,
                 'filter__field_7072__contains' => $siteFilter, // فلترة على مستوى الـ API
