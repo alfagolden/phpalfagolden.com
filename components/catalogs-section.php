@@ -68,12 +68,10 @@ function fetchCatalogsFromBase($tableId) {
         }
         $results = $response['results'];
        
-        // فلترة client-side: فقط الكتالوجات اللي في "الموقع" تحتوي على "كتالوجات" (case-insensitive)
-        $results = array_filter($results, function($item) use ($siteFilter, $GLOBALS['FIELDS']) {
-            $location = $item[$GLOBALS['FIELDS']['catalogs']['location']] ?? '';
-            return stripos($location, $siteFilter) !== false;
-        });
-        // إعادة ترقيم المصفوفة
+       $results = array_filter($results, function($item) use ($siteFilter) {
+    $location = $item[$GLOBALS['FIELDS']['catalogs']['location']] ?? '';
+    return stripos($location, $siteFilter) !== false;
+});
         $results = array_values($results);
        
         // ترتيب السجلات حسب 'ترتيب' ثم 'ترتيب فرعي'
