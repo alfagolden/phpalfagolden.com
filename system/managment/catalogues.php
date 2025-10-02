@@ -294,7 +294,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_catalog'])) {
 
 // Fetch catalogs from Baserow with filter on location="كتالوجات"
 // Fetch catalogs from Baserow with filter on location = "كتالوجات"
-$filter_param = 'filter__field_6756__contains=كتالوجات'; // فلتر server-side على الموقع
+$filter_param = 'filter__field_[6756]__contains=كتالوجات'; // فلتر server-side على الموقع
 
 $ch = curl_init(BASE_URL . TABLE_ID . '/?' . $filter_param . '&user_field_names=false&size=' . $page_size . '&page=' . $page);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
