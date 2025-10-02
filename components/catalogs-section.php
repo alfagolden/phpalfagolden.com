@@ -61,7 +61,7 @@ function fetchCatalogsFromBase($tableId) {
     global $API_CONFIG;
     try {
         // جلب السجلات مع فلترة الحالة (افتراضياً 'active' أو 'نشط'، قم بتعديل حسب القيم الفعلية)
-        $response = makeApiRequest("rows/table/{$tableId}/user_field_names=true/?filter_field_6756__equal=كتلوجات"); // فلت عالة////////
+        $response = makeApiRequest("rows/table/{$tableId}/user_field_names=false/?filter_field_6756__equal=كتلوجات"); // فلت عالة////////
         if (!$response || !isset($response['results'])) {
             return [];
         }
