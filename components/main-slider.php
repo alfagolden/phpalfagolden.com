@@ -266,8 +266,8 @@ usort($sliderData_MainSlider, function($a, $b) {
                 <?php if (!empty($sliderData_MainSlider)): ?>
                     <?php foreach ($sliderData_MainSlider as $index => $slide): ?>
                         <div class="swiper-slide">
-                            <img src="<?php echo $slide[$FIELDS['slider']['image']] ?? ''; ?>"
-                                 alt="<?php echo $slide[$FIELDS['slider']['name_ar']] ?? 'صورة ' . ($index + 1); ?>"
+                            <img src="<?php echo $slide[$FIELDS['catalogs']['image']] ?? ''; ?>"
+                                 alt="<?php echo $slide[$FIELDS['catalogs']['name_ar']] ?? 'صورة ' . ($index + 1); ?>"
                                  loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>">
                         </div>
                     <?php endforeach; ?>
