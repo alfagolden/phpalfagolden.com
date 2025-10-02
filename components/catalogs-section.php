@@ -56,26 +56,30 @@ function makeApiRequest($endpoint, $method = 'GET', $data = null) {
     $decoded = json_decode($response, true);
     return $decoded ?: null;
 }
-// جلب بيانات الكتالوجات من Base (جدول 698 فقط، فلترة على الحالة النشطة، ترتيب، حد 8)
 function fetchCatalogsFromBase($tableId) {
     global $API_CONFIG;
     try {
-        // جلب السجلات مع فلترة الحالة (افتراضياً 'active' أو 'نشط'، قم بتعديل حسب القيم الفعلية)
-        $response = makeApiRequest("rows/table/{$tableId}?user_field_names=false&filter_field_6756__equal=كتلوجات"); // فلت عالة////////
+        // فلترة على الحقل 6756 = كتالوجات + ترتيب بالـ id + حد 8
+        $url = "rows/table/{$tableId}?user_field_names=false&filter__field_6756__equal=كتالوجات&order_by=-id&size=8";
+        
+        $response = makeApiRequest($url);
+
         if (!$response || !isset($response['results'])) {
             return [];
         }
+
         $results = $response['results'];
-   echo($results);
-        
-        // حد 8 سجلات فقط
+
+        // طباعة للديباج
+        echo json_encode($results, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+
         return $results;
     } catch (Exception $e) {
         error_log("خطأ في جلب الكتالوجات: " . $e->getMessage());
         return [];
     }
 }
-// جلب بيانات الكتالوجات من base.alfa
+
 $catalogData_Catalogs = fetchCatalogsFromBase($API_CONFIG['catalogsTableId']);
 // تنظيف البيانات
 function sanitizeData_Catalogs($data) {
