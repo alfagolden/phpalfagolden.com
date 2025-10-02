@@ -101,15 +101,15 @@ ini_set('display_errors', 1);
     <?php include 'components/loader.php'; ?>
     <?php include 'components/header.php'; ?>
 
-    <main role="main">
-        <?php include 'components/main-slider.php'; ?>
-        <?php include 'components/catalogs-section.php'; ?>
-        <?php include 'components/clients-section.php'; ?>
-        <?php include 'components/products-section.php'; ?>
-        <?php include 'components/image-gallery.php'; ?>
+    <!--<main role="main">-->
+    <!--    <?php include 'components/main-slider.php'; ?>-->
+    <!--    <?php include 'components/catalogs-section.php'; ?>-->
+    <!--    <?php include 'components/clients-section.php'; ?>-->
+    <!--    <?php include 'components/products-section.php'; ?>-->
+    <!--    <?php include 'components/image-gallery.php'; ?>-->
 
 
-    </main>
+    <!--</main>-->
     
     <?php include 'components/footer.php'; ?>
     <?php include 'components/whatsapp-button.php'; ?>
