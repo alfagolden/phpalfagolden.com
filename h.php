@@ -99,7 +99,7 @@ ini_set('display_errors', 1);
 
 <body>
     <?php include 'components/loader.php'; ?>
-    <?php include 'components/header.php'; ?>
+    <!--<?php include 'components/header.php'; ?>-->
 
     <main role="main">
         <?php include 'components/main-slider.php'; ?>
