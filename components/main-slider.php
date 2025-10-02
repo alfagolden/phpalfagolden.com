@@ -144,7 +144,7 @@ if (!is_array($sliderData_MainSlider)) {
 }
 .main-slider .swiper-slide img {
     width: 100%;
-    height: 80%;
+    height: 100%;
     object-fit: cover; ملء الحاوية مع الحفاظ على النسب
     /* display: block; */
 }
