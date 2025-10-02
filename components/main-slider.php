@@ -146,7 +146,7 @@ if (!is_array($sliderData_MainSlider)) {
     width: 100%;
     height: 100%;
     object-fit: cover; ملء الحاوية مع الحفاظ على النسب
-    display: block;
+    /* display: block; */
 }
 .main-slider .swiper-button-next,
 .main-slider .swiper-button-prev {
