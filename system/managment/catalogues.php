@@ -571,7 +571,7 @@ $statuses = ['نشط', 'غير نشط'];
 
         <!-- Catalogs table -->
         <div class="bg-white p-6 rounded-xl shadow-lg card">
-            <h2 class="text-xl font-semibold text-teal-700 mb-4">قائمة الكتالوجات (<?= htmlspecialchars($selected_location) ?>)</h2>
+            <h2 class="text-xl font-semibold text-teal-700 mb-4"><?= htmlspecialchars($selected_location) ?></h2>
             <table class="w-full border-collapse">
                 <thead>
                     <tr class="bg-teal-100">
