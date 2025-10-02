@@ -66,21 +66,10 @@ function fetchCatalogsFromBase($tableId) {
             return [];
         }
         $results = $response['results'];
-        
-        // ترتيب السجلات حسب 'ترتيب' ثم 'ترتيب فرعي' (تحويل إلى أرقام إذا أمكن)
-        usort($results, function($a, $b) {
-            $orderA = (float)($a[$GLOBALS['FIELDS']['catalogs']['order']] ?? 0);
-            $orderB = (float)($b[$GLOBALS['FIELDS']['catalogs']['order']] ?? 0);
-            if ($orderA === $orderB) {
-                $subOrderA = (float)($a[$GLOBALS['FIELDS']['catalogs']['sub_order']] ?? 0);
-                $subOrderB = (float)($b[$GLOBALS['FIELDS']['catalogs']['sub_order']] ?? 0);
-                return $subOrderA <=> $subOrderB;
-            }
-            return $orderA <=> $orderB;
-        });
+   
         
         // حد 8 سجلات فقط
-        return array_slice($results, 0);
+        return $results;
     } catch (Exception $e) {
         error_log("خطأ في جلب الكتالوجات: " . $e->getMessage());
         return [];
