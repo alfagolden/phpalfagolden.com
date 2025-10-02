@@ -1,3 +1,5 @@
+
+
 <?php
 // مكون السلايدر الرئيسي - مستقل بالكامل مع دعم الترجمة
 
@@ -83,7 +85,7 @@ function fetchCatalogsFromBaseSlider($tableId) {
 
         // فلترة إضافية على العميل لو لازم
         $results = array_filter($results, function($item) use ($siteFilter) {
-            $location = $item[$GLOBALS['FIELDS']['slider']['location']] ?? '';
+            $location = $item[$GLOBALS['FIELDS']['catalogs']['location']] ?? '';
             return stripos($location, $siteFilter) !== false;
         });
 
