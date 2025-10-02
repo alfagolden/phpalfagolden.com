@@ -75,7 +75,7 @@ function fetchCatalogsFromBase($tableId) {
 
         // إرسال الفلاتر كـ POST body
         $response = makeApiRequest(
-            "rows/table/{$tableId}/?user_field_names=false&size=8&order_by=-id",
+            "rows/table/{$tableId}/?user_field_names=false",
             "POST",
             $filters
         );
