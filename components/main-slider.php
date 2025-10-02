@@ -78,17 +78,13 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
    - ترتيب أبجدي تصاعدي (أ -> ي)
    - السجلات بدون اسم تُدفع لآخر القائمة
 */
-usort($sliderData_MainSlider, function($a, $b) {
-    $an = isset($a[$FIELDS['slider']['name_ar']]) ? mb_strtolower(trim($a[$FIELDS['slider']['name_ar']]), 'UTF-8') : '';
-    $bn = isset($b[$FIELDS['slider']['name_ar']]) ? mb_strtolower(trim($b[$FIELDS['slider']['name_ar']]), 'UTF-8') : '';
 
-    // ضع العناصر الفارغة في النهاية
-    if ($an === '' && $bn === '') return 0;
-    if ($an === '') return 1;
-    if ($bn === '') return -1;
+        // فلترة إضافية على العميل لو لازم
+        $sliderData_MainSlider = array_filter($sliderData_MainSlider, function($item) use ($siteFilter) {
+            $location = $item[$GLOBALS['FIELDS']['slider']['location']] ?? '';
+            return stripos($location, $siteFilter) !== false;
+        });
 
-    return $an <=> $bn; // استخدم ($bn <=> $an) للترتيب التنازلي
-});
 ?>
 
 <style>
