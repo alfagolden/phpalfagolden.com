@@ -60,6 +60,7 @@ function makeApiRequestSlider($endpoint, $method = 'GET', $data = null, $params 
 }   
 
     // جلب بيانات السلايدر
+    $params = [];  // Initialize as empty array for API parameters
     $sliderData_MainSlider = makeApiRequestSlider('rows/table/' . $api_config_slider['sliderTableId'] . '/', 'GET', null, $params);
 
 // تنظيف البيانات
@@ -80,6 +81,7 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
 */
 
         // فلترة إضافية على العميل لو لازم
+        $siteFilter = '';  // Initialize as empty string for site filtering
         $sliderData_MainSlider = array_filter($sliderData_MainSlider, function($item) use ($siteFilter) {
             $location = $item[$GLOBALS['FIELDS']['slider']['location']] ?? '';
             return stripos($location, $siteFilter) !== false;
