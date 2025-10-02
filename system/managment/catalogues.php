@@ -103,7 +103,7 @@ function uploadImageDirect($file) {
         $mimeType = finfo_file($finfo, $file['tmp_name']);
         finfo_close($finfo);
         if (!isset($allowedTypes[$mimeType])) throw new Exception('نوع الملف غير مدعوم');
-        // if ($file['size'] > 5 * 1024 * 1024) throw new Exception('حجم الملف كبير جدًا');
+        if ($file['size'] > 5 * 1024 * 1024) throw new Exception('حجم الملف كبير جدًا');
         $filename = 'img_' . uniqid() . '_' . time() . '.' . $allowedTypes[$mimeType];
         $filepath = UPLOAD_DIR . $filename;
         if (!move_uploaded_file($file['tmp_name'], $filepath)) {
