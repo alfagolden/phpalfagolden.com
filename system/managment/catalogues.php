@@ -3,7 +3,7 @@
 const API_TOKEN = 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy';
 const TABLE_ID = 698; // جدول الكتالوجات
 const BASE_URL = 'https://base.alfagolden.com/api/database/rows/table/';
-const UPLOAD_DIR = 'Uploads/';
+const UPLOAD_DIR = 'uploads/';
 const UPLOAD_URL = 'https://alfagolden.com/system/m/up.php';
 
 // Initialize upload directory
