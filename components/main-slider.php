@@ -96,8 +96,8 @@ if (!is_array($sliderData_MainSlider)) {
         return strcmp($nameA, $nameB);
     });
 
-    // فلترة حسب الموقع (إذا لزم)
-    $siteFilter = isset($siteFilter) ? $siteFilter : '';
+    // فلترة حسب سلايدر الهيدر
+    $siteFilter = isset($siteFilter) ? $siteFilter : 'سلايدر الهيدر';
     if (!empty($siteFilter)) {
         $sliderData_MainSlider = array_filter($sliderData_MainSlider, function($item) use ($siteFilter, $FIELDS) {
             $location = $item[$FIELDS['slider']['location']] ?? '';
