@@ -97,14 +97,14 @@ function fetchCatalogsFromBaseSlider($tableId) {
 $sliderData_MainSlider = fetchCatalogsFromBaseSlider($API_CONFIG['sliderTableId']);
 
 // تنظيف البيانات
-function sanitizeData_Slider($data) {
+function sanitizeData_SliderSlider($data) {
     if (is_array($data)) {
         return array_map('sanitizeData_SliderSlider', $data);
     }
     return htmlspecialchars($data ?? '', ENT_QUOTES, 'UTF-8');
 }
 
-$sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
+$sliderData_MainSlider = sanitizeData_SliderSlider($sliderData_MainSlider);
 
 /* ===========================
    ترتيب السجلات حسب "الاسم"
