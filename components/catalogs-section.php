@@ -336,10 +336,6 @@ function getCatalogGalleryId($catalogName) {
                 <p id="catalogsDescription">استعرض مجموعتنا المتنوعة من الكتالوجات المتخصصة</p>
             </div>
             
-            <!-- رسالة توضيح الفلتر الثابت -->
-            <div class="filter-info">
-                عرض الكتالوجات الخاصة بموقع "كتالوجات" فقط
-            </div>
             
             <div class="catalogs-grid">
                 <?php if (!empty($catalogData_Catalogs)): ?>
