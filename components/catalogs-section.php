@@ -30,7 +30,7 @@ $FIELDS = [
 function makeApiRequest($endpoint, $method = 'GET', $data = null) {
     global $API_CONFIG;
    
-    $url = $API_CONFIG['baseUrl'] . '/rows/table/' . $endpoint;
+    $url = $API_CONFIG['baseUrl'] . '/api/database/' . $endpoint;
     $options = [
         'http' => [
             'method' => $method,
@@ -60,7 +60,7 @@ function fetchCatalogsFromBase($tableId) {
     global $API_CONFIG;
     try {
         // جلب السجلات مع فلترة الحالة (افتراضياً 'active' أو 'نشط'، قم بتعديل حسب القيم الفعلية)
-        $response = makeApiRequest("{$tableId}/"); // فلت عالة
+        $response = makeApiRequest("rows/table/{$tableId}/نشط"); // فلت عالة
         if (!$response || !isset($response['results'])) {
             return [];
         }
