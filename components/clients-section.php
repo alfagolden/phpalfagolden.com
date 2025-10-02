@@ -81,12 +81,12 @@ function fetchClientsFromBase($tableId) {
         } while (isset($response['next'])); // استمر طالما فيه صفحات إضافية
 
         // فلترة إضافية على العميل لو لازم
-        $results = array_filter($results, function($item) use ($siteFilter) {
-            $location = $item[$GLOBALS['FIELDS']['catalogs']['location']] ?? '';
-            return stripos($location, $siteFilter) !== false;
-        });
+        // $results = array_filter($results, function($item) use ($siteFilter) {
+        //     $location = $item[$GLOBALS['FIELDS']['catalogs']['location']] ?? '';
+        //     return stripos($location, $siteFilter) !== false;
+        // });
 
-        return array_values($results);
+        return $results;
     } catch (Exception $e) {
         error_log("خطأ في جلب الكتالوجات: " . $e->getMessage());
         return [];
