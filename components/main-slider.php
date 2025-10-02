@@ -2,32 +2,31 @@
 // مكون السلايدر الرئيسي - مستقل بالكامل مع دعم الترجمة
 
 // إعدادات قاعدة البيانات للمكون
-// دالة جلب البيانات للمكون
-//baserow
 $api_config_slider = [
     'baseUrl' => 'https://base.alfagolden.com',
     'token' => 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy',
-    'sliderTableId' => 698 // جدول السلايدر
+    'sliderTableId' => 698
 ];
 $FIELDS = [
     'slider' => [
-        'name_ar' => 'field_6754', // الاسم
-        'image' => 'field_6755', // الصورة
-        'location' => 'field_6756', // الموقع (فلترة ثابتة عليه)
-        'link' => 'field_6757', // الرابط
-        'file_id' => 'field_6758', // معرف الملف
-        'order' => 'field_6759', // ترتيب
-        'sub_order' => 'field_6760', // ترتيب فرعي
-        'sub_name_ar' => 'field_6761', // الاسم الفرعي
-        'name_en' => 'field_6762', // name (الاسم الإنجليزي)
-        'status' => 'field_7072', // الحالة
-        'status_en' => 'field_7073', // الحالة-en
-        'sub_name_en' => 'field_7075', // الاسم الفرعي-en
-        'description_ar' => 'field_7076', // نص
-        'description_en' => 'field_7077' // نص-en
+        'name_ar' => 'field_6754',
+        'image' => 'field_6755',
+        'location' => 'field_6756',
+        'link' => 'field_6757',
+        'file_id' => 'field_6758',
+        'order' => 'field_6759',
+        'sub_order' => 'field_6760',
+        'sub_name_ar' => 'field_6761',
+        'name_en' => 'field_6762',
+        'status' => 'field_7072',
+        'status_en' => 'field_7073',
+        'sub_name_en' => 'field_7075',
+        'description_ar' => 'field_7076',
+        'description_en' => 'field_7077'
     ]
 ];
-//end baserow
+
+// دالة جلب البيانات من API
 function makeApiRequestSlider($endpoint, $method = 'GET', $data = null, $params = []) {
     global $api_config_slider;
     $url = $api_config_slider['baseUrl'] . '/api/database/' . $endpoint;
@@ -50,41 +49,61 @@ function makeApiRequestSlider($endpoint, $method = 'GET', $data = null, $params 
     $response = @file_get_contents($url, false, $context);
     if ($response === false) {
         error_log("فشل طلب API: $url");
-        return null;
+        return ['error' => 'فشل جلب البيانات من الخادم'];
     }
     $decoded = json_decode($response, true);
     if (!$decoded) {
         error_log("فشل فك JSON: " . print_r($response, true));
+        return ['error' => 'خطأ في معالجة البيانات'];
     }
     return $decoded;
-}   
-
-    // جلب بيانات السلايدر
-    $sliderData_MainSlider = makeApiRequestSlider('rows/table/' . $api_config_slider['sliderTableId'] . '/', 'GET', null, $params);
+}
 
 // تنظيف البيانات
 function sanitizeData_Slider($data) {
-    if (is_array($data)) {
-        return array_map('sanitizeData_Slider', $data);
+    if (!is_array($data)) {
+        return htmlspecialchars($data ?? '', ENT_QUOTES, 'UTF-8');
     }
-    return htmlspecialchars($data ?? '', ENT_QUOTES, 'UTF-8');
+    $sanitized = [];
+    foreach ($data as $key => $value) {
+        if (is_array($value)) {
+            $sanitized[$key] = sanitizeData_Slider($value);
+        } else {
+            $sanitized[$key] = htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
+        }
+    }
+    return $sanitized;
 }
 
-$sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
+// جلب بيانات السلايدر
+$params = []; // يمكنك إضافة معايير الفلترة هنا إذا لزم الأمر
+$sliderData_MainSlider = makeApiRequestSlider('rows/table/' . $api_config_slider['sliderTableId'] . '/', 'GET', null, $params);
 
-/* ===========================
-   ترتيب السجلات حسب "الاسم"
-   ===========================
-   - ترتيب أبجدي تصاعدي (أ -> ي)
-   - السجلات بدون اسم تُدفع لآخر القائمة
-*/
+// فحص البيانات
+if (!is_array($sliderData_MainSlider) || isset($sliderData_MainSlider['error'])) {
+    $sliderData_MainSlider = [];
+    error_log("لا توجد بيانات سلايدر متاحة: " . ($sliderData_MainSlider['error'] ?? 'خطأ غير معروف'));
+} else {
+    $sliderData_MainSlider = isset($sliderData_MainSlider['results']) ? $sliderData_MainSlider['results'] : $sliderData_MainSlider;
+    $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
 
-        // فلترة إضافية على العميل لو لازم
-        $sliderData_MainSlider = array_filter($sliderData_MainSlider, function($item) use ($siteFilter) {
-            $location = $item[FIELDS['slider']['location']]  ?? '';
-            return stripos($location, $siteFilter) !== false;
-        });
+    // ترتيب السجلات حسب الاسم الأبجدي
+    usort($sliderData_MainSlider, function($a, $b) use ($FIELDS) {
+        $nameA = $a[$FIELDS['slider']['name_ar']] ?? '';
+        $nameB = $b[$FIELDS['slider']['name_ar']] ?? '';
+        if (empty($nameA) && empty($nameB)) return 0;
+        if (empty($nameA)) return 1;
+        if (empty($nameB)) return -1;
+        return strcmp($nameA, $nameB);
+    });
 
+    // فلترة حسب الموقع
+    $siteFilter = isset($siteFilter) ? $siteFilter : ''; // تعريف افتراضي
+    $sliderData_MainSlider = array_filter($sliderData_MainSlider, function($item) use ($siteFilter, $FIELDS) {
+        $location = $item[$FIELDS['slider']['location']] ?? '';
+        return empty($siteFilter) || stripos($location, $siteFilter) !== false;
+    });
+}
 ?>
 
 <style>
@@ -98,7 +117,6 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
     --transition-normal: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* إعدادات أساسية للمكون */
 .main-slider-component * {
     box-sizing: border-box;
 }
@@ -106,7 +124,6 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
     font-family: 'Cairo', 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* السلايدر الرئيسي */
 .main-slider {
     width: 100%;
     position: relative;
@@ -135,7 +152,6 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
     transform: scale(1);
 }
 
-/* أزرار التنقل */
 .main-slider .swiper-button-next,
 .main-slider .swiper-button-prev {
     color: var(--gold);
@@ -161,7 +177,6 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
     font-weight: 600;
 }
 
-/* النقاط */
 .main-slider .swiper-pagination-bullet {
     background: rgba(255, 255, 255, 0.6);
     opacity: 1;
@@ -177,7 +192,6 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
     border-color: rgba(255, 255, 255, 0.3);
 }
 
-/* الاستجابة للشاشات المختلفة */
 @media (max-width: 768px) {
     .main-slider .swiper-button-next,
     .main-slider .swiper-button-prev {
@@ -190,7 +204,6 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
     }
 }
 
-/* للعرض المستقل */
 .slider-standalone {
     background: #f8f9fa;
     min-height: 100vh;
@@ -218,7 +231,7 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
 <!-- تحميل مكتبة Swiper -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 
-<!-- HTML مكون السلايدر الرئيسي مع دعم الترجمة -->
+<!-- HTML مكون السلايدر الرئيسي -->
 <div class="main-slider-component">
     <section class="main-slider" aria-label="الصور الرئيسية">
         <div class="swiper mainSwiper">
@@ -226,13 +239,12 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
                 <?php if (!empty($sliderData_MainSlider)): ?>
                     <?php foreach ($sliderData_MainSlider as $index => $slide): ?>
                         <div class="swiper-slide">
-                            <img src="<?php echo $slide[$FIELDS['slider']['image']] ?? ''; ?>"
+                            <img src="<?php echo isset($slide[$FIELDS['slider']['image']]['url']) ? $slide[$FIELDS['slider']['image']]['url'] : ($slide[$FIELDS['slider']['image']] ?? 'https://via.placeholder.com/1200x600/977e2b/ffffff?text=صورة+غير+متوفرة'); ?>"
                                  alt="<?php echo $slide[$FIELDS['slider']['name_ar']] ?? 'صورة ' . ($index + 1); ?>"
                                  loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>">
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <!-- صور افتراضية للعرض -->
                     <div class="swiper-slide">
                         <img src="https://via.placeholder.com/1200x600/977e2b/ffffff?text=شركة+ألفا+الذهبية" alt="صورة افتراضية 1" loading="eager">
                     </div>
@@ -255,7 +267,7 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
 <script>
-// JavaScript مكون السلايدر الرئيسي مع دعم الترجمة المحسّن
+// JavaScript مكون السلايدر الرئيسي مع دعم الترجمة
 (function() {
     'use strict';
 
@@ -265,11 +277,9 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
         return;
     }
 
-    // === نظام إدارة اللغة المحلي ===
     let currentLanguage = 'ar';
     let swiperInstance = null;
 
-    // تحميل اللغة من localStorage
     function loadLanguageFromStorage() {
         try {
             const savedLang = localStorage.getItem('siteLanguage');
@@ -282,16 +292,12 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
         return 'ar';
     }
 
-    // تحديث النصوص - فقط النصوص وليس الصور
     function updateTexts(language) {
         currentLanguage = language;
-
-        // تحديث نصوص الأزرار والتسميات
         const elementsToTranslate = document.querySelectorAll('.main-slider-component [data-translate]');
         elementsToTranslate.forEach(element => {
             const arText = element.getAttribute('data-ar');
             const enText = element.getAttribute('data-en');
-
             if (language === 'ar' && arText) {
                 if (element.hasAttribute('aria-label')) {
                     element.setAttribute('aria-label', arText);
@@ -307,7 +313,6 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
             }
         });
 
-        // تحديث رسائل إمكانية الوصول للسلايدر
         if (swiperInstance && swiperInstance.a11y) {
             const messages = language === 'ar' ? {
                 prevSlideMessage: 'الصورة السابقة',
@@ -318,18 +323,14 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
                 nextSlideMessage: 'Next slide',
                 paginationBulletMessage: 'Go to slide {{index}}'
             };
-
             Object.assign(swiperInstance.a11y, messages);
         }
     }
 
-    // الاستماع لتغيير اللغة من الهيدر
     document.addEventListener('languageChanged', function(event) {
         updateTexts(event.detail.language);
-        // لا نعيد تهيئة السلايدر هنا لتجنب اختفاء الصور
     });
 
-    // تهيئة السلايدر الرئيسي
     function initMainSwiper() {
         const swiperElement = document.querySelector('.mainSwiper');
         if (!swiperElement) return null;
@@ -370,7 +371,6 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
                 nextSlideMessage: currentLanguage === 'ar' ? 'الصورة التالية' : 'Next slide',
                 paginationBulletMessage: currentLanguage === 'ar' ? 'انتقل إلى الصورة {{index}}' : 'Go to slide {{index}}'
             },
-            // إعدادات الاستجابة
             breakpoints: {
                 320: { spaceBetween: 0 },
                 768: { spaceBetween: 0 },
@@ -381,31 +381,20 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
         return swiperInstance;
     }
 
-    // تهيئة المكون عند التحميل
     function initializeComponent() {
-        // تحميل اللغة أولاً
         currentLanguage = loadLanguageFromStorage();
-
-        // تهيئة السلايدر
         initMainSwiper();
-
-        // تحديث النصوص بعد التهيئة
         updateTexts(currentLanguage);
-
-        // إعداد معالجات الأحداث
         setupEventHandlers();
     }
 
-    // إعداد معالجات الأحداث
     function setupEventHandlers() {
-        // إعادة تهيئة عند تغيير حجم النافذة
         window.addEventListener('resize', () => {
             if (swiperInstance) {
                 swiperInstance.update();
             }
         });
 
-        // معالجة أخطاء الصور
         document.addEventListener('error', (e) => {
             if (e.target.tagName === 'IMG' && e.target.closest('.main-slider')) {
                 e.target.src = 'https://via.placeholder.com/1200x600/977e2b/ffffff?text=صورة+غير+متوفرة';
@@ -414,14 +403,12 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
         }, true);
     }
 
-    // تشغيل المكون عند تحميل DOM
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initializeComponent);
     } else {
         initializeComponent();
     }
 
-    // رسالة تأكيد تحميل المكون
     console.log('تم تحميل مكون السلايدر الرئيسي مع دعم الترجمة المحسّن');
 })();
 </script>
@@ -450,9 +437,6 @@ if (basename($_SERVER['PHP_SELF']) == 'main-slider.php') {
                 <li>ترتيب الصور أبجديًا حسب الاسم</li>
             </ul>
         </div>
-    ';
-    // سيتم عرض المكون هنا تلقائياً
-    echo '
     </body>
     </html>';
 }
