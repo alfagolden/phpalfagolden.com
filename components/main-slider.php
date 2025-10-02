@@ -133,18 +133,18 @@ if (!is_array($sliderData_MainSlider)) {
 }
 .main-slider .swiper {
     width: 100%;
-    height: 100%;
+    height: 80%;
 }
 .main-slider .swiper-slide {
     position: relative;
     overflow: hidden;
-    width: 80%;
+    width: 100%;
     height: 80%;
     background: #f8f9fa; /* خلفية لملء أي فراغات */
 }
 .main-slider .swiper-slide img {
     width: 100%;
-    height: 100%;
+    height: 80%;
     object-fit: cover; ملء الحاوية مع الحفاظ على النسب
     /* display: block; */
 }
