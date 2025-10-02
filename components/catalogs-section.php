@@ -66,7 +66,7 @@ function fetchCatalogsFromBase($tableId) {
             "filters" => [
                 [
                     "type" => "has_value_equal",
-                    "field" => "الصفحة الرئيسية",
+                    "field" => "الموقغ",
                     "value" => "كتلوجات"
                 ]
             ],
@@ -75,7 +75,7 @@ function fetchCatalogsFromBase($tableId) {
 
         // إرسال الفلاتر كـ POST body
         $response = makeApiRequest(
-            "rows/table/{$tableId}/?user_field_names=true&size=8&order_by=-id",
+            "rows/table/{$tableId}/?user_field_names=false&size=8&order_by=-id",
             "POST",
             $filters
         );
