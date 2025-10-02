@@ -138,8 +138,8 @@ if (!is_array($sliderData_MainSlider)) {
 .main-slider .swiper-slide {
     position: relative;
     overflow: hidden;
-    width: 100%;
-    height: 100%;
+    width: 80%;
+    height: 80%;
     background: #f8f9fa; /* خلفية لملء أي فراغات */
 }
 .main-slider .swiper-slide img {
