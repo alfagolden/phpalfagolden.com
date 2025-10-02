@@ -27,10 +27,12 @@ $FIELDS = [
     ]
 ];
 // وظائف مساعدة للـ API (Baserow)
-function makeApiRequest($endpoint, $method = 'GET', $data = null) {
+function makeApiRequest($endpoint, $method = 'GET', $data = null, $params = []) {
     global $API_CONFIG;
-  
     $url = $API_CONFIG['baseUrl'] . '/api/database/' . $endpoint;
+    if (!empty($params)) {
+        $url .= '?' . http_build_query($params);
+    }
     $options = [
         'http' => [
             'method' => $method,
@@ -41,18 +43,55 @@ function makeApiRequest($endpoint, $method = 'GET', $data = null) {
         ]
     ];
     if ($data) {
-        $options['http']['content'] = json_encode($data['results']);
+        $options['http']['content'] = json_encode($data);
     }
-  
     $context = stream_context_create($options);
     $response = @file_get_contents($url, false, $context);
-  
     if ($response === false) {
+        error_log("فشل طلب API: $url");
         return null;
     }
-  
     $decoded = json_decode($response, true);
-    return $decoded ?: null;
+    if (!$decoded) {
+        error_log("فشل فك JSON: " . print_r($response, true));
+    }
+    return $decoded;
+}
+
+function fetchCatalogsFromBase($tableId) {
+    global $API_CONFIG, $FIELDS;
+    try {
+        $siteFilter = 'كتلوجات'; // لو القيمة في الجدول فعلاً "كتلوجات"، سيبها كده. لو "كتالوجات"، غيّرها.
+        $results = [];
+        $page = 1;
+        $pageSize = 100; // جلب 100 سجل في كل صفحة
+
+        do {
+            $response = makeApiRequest("rows/table/{$tableId}/", 'GET', null, [
+                'page' => $page,
+                'size' => $pageSize,
+                'filter__field_6756__contains' => $siteFilter, // فلترة على مستوى الـ API
+                'order_by' => 'field_6759' // ترتيب حسب حقل order
+            ]);
+            if (!$response || !isset($response['results'])) {
+                error_log("فشل جلب البيانات من Baserow: " . print_r($response, true));
+                break;
+            }
+            $results = array_merge($results, $response['results']);
+            $page++;
+        } while (isset($response['next'])); // استمر طالما فيه صفحات إضافية
+
+        // فلترة إضافية على العميل لو لازم
+        $results = array_filter($results, function($item) use ($siteFilter) {
+            $location = $item[$GLOBALS['FIELDS']['catalogs']['location']] ?? '';
+            return stripos($location, $siteFilter) !== false;
+        });
+
+        return array_values($results);
+    } catch (Exception $e) {
+        error_log("خطأ في جلب الكتالوجات: " . $e->getMessage());
+        return [];
+    }
 }
 // جلب بيانات الكتالوجات من Baserow (فلترة ثابتة على "كتالوجات" في حقل "الموقع"، ترتيب، حد 8)
 function fetchCatalogsFromBase($tableId) {
