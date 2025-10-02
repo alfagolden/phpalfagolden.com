@@ -1,18 +1,17 @@
 <?php
 // مكون قسم الكتالوجات - مع إصلاح مشاكل اللغة والترجمة الصحيحة
-// إعدادات قاعدة البيانات للمكون
+// إعدادات قاعدة البيانات للمكون (تم التبديل إلى جدول Base رقم 698)
 if (!defined('NOCODB_TOKEN')) {
     define('NOCODB_TOKEN', 'fwVaKHr6zbDns5iW9u8annJUf5LCBJXjqPfujIpV');
     define('NOCODB_API_URL', 'https://app.nocodb.com/api/v2/tables/');
 }
-
-// دالة جلب البيانات للمكون
+// دالة جلب البيانات للمكون (محدثة لجدول Base 698)
 function fetchNocoDB_Catalogs($tableId, $viewId = '') {
     $url = NOCODB_API_URL . $tableId . '/records';
     if (!empty($viewId)) {
         $url .= '?viewId=' . $viewId;
     }
-    
+   
     $options = [
         'http' => [
             'header' => "xc-token: " . NOCODB_TOKEN . "\r\n" .
@@ -21,21 +20,20 @@ function fetchNocoDB_Catalogs($tableId, $viewId = '') {
             'timeout' => 10
         ]
     ];
-    
+   
     $context = stream_context_create($options);
     $result = @file_get_contents($url, false, $context);
-    
+   
     if ($result === FALSE) {
         return [];
     }
-    
+   
     $data = json_decode($result, true);
     return isset($data['list']) ? $data['list'] : [];
 }
-
-// جلب بيانات الكتالوجات
-$catalogData_Catalogs = fetchNocoDB_Catalogs('ma95crsjyfik3ce', 'vw4dpso62vulugx5');
-
+// جلب بيانات الكتالوجات من جدول Base 698 فقط
+// استبدل 'table_id_for_698' و 'view_id_for_698' بمعرفات الجدول والعرض الفعلية في NocoDB
+$catalogData_Catalogs = fetchNocoDB_Catalogs('table_id_for_698', 'view_id_for_698');
 // تنظيف البيانات
 function sanitizeData_Catalogs($data) {
     if (is_array($data)) {
@@ -43,9 +41,7 @@ function sanitizeData_Catalogs($data) {
     }
     return htmlspecialchars($data ?? '', ENT_QUOTES, 'UTF-8');
 }
-
 $catalogData_Catalogs = sanitizeData_Catalogs($catalogData_Catalogs);
-
 // دالة تحديد معرف المعرض بناءً على اسم الكتالوج
 function getCatalogGalleryId($catalogName) {
     // البحث بالكلمات المفتاحية لضمان المطابقة الصحيحة
@@ -64,12 +60,11 @@ function getCatalogGalleryId($catalogName) {
     if (strpos($catalogName, 'ألفا إيليت') !== false || strpos($catalogName, 'ألـفـا إيــلــيــت') !== false) {
         return 14;
     }
-    
+   
     // القيمة الافتراضية
     return 1;
 }
 ?>
-
 <style>
 /* أنماط مكون قسم الكتالوجات */
 :root {
@@ -92,35 +87,29 @@ function getCatalogGalleryId($catalogName) {
     --transition-normal: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
 /* إعدادات أساسية للمكون */
 .catalogs-component * {
     box-sizing: border-box;
 }
-
 .catalogs-component {
     font-family: 'Cairo', 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
-
 /* قسم الكتالوجات */
 .catalogs {
     background: var(--light-gray);
     margin-top: 0;
     padding-bottom: var(--spacing-2xl);
 }
-
 .container {
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 var(--spacing-lg);
 }
-
 .section-title {
     text-align: center;
     margin-bottom: var(--spacing-2xl);
     padding-top: var(--spacing-2xl);
 }
-
 .section-title h2 {
     font-size: var(--font-size-4xl);
     color: var(--dark-gray);
@@ -130,7 +119,6 @@ function getCatalogGalleryId($catalogName) {
     padding-bottom: var(--spacing-lg);
     margin-bottom: var(--spacing-md);
 }
-
 .section-title h2:after {
     content: '';
     position: absolute;
@@ -142,7 +130,6 @@ function getCatalogGalleryId($catalogName) {
     background: linear-gradient(90deg, var(--gold), var(--gold-hover));
     border-radius: 2px;
 }
-
 .section-title p {
     color: var(--medium-gray);
     font-size: var(--font-size-lg);
@@ -150,13 +137,11 @@ function getCatalogGalleryId($catalogName) {
     margin: 0 auto;
     line-height: 1.7;
 }
-
 .catalogs-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: var(--spacing-xl);
 }
-
 .catalog-item {
     background: var(--white);
     border-radius: var(--border-radius-2xl);
@@ -171,7 +156,6 @@ function getCatalogGalleryId($catalogName) {
     text-decoration: none;
     color: inherit;
 }
-
 .catalog-item::before {
     content: '';
     position: absolute;
@@ -184,16 +168,13 @@ function getCatalogGalleryId($catalogName) {
     transition: var(--transition-normal);
     z-index: 1;
 }
-
 .catalog-item:hover {
     transform: translateY(-10px);
     box-shadow: var(--shadow-xl);
 }
-
 .catalog-item:hover::before {
     opacity: 0.9;
 }
-
 .catalog-item img {
     width: 100%;
     height: auto;
@@ -202,11 +183,9 @@ function getCatalogGalleryId($catalogName) {
     flex-shrink: 0;
     display: block;
 }
-
 .catalog-item:hover img {
     transform: scale(1.05);
 }
-
 .catalog-item h3 {
     padding: var(--spacing-lg) var(--spacing-xl);
     text-align: center;
@@ -222,17 +201,14 @@ function getCatalogGalleryId($catalogName) {
     justify-content: center;
     margin: 0;
 }
-
 .catalog-item:hover h3 {
     color: var(--white);
 }
-
 /* تأثير خاص لروابط المعرض */
 .gallery-trigger-link {
     position: relative;
     overflow: hidden;
 }
-
 .gallery-trigger-link::after {
     content: '';
     position: absolute;
@@ -244,54 +220,47 @@ function getCatalogGalleryId($catalogName) {
     transition: left 0.5s;
     z-index: 0;
 }
-
 .gallery-trigger-link:hover::after {
     left: 100%;
 }
-
 /* الاستجابة للشاشات المختلفة */
 @media (max-width: 768px) {
     .catalogs-grid {
         grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
         gap: var(--spacing-lg);
     }
-    
+   
     .section-title h2 {
         font-size: var(--font-size-2xl);
     }
 }
-
 @media (max-width: 480px) {
     .container {
         padding: 0 var(--spacing-md);
     }
-    
+   
     .section-title h2 {
         font-size: 1.5rem;
     }
 }
-
 /* للعرض المستقل */
 .catalogs-standalone {
     background: #f8f9fa;
     min-height: 100vh;
     padding: 2rem 0;
 }
-
 .demo-info {
     text-align: center;
     margin-bottom: 2rem;
     color: #666;
     padding: 0 1rem;
 }
-
 .demo-info h1 {
     color: var(--gold);
     margin-bottom: 1rem;
     font-size: 2rem;
 }
 </style>
-
 <!-- HTML مكون قسم الكتالوجات مع إصلاح مشاكل اللغة -->
 <div class="catalogs-component">
     <section class="catalogs" data-aos="fade-up">
@@ -303,19 +272,19 @@ function getCatalogGalleryId($catalogName) {
             <div class="catalogs-grid">
                 <?php if (!empty($catalogData_Catalogs)): ?>
                     <?php foreach (array_slice($catalogData_Catalogs, 0, 8) as $index => $catalog): ?>
-                        <a href="#" 
-                           class="catalog-item gallery-trigger-link scale-in will-change-transform" 
+                        <a href="#"
+                           class="catalog-item gallery-trigger-link scale-in will-change-transform"
                            data-gallery-id="<?php echo getCatalogGalleryId($catalog['الاسم'] ?? ''); ?>"
-                           data-aos="zoom-in" 
+                           data-aos="zoom-in"
                            data-aos-delay="<?php echo $index * 100; ?>"
                            aria-label="فتح معرض <?php echo !empty($catalog['name']) ? $catalog['name'] : ($catalog['الاسم'] ?? ''); ?>"
                            data-name-ar="<?php echo htmlspecialchars($catalog['الاسم'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                            data-name-en="<?php echo htmlspecialchars($catalog['name'] ?? $catalog['الاسم'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
-                            <img src="<?php echo $catalog['الصورة'] ?? ''; ?>" 
+                            <img src="<?php echo $catalog['الصورة'] ?? ''; ?>"
                                  alt="كتالوج <?php echo !empty($catalog['name']) ? $catalog['name'] : ($catalog['الاسم'] ?? ''); ?>"
                                  loading="lazy">
-                            <h3 class="catalog-name" 
-                                data-ar="<?php echo htmlspecialchars($catalog['الاسم'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" 
+                            <h3 class="catalog-name"
+                                data-ar="<?php echo htmlspecialchars($catalog['الاسم'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                                 data-en="<?php echo htmlspecialchars($catalog['name'] ?? $catalog['الاسم'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                                 <?php echo $catalog['الاسم'] ?? ''; ?>
                             </h3>
@@ -344,15 +313,14 @@ function getCatalogGalleryId($catalogName) {
         </div>
     </section>
 </div>
-
 <script>
 // JavaScript مكون قسم الكتالوجات مع إصلاح مشاكل اللغة
 (function() {
     'use strict';
-    
+   
     let currentLanguage = 'ar'; // اللغة الحالية
     let isInitialized = false; // تجنب التهيئة المتكررة
-    
+   
     // ترجمات العناوين والأوصاف
     const translations = {
         ar: {
@@ -364,28 +332,28 @@ function getCatalogGalleryId($catalogName) {
             description: 'Browse our diverse collection of specialized catalogs'
         }
     };
-    
+   
     // تحديث النصوص الأساسية حسب اللغة
     function updateMainTexts(language) {
         const titleElement = document.getElementById('catalogsTitle');
         const descElement = document.getElementById('catalogsDescription');
-        
+       
         if (titleElement && translations[language]) {
             titleElement.textContent = translations[language].title;
         }
-        
+       
         if (descElement && translations[language]) {
             descElement.textContent = translations[language].description;
         }
     }
-    
+   
     // تحديث أسماء الكتالوجات حسب اللغة
     function updateCatalogNames(language) {
         const catalogNames = document.querySelectorAll('.catalog-name');
         catalogNames.forEach(element => {
             const nameAr = element.getAttribute('data-ar');
             const nameEn = element.getAttribute('data-en');
-            
+           
             if (language === 'ar' && nameAr) {
                 element.textContent = nameAr;
             } else if (language === 'en' && nameEn) {
@@ -393,23 +361,23 @@ function getCatalogGalleryId($catalogName) {
             }
         });
     }
-    
+   
     // معالجة تغيير اللغة
     function handleLanguageChange(event) {
         const newLanguage = event.detail.language;
         console.log('الكتالوجات: تم استلام تغيير اللغة:', newLanguage);
-        
+       
         currentLanguage = newLanguage;
-        
+       
         // تحديث النصوص
         updateMainTexts(newLanguage);
         updateCatalogNames(newLanguage);
     }
-    
+   
     // تهيئة المكون
     function initializeComponent() {
         if (isInitialized) return;
-        
+       
         // الحصول على اللغة الحالية من النظام المركزي
         if (window.TranslationManager && window.TranslationManager.getCurrentLanguage) {
             currentLanguage = window.TranslationManager.getCurrentLanguage();
@@ -424,19 +392,19 @@ function getCatalogGalleryId($catalogName) {
                 console.warn('خطأ في تحميل اللغة:', error);
             }
         }
-        
+       
         // تحديث النصوص للغة الحالية
         updateMainTexts(currentLanguage);
         updateCatalogNames(currentLanguage);
-        
+       
         // إعداد معالجات الأحداث
         setupEventHandlers();
         setupAnimations();
-        
+       
         isInitialized = true;
         console.log('تم تهيئة مكون الكتالوجات - اللغة الحالية:', currentLanguage);
     }
-    
+   
     // إعداد معالجات الأحداث
     function setupEventHandlers() {
         // معالجة النقر على روابط المعرض
@@ -445,7 +413,7 @@ function getCatalogGalleryId($catalogName) {
             if (galleryLink && galleryLink.closest('.catalogs-component')) {
                 e.preventDefault();
                 e.stopPropagation();
-                
+               
                 const galleryId = galleryLink.getAttribute('data-gallery-id');
                 if (galleryId) {
                     if (typeof window.openImageGallery === 'function') {
@@ -458,7 +426,7 @@ function getCatalogGalleryId($catalogName) {
                 }
             }
         });
-        
+       
         // معالجة أخطاء الصور
         document.addEventListener('error', (e) => {
             if (e.target.tagName === 'IMG' && e.target.closest('.catalogs')) {
@@ -467,18 +435,18 @@ function getCatalogGalleryId($catalogName) {
             }
         }, true);
     }
-    
+   
     // إعداد التأثيرات والحركات
     function setupAnimations() {
         const catalogItems = document.querySelectorAll('.catalog-item');
-        
+       
         // إضافة تأثيرات hover مخصصة
         catalogItems.forEach((item, index) => {
             // تأخير التحريك لكل عنصر
             setTimeout(() => {
                 item.classList.add('fade-in-catalog');
             }, index * 100);
-            
+           
             // تأثيرات النقر للكتالوجات
             item.addEventListener('click', function(e) {
                 // تأثير النقر
@@ -487,28 +455,28 @@ function getCatalogGalleryId($catalogName) {
                     this.style.transform = '';
                 }, 150);
             });
-            
+           
             // تأثير خاص لروابط المعرض
             item.addEventListener('mouseenter', function() {
                 this.style.willChange = 'transform';
                 this.style.backgroundColor = 'rgba(151, 126, 43, 0.05)';
             });
-            
+           
             item.addEventListener('mouseleave', function() {
                 this.style.willChange = 'auto';
                 this.style.backgroundColor = '';
             });
-            
+           
             // تأثير النقر للمعرض
             item.addEventListener('mousedown', function() {
                 this.style.transform = 'scale(0.95)';
             });
-            
+           
             item.addEventListener('mouseup', function() {
                 this.style.transform = '';
             });
         });
-        
+       
         // تأثير الظهور عند التمرير
         if ('IntersectionObserver' in window) {
             const observer = new IntersectionObserver((entries) => {
@@ -521,35 +489,34 @@ function getCatalogGalleryId($catalogName) {
                 threshold: 0.1,
                 rootMargin: '50px'
             });
-            
+           
             document.querySelectorAll('.catalog-item').forEach(item => {
                 observer.observe(item);
             });
         }
     }
-    
+   
     // الاستماع لتغييرات اللغة من النظام المركزي
     document.addEventListener('siteLanguageChanged', handleLanguageChange);
     document.addEventListener('languageChanged', handleLanguageChange); // التوافق مع النظام القديم
-    
+   
     // تشغيل المكون عند تحميل DOM
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initializeComponent);
     } else {
         initializeComponent();
     }
-    
+   
     // إتاحة الوصول للوظائف من النطاق العام للتشخيص
     window.CatalogsManager = {
         updateLanguage: handleLanguageChange,
         getCurrentLanguage: () => currentLanguage,
         isInitialized: () => isInitialized
     };
-    
+   
     console.log('تم تحميل مكون الكتالوجات مع إصلاح مشاكل اللغة');
 })();
 </script>
-
 <?php
 // في حالة الوصول المباشر للملف
 if (basename($_SERVER['PHP_SELF']) == 'catalogs-section.php') {
@@ -575,7 +542,7 @@ if (basename($_SERVER['PHP_SELF']) == 'catalogs-section.php') {
             </ul>
         </div>
     ';
-    
+   
     echo '
     </body>
     </html>';
