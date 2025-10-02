@@ -1,39 +1,92 @@
 <?php
 // مكون قسم الكتالوجات - مع إصلاح مشاكل اللغة والترجمة الصحيحة
-// إعدادات قاعدة البيانات للمكون (تم التبديل إلى جدول Base رقم 698)
-if (!defined('NOCODB_TOKEN')) {
-    define('NOCODB_TOKEN', 'fwVaKHr6zbDns5iW9u8annJUf5LCBJXjqPfujIpV');
-    define('NOCODB_API_URL', 'https://app.nocodb.com/api/v2/tables/');
-}
-// دالة جلب البيانات للمكون (محدثة لجدول Base 698)
-function fetchNocoDB_Catalogs($tableId, $viewId = '') {
-    $url = NOCODB_API_URL . $tableId . '/records';
-    if (!empty($viewId)) {
-        $url .= '?viewId=' . $viewId;
-    }
+// إعدادات قاعدة البيانات للمكون (تم التبديل إلى Base API لـ base.alfa - جدول 698)
+// التكوين
+$API_CONFIG = [
+    'baseUrl' => 'https://base.alfagolden.com',
+    'token' => 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy',
+    'catalogsTableId' => 698  // جدول الكتالوجات
+];
+// خرائط الحقول لجدول الكتالوجات (بناءً على السيكما المقدمة)
+$FIELDS = [
+    'catalogs' => [
+        'name_ar' => 'field_6754',  // الاسم
+        'image' => 'field_6755',    // الصورة
+        'location' => 'field_6756', // الموقع
+        'link' => 'field_6757',     // الرابط
+        'file_id' => 'field_6758',  // معرف الملف
+        'order' => 'field_6759',    // ترتيب
+        'sub_order' => 'field_6760', // ترتيب فرعي
+        'sub_name_ar' => 'field_6761', // الاسم الفرعي
+        'name_en' => 'field_6762',  // name (الاسم الإنجليزي)
+        'status' => 'field_7072',   // الحالة
+        'status_en' => 'field_7073', // الحالة-en
+        'sub_name_en' => 'field_7075', // الاسم الفرعي-en
+        'description_ar' => 'field_7076', // نص
+        'description_en' => 'field_7077' // نص-en
+    ]
+];
+// وظائف مساعدة للـ API (مستمدة من الكود المقدم)
+function makeApiRequest($endpoint, $method = 'GET', $data = null) {
+    global $API_CONFIG;
    
+    $url = $API_CONFIG['baseUrl'] . '/api/database/' . $endpoint;
     $options = [
         'http' => [
-            'header' => "xc-token: " . NOCODB_TOKEN . "\r\n" .
-                       "Content-Type: application/json\r\n",
-            'method' => 'GET',
-            'timeout' => 10
+            'method' => $method,
+            'header' => [
+                'Authorization: Token ' . $API_CONFIG['token'],
+                'Content-Type: application/json'
+            ]
         ]
     ];
    
-    $context = stream_context_create($options);
-    $result = @file_get_contents($url, false, $context);
-   
-    if ($result === FALSE) {
-        return [];
+    if ($data) {
+        $options['http']['content'] = json_encode($data);
     }
    
-    $data = json_decode($result, true);
-    return isset($data['list']) ? $data['list'] : [];
+    $context = stream_context_create($options);
+    $response = @file_get_contents($url, false, $context);
+   
+    if ($response === false) {
+        return null;
+    }
+   
+    $decoded = json_decode($response, true);
+    return $decoded ?: null;
 }
-// جلب بيانات الكتالوجات من جدول Base 698 فقط
-// استبدل 'table_id_for_698' و 'view_id_for_698' بمعرفات الجدول والعرض الفعلية في NocoDB
-$catalogData_Catalogs = fetchNocoDB_Catalogs('table_id_for_698', 'view_id_for_698');
+// جلب بيانات الكتالوجات من Base (جدول 698 فقط، فلترة على الحالة النشطة، ترتيب، حد 8)
+function fetchCatalogsFromBase($tableId) {
+    global $API_CONFIG;
+    try {
+        // جلب السجلات مع فلترة الحالة (افتراضياً 'active' أو 'نشط'، قم بتعديل حسب القيم الفعلية)
+        $response = makeApiRequest("rows/table/{$tableId}/?filter__{$GLOBALS['FIELDS']['catalogs']['status']}__eq=نشط"); // فلترة على الحالة
+        if (!$response || !isset($response['results'])) {
+            return [];
+        }
+        $results = $response['results'];
+        
+        // ترتيب السجلات حسب 'ترتيب' ثم 'ترتيب فرعي' (تحويل إلى أرقام إذا أمكن)
+        usort($results, function($a, $b) {
+            $orderA = (float)($a[$GLOBALS['FIELDS']['catalogs']['order']] ?? 0);
+            $orderB = (float)($b[$GLOBALS['FIELDS']['catalogs']['order']] ?? 0);
+            if ($orderA === $orderB) {
+                $subOrderA = (float)($a[$GLOBALS['FIELDS']['catalogs']['sub_order']] ?? 0);
+                $subOrderB = (float)($b[$GLOBALS['FIELDS']['catalogs']['sub_order']] ?? 0);
+                return $subOrderA <=> $subOrderB;
+            }
+            return $orderA <=> $orderB;
+        });
+        
+        // حد 8 سجلات فقط
+        return array_slice($results, 0, 8);
+    } catch (Exception $e) {
+        error_log("خطأ في جلب الكتالوجات: " . $e->getMessage());
+        return [];
+    }
+}
+// جلب بيانات الكتالوجات من base.alfa
+$catalogData_Catalogs = fetchCatalogsFromBase($API_CONFIG['catalogsTableId']);
 // تنظيف البيانات
 function sanitizeData_Catalogs($data) {
     if (is_array($data)) {
@@ -41,7 +94,18 @@ function sanitizeData_Catalogs($data) {
     }
     return htmlspecialchars($data ?? '', ENT_QUOTES, 'UTF-8');
 }
-$catalogData_Catalogs = sanitizeData_Catalogs($catalogData_Catalogs);
+$catalogData_Catalogs = array_map(function($item) {
+    // تنظيف كل حقل يدوياً للحفاظ على الهيكل
+    foreach ($item as $key => $value) {
+        if (is_string($value)) {
+            $item[$key] = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+        } elseif (is_array($value)) {
+            // للحقول المعقدة مثل الصورة أو الروابط، افترض أنها string مباشرة كما في السيكما
+            $item[$key] = htmlspecialchars(implode(', ', (array)$value), ENT_QUOTES, 'UTF-8');
+        }
+    }
+    return $item;
+}, $catalogData_Catalogs);
 // دالة تحديد معرف المعرض بناءً على اسم الكتالوج
 function getCatalogGalleryId($catalogName) {
     // البحث بالكلمات المفتاحية لضمان المطابقة الصحيحة
@@ -271,22 +335,22 @@ function getCatalogGalleryId($catalogName) {
             </div>
             <div class="catalogs-grid">
                 <?php if (!empty($catalogData_Catalogs)): ?>
-                    <?php foreach (array_slice($catalogData_Catalogs, 0, 8) as $index => $catalog): ?>
+                    <?php foreach ($catalogData_Catalogs as $index => $catalog): ?>
                         <a href="#"
                            class="catalog-item gallery-trigger-link scale-in will-change-transform"
-                           data-gallery-id="<?php echo getCatalogGalleryId($catalog['الاسم'] ?? ''); ?>"
+                           data-gallery-id="<?php echo getCatalogGalleryId($catalog[$FIELDS['catalogs']['name_ar']] ?? ''); ?>"
                            data-aos="zoom-in"
                            data-aos-delay="<?php echo $index * 100; ?>"
-                           aria-label="فتح معرض <?php echo !empty($catalog['name']) ? $catalog['name'] : ($catalog['الاسم'] ?? ''); ?>"
-                           data-name-ar="<?php echo htmlspecialchars($catalog['الاسم'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
-                           data-name-en="<?php echo htmlspecialchars($catalog['name'] ?? $catalog['الاسم'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
-                            <img src="<?php echo $catalog['الصورة'] ?? ''; ?>"
-                                 alt="كتالوج <?php echo !empty($catalog['name']) ? $catalog['name'] : ($catalog['الاسم'] ?? ''); ?>"
+                           aria-label="فتح معرض <?php echo !empty($catalog[$FIELDS['catalogs']['name_en']]) ? $catalog[$FIELDS['catalogs']['name_en']] : ($catalog[$FIELDS['catalogs']['name_ar']] ?? ''); ?>"
+                           data-name-ar="<?php echo htmlspecialchars($catalog[$FIELDS['catalogs']['name_ar']] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                           data-name-en="<?php echo htmlspecialchars($catalog[$FIELDS['catalogs']['name_en']] ?? $catalog[$FIELDS['catalogs']['name_ar']] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+                            <img src="<?php echo $catalog[$FIELDS['catalogs']['image']] ?? ''; ?>"
+                                 alt="كتالوج <?php echo !empty($catalog[$FIELDS['catalogs']['name_en']]) ? $catalog[$FIELDS['catalogs']['name_en']] : ($catalog[$FIELDS['catalogs']['name_ar']] ?? ''); ?>"
                                  loading="lazy">
                             <h3 class="catalog-name"
-                                data-ar="<?php echo htmlspecialchars($catalog['الاسم'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
-                                data-en="<?php echo htmlspecialchars($catalog['name'] ?? $catalog['الاسم'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
-                                <?php echo $catalog['الاسم'] ?? ''; ?>
+                                data-ar="<?php echo htmlspecialchars($catalog[$FIELDS['catalogs']['name_ar']] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                data-en="<?php echo htmlspecialchars($catalog[$FIELDS['catalogs']['name_en']] ?? $catalog[$FIELDS['catalogs']['name_ar']] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+                                <?php echo $catalog[$FIELDS['catalogs']['name_ar']] ?? ''; ?>
                             </h3>
                         </a>
                     <?php endforeach; ?>
@@ -541,7 +605,7 @@ if (basename($_SERVER['PHP_SELF']) == 'catalogs-section.php') {
                 <li>حفظ واستعراض حالة اللغة من النظام المركزي</li>
             </ul>
         </div>
-    ';
+        ';
    
     echo '
     </body>
