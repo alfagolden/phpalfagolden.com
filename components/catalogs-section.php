@@ -42,12 +42,12 @@ function makeApiRequest($endpoint, $method = 'GET', $data = null) {
     ];
     // $response['results']
     if ($data) {
-        $options['http']['content'] = json_encode($data);
+        $options['http']['content'] = json_encode($data['results']);
     }
    
    
-    // $context = stream_context_create($options);
-    // $response = @file_get_contents($url, false, $context);
+    $context = stream_context_create($options);
+    $response = @file_get_contents($url, false, $context);
    
     if ($response === false) {
         return null;
