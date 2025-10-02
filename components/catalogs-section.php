@@ -80,7 +80,7 @@ function fetchCatalogsFromBase($tableId) {
         });
         
         // حد 8 سجلات فقط
-        return array_slice($results, 0, 8);
+        return array_slice($results);
     } catch (Exception $e) {
         error_log("خطأ في جلب الكتالوجات: " . $e->getMessage());
         return [];
