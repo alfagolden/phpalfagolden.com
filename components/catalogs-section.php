@@ -27,11 +27,9 @@ $FIELDS = [
     ]
 ];
 // وظائف مساعدة للـ API (مستمدة من الكود المقدم)
-
-// وظائف مساعدة للـ API
 function makeApiRequest($endpoint, $method = 'GET', $data = null) {
     global $API_CONFIG;
-    
+   
     $url = $API_CONFIG['baseUrl'] . '/api/database/' . $endpoint;
     $options = [
         'http' => [
@@ -42,19 +40,21 @@ function makeApiRequest($endpoint, $method = 'GET', $data = null) {
             ]
         ]
     ];
-    
+    // $response['results']
     if ($data) {
         $options['http']['content'] = json_encode($data);
     }
-    
-    $context = stream_context_create($options);
-    $response = file_get_contents($url, false, $context);
-    
+   
+   
+    // $context = stream_context_create($options);
+    // $response = @file_get_contents($url, false, $context);
+   
     if ($response === false) {
-        throw new Exception('API request failed');
+        return null;
     }
-    
-    return json_decode($response, true);
+   
+    $decoded = json_decode($response, true);
+    return $decoded ?: null;
 }
 // جلب بيانات الكتالوجات من Base (جدول 698 فقط، فلترة على الحالة النشطة، ترتيب، حد 8)
 function fetchCatalogsFromBase($tableId) {
