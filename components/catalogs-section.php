@@ -42,7 +42,7 @@ function makeApiRequest($endpoint, $method = 'GET', $data = null) {
     ];
     // $response['results']
     if ($data) {
-        $options['http']['content'] = json_encode($data['results']);
+        $options['http']['content'] = json_encode($data);
     }
    
    
