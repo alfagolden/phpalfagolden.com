@@ -45,6 +45,7 @@ function makeApiRequest($endpoint, $method = 'GET', $data = null) {
         $options['http']['content'] = json_encode($data);
     }
    
+   
     $context = stream_context_create($options);
     $response = @file_get_contents($url, false, $context);
    
@@ -52,7 +53,7 @@ function makeApiRequest($endpoint, $method = 'GET', $data = null) {
         return null;
     }
    
-    $decoded = json_decode($response, true);
+    $decoded = json_decode($data, true);
     return $decoded ?: null;
 }
 // جلب بيانات الكتالوجات من Base (جدول 698 فقط، فلترة على الحالة النشطة، ترتيب، حد 8)
