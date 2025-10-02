@@ -27,6 +27,7 @@ function fetchNocoDB_Slider($tableId, $viewId = '') {
     $result = @file_get_contents($url, false, $context);
 
     if ($result === FALSE) {
+        error_log("فشل جلب البيانات من NocoDB: $url");
         return [];
     }
 
@@ -39,30 +40,30 @@ $sliderData_MainSlider = fetchNocoDB_Slider('ma95crsjyfik3ce', 'vwbkey10hmb8eo3i
 
 // تنظيف البيانات
 function sanitizeData_Slider($data) {
-    if (is_array($data)) {
-        return array_map('sanitizeData_Slider', $data);
+    if (!is_array($data)) {
+        return htmlspecialchars($data ?? '', ENT_QUOTES, 'UTF-8');
     }
-    return htmlspecialchars($data ?? '', ENT_QUOTES, 'UTF-8');
+    $sanitized = [];
+    foreach ($data as $key => $value) {
+        if (is_array($value)) {
+            $sanitized[$key] = sanitizeData_Slider($value);
+        } else {
+            $sanitized[$key] = htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
+        }
+    }
+    return $sanitized;
 }
 
 $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
 
-/* ===========================
-   ترتيب السجلات حسب "الاسم"
-   ===========================
-   - ترتيب أبجدي تصاعدي (أ -> ي)
-   - السجلات بدون اسم تُدفع لآخر القائمة
-*/
+// ترتيب السجلات حسب الاسم
 usort($sliderData_MainSlider, function($a, $b) {
     $an = isset($a['الاسم']) ? mb_strtolower(trim($a['الاسم']), 'UTF-8') : '';
     $bn = isset($b['الاسم']) ? mb_strtolower(trim($b['الاسم']), 'UTF-8') : '';
-
-    // ضع العناصر الفارغة في النهاية
     if ($an === '' && $bn === '') return 0;
     if ($an === '') return 1;
     if ($bn === '') return -1;
-
-    return $an <=> $bn; // استخدم ($bn <=> $an) للترتيب التنازلي
+    return $an <=> $bn;
 });
 ?>
 
@@ -77,7 +78,6 @@ usort($sliderData_MainSlider, function($a, $b) {
     --transition-normal: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* إعدادات أساسية للمكون */
 .main-slider-component * {
     box-sizing: border-box;
 }
@@ -85,36 +85,33 @@ usort($sliderData_MainSlider, function($a, $b) {
     font-family: 'Cairo', 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* السلايدر الرئيسي */
 .main-slider {
     width: 100%;
     position: relative;
-    height: auto;
-    max-height: none;
     overflow: hidden;
+    aspect-ratio: 16 / 9; /* تحديد نسبة العرض للارتفاع لتجنب التشويه */
 }
 .main-slider .swiper {
     width: 100%;
-    height: auto;
+    height: 100%;
 }
 .main-slider .swiper-slide {
     position: relative;
     overflow: hidden;
-    height: auto;
+    width: 100%;
+    height: 100%;
 }
 .main-slider .swiper-slide img {
     width: 100%;
-    height: auto;
-    object-fit: contain;
-    transform: scale(1.05);
-    transition: transform 6s ease-out;
+    height: 100%;
+    object-fit: cover; /* تغيير إلى cover لملء الحاوية مع الحفاظ على النسب */
     display: block;
+    transition: transform 0.3s ease-out; /* تقليل مدة التأثير لتجنب التشويه */
 }
 .main-slider .swiper-slide-active img {
-    transform: scale(1);
+    transform: none;
 }
 
-/* أزرار التنقل */
 .main-slider .swiper-button-next,
 .main-slider .swiper-button-prev {
     color: var(--gold);
@@ -140,7 +137,6 @@ usort($sliderData_MainSlider, function($a, $b) {
     font-weight: 600;
 }
 
-/* النقاط */
 .main-slider .swiper-pagination-bullet {
     background: rgba(255, 255, 255, 0.6);
     opacity: 1;
@@ -156,8 +152,10 @@ usort($sliderData_MainSlider, function($a, $b) {
     border-color: rgba(255, 255, 255, 0.3);
 }
 
-/* الاستجابة للشاشات المختلفة */
 @media (max-width: 768px) {
+    .main-slider {
+        aspect-ratio: 4 / 3; /* تعديل النسبة للشاشات الصغيرة */
+    }
     .main-slider .swiper-button-next,
     .main-slider .swiper-button-prev {
         width: 40px;
@@ -169,7 +167,6 @@ usort($sliderData_MainSlider, function($a, $b) {
     }
 }
 
-/* للعرض المستقل */
 .slider-standalone {
     background: #f8f9fa;
     min-height: 100vh;
@@ -197,7 +194,7 @@ usort($sliderData_MainSlider, function($a, $b) {
 <!-- تحميل مكتبة Swiper -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 
-<!-- HTML مكون السلايدر الرئيسي مع دعم الترجمة -->
+<!-- HTML مكون السلايدر الرئيسي -->
 <div class="main-slider-component">
     <section class="main-slider" aria-label="الصور الرئيسية">
         <div class="swiper mainSwiper">
@@ -205,13 +202,12 @@ usort($sliderData_MainSlider, function($a, $b) {
                 <?php if (!empty($sliderData_MainSlider)): ?>
                     <?php foreach ($sliderData_MainSlider as $index => $slide): ?>
                         <div class="swiper-slide">
-                            <img src="<?php echo $slide['الصورة'] ?? ''; ?>"
-                                 alt="<?php echo $slide['الاسم'] ?? 'صورة ' . ($index + 1); ?>"
+                            <img src="<?php echo !empty($slide['الصورة']) ? $slide['الصورة'] : 'https://via.placeholder.com/1200x600/977e2b/ffffff?text=صورة+غير+متوفرة'; ?>"
+                                 alt="<?php echo !empty($slide['الاسم']) ? $slide['الاسم'] : 'صورة ' . ($index + 1); ?>"
                                  loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>">
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <!-- صور افتراضية للعرض -->
                     <div class="swiper-slide">
                         <img src="https://via.placeholder.com/1200x600/977e2b/ffffff?text=شركة+ألفا+الذهبية" alt="صورة افتراضية 1" loading="eager">
                     </div>
@@ -234,21 +230,18 @@ usort($sliderData_MainSlider, function($a, $b) {
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
 <script>
-// JavaScript مكون السلايدر الرئيسي مع دعم الترجمة المحسّن
+// JavaScript مكون السلايدر الرئيسي مع دعم الترجمة
 (function() {
     'use strict';
 
-    // التأكد من تحميل Swiper
     if (typeof Swiper === 'undefined') {
         console.error('Swiper library is not loaded');
         return;
     }
 
-    // === نظام إدارة اللغة المحلي ===
     let currentLanguage = 'ar';
     let swiperInstance = null;
 
-    // تحميل اللغة من localStorage
     function loadLanguageFromStorage() {
         try {
             const savedLang = localStorage.getItem('siteLanguage');
@@ -261,16 +254,12 @@ usort($sliderData_MainSlider, function($a, $b) {
         return 'ar';
     }
 
-    // تحديث النصوص - فقط النصوص وليس الصور
     function updateTexts(language) {
         currentLanguage = language;
-
-        // تحديث نصوص الأزرار والتسميات
         const elementsToTranslate = document.querySelectorAll('.main-slider-component [data-translate]');
         elementsToTranslate.forEach(element => {
             const arText = element.getAttribute('data-ar');
             const enText = element.getAttribute('data-en');
-
             if (language === 'ar' && arText) {
                 if (element.hasAttribute('aria-label')) {
                     element.setAttribute('aria-label', arText);
@@ -286,7 +275,6 @@ usort($sliderData_MainSlider, function($a, $b) {
             }
         });
 
-        // تحديث رسائل إمكانية الوصول للسلايدر
         if (swiperInstance && swiperInstance.a11y) {
             const messages = language === 'ar' ? {
                 prevSlideMessage: 'الصورة السابقة',
@@ -297,18 +285,14 @@ usort($sliderData_MainSlider, function($a, $b) {
                 nextSlideMessage: 'Next slide',
                 paginationBulletMessage: 'Go to slide {{index}}'
             };
-
             Object.assign(swiperInstance.a11y, messages);
         }
     }
 
-    // الاستماع لتغيير اللغة من الهيدر
     document.addEventListener('languageChanged', function(event) {
         updateTexts(event.detail.language);
-        // لا نعيد تهيئة السلايدر هنا لتجنب اختفاء الصور
     });
 
-    // تهيئة السلايدر الرئيسي
     function initMainSwiper() {
         const swiperElement = document.querySelector('.mainSwiper');
         if (!swiperElement) return null;
@@ -349,7 +333,6 @@ usort($sliderData_MainSlider, function($a, $b) {
                 nextSlideMessage: currentLanguage === 'ar' ? 'الصورة التالية' : 'Next slide',
                 paginationBulletMessage: currentLanguage === 'ar' ? 'انتقل إلى الصورة {{index}}' : 'Go to slide {{index}}'
             },
-            // إعدادات الاستجابة
             breakpoints: {
                 320: { spaceBetween: 0 },
                 768: { spaceBetween: 0 },
@@ -360,31 +343,20 @@ usort($sliderData_MainSlider, function($a, $b) {
         return swiperInstance;
     }
 
-    // تهيئة المكون عند التحميل
     function initializeComponent() {
-        // تحميل اللغة أولاً
         currentLanguage = loadLanguageFromStorage();
-
-        // تهيئة السلايدر
         initMainSwiper();
-
-        // تحديث النصوص بعد التهيئة
         updateTexts(currentLanguage);
-
-        // إعداد معالجات الأحداث
         setupEventHandlers();
     }
 
-    // إعداد معالجات الأحداث
     function setupEventHandlers() {
-        // إعادة تهيئة عند تغيير حجم النافذة
         window.addEventListener('resize', () => {
             if (swiperInstance) {
                 swiperInstance.update();
             }
         });
 
-        // معالجة أخطاء الصور
         document.addEventListener('error', (e) => {
             if (e.target.tagName === 'IMG' && e.target.closest('.main-slider')) {
                 e.target.src = 'https://via.placeholder.com/1200x600/977e2b/ffffff?text=صورة+غير+متوفرة';
@@ -393,20 +365,17 @@ usort($sliderData_MainSlider, function($a, $b) {
         }, true);
     }
 
-    // تشغيل المكون عند تحميل DOM
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initializeComponent);
     } else {
         initializeComponent();
     }
 
-    // رسالة تأكيد تحميل المكون
     console.log('تم تحميل مكون السلايدر الرئيسي مع دعم الترجمة المحسّن');
 })();
 </script>
 
 <?php
-// في حالة الوصول المباشر للملف
 if (basename($_SERVER['PHP_SELF']) == 'main-slider.php') {
     echo '<!DOCTYPE html>
     <html lang="ar" dir="rtl">
@@ -429,9 +398,6 @@ if (basename($_SERVER['PHP_SELF']) == 'main-slider.php') {
                 <li>ترتيب الصور أبجديًا حسب الاسم</li>
             </ul>
         </div>
-    ';
-    // سيتم عرض المكون هنا تلقائياً
-    echo '
     </body>
     </html>';
 }
