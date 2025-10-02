@@ -262,15 +262,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
         $curl_error = curl_error($ch);
         curl_close($ch);
 
-        error_log("📤 تحديث كتالوج: HTTP $http_code, البيانات: " . json_encode($data));
+        error_log("📤 تحديث البيانات: HTTP $http_code, البيانات: " . json_encode($data));
         if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
         if ($http_code === 200) {
-            $message = 'تم تحديث الكتالوج بنجاح!';
+            $message = 'تم تحديث البيانات بنجاح!';
             $message_type = 'success';
         } else {
-            $message = 'فشل تحديث الكتالوج. تحقق من البيانات أو الاتصال.';
+            $message = 'فشل تحديث البيانات. تحقق من البيانات أو الاتصال.';
             $message_type = 'error';
-            error_log("❌ فشل تحديث الكتالوج: HTTP $http_code, الاستجابة: $response");
+            error_log("❌ فشل تحديث البيانات: HTTP $http_code, الاستجابة: $response");
         }
     } else if (!$name_ar) {
         $message = 'اسم الكتالوج (بالعربية) مطلوب.';
@@ -292,15 +292,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_catalog'])) {
     $curl_error = curl_error($ch);
     curl_close($ch);
 
-    error_log("📤 حذف كتالوج: ID $catalog_id, HTTP $http_code");
+    error_log("📤 حذف البيانات: ID $catalog_id, HTTP $http_code");
     if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
     if ($http_code === 204) {
-        $message = 'تم حذف الكتالوج بنجاح!';
+        $message = 'تم حذف البيانات بنجاح!';
         $message_type = 'success';
     } else {
-        $message = 'فشل حذف الكتالوج. تحقق من الاتصال.';
+        $message = 'فشل حذف البيانات. تحقق من الاتصال.';
         $message_type = 'error';
-        error_log("❌ فشل حذف الكتالوج: HTTP $http_code, الاستجابة: $response");
+        error_log("❌ فشل حذف البيانات: HTTP $http_code, الاستجابة: $response");
     }
 }
 
