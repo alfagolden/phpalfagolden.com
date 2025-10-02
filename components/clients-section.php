@@ -1,50 +1,98 @@
 <?php
 // مكون قسم العملاء - مستقل بالكامل مع دعم الترجمة
 // إعدادات قاعدة البيانات للمكون
-if (!defined('NOCODB_TOKEN')) {
-    define('NOCODB_TOKEN', 'fwVaKHr6zbDns5iW9u8annJUf5LCBJXjqPfujIpV');
-    define('NOCODB_API_URL', 'https://app.nocodb.com/api/v2/tables/');
-}
-
-// دالة جلب البيانات للمكون
-function fetchNocoDB_Clients($tableId, $viewId = '') {
-    $url = NOCODB_API_URL . $tableId . '/records';
-    if (!empty($viewId)) {
-        $url .= '?viewId=' . $viewId;
+$API_CONFIG = [
+    'baseUrl' => 'https://base.alfagolden.com',
+    'token' => 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy',
+    'catalogsTableId' => 698 // جدول الكتالوجات
+];
+// خرائط الحقول لجدول الكتالوجات (بناءً على السيكما المقدمة)
+$FIELDS = [
+    'catalogs' => [
+        'name_ar' => 'field_6754', // الاسم
+        'image' => 'field_6755', // الصورة
+        'location' => 'field_6756', // الموقع (فلترة ثابتة عليه)
+        'link' => 'field_6757', // الرابط
+        'file_id' => 'field_6758', // معرف الملف
+        'order' => 'field_6759', // ترتيب
+        'sub_order' => 'field_6760', // ترتيب فرعي
+        'sub_name_ar' => 'field_6761', // الاسم الفرعي
+        'name_en' => 'field_6762', // name (الاسم الإنجليزي)
+        'status' => 'field_7072', // الحالة
+        'status_en' => 'field_7073', // الحالة-en
+        'sub_name_en' => 'field_7075', // الاسم الفرعي-en
+        'description_ar' => 'field_7076', // نص
+        'description_en' => 'field_7077' // نص-en
+    ]
+];
+function makeApiRequest($endpoint, $method = 'GET', $data = null, $params = []) {
+    global $API_CONFIG;
+    $url = $API_CONFIG['baseUrl'] . '/api/database/' . $endpoint;
+    if (!empty($params)) {
+        $url .= '?' . http_build_query($params);
     }
-    
     $options = [
         'http' => [
-            'header' => "xc-token: " . NOCODB_TOKEN . "\r\n" .
-                       "Content-Type: application/json\r\n",
-            'method' => 'GET',
-            'timeout' => 10
+            'method' => $method,
+            'header' => [
+                'Authorization: Token ' . $API_CONFIG['token'],
+                'Content-Type: application/json'
+            ]
         ]
     ];
-    
-    $context = stream_context_create($options);
-    $result = @file_get_contents($url, false, $context);
-    
-    if ($result === FALSE) {
-        return [];
+    if ($data) {
+        $options['http']['content'] = json_encode($data);
     }
-    
-    $data = json_decode($result, true);
-    return isset($data['list']) ? $data['list'] : [];
+    $context = stream_context_create($options);
+    $response = @file_get_contents($url, false, $context);
+    if ($response === false) {
+        error_log("فشل طلب API: $url");
+        return null;
+    }
+    $decoded = json_decode($response, true);
+    if (!$decoded) {
+        error_log("فشل فك JSON: " . print_r($response, true));
+    }
+    return $decoded;
 }
 
 // جلب بيانات العملاء
-$clientsData_Clients = fetchNocoDB_Clients('ma95crsjyfik3ce', 'vwgb3ystgr089gb9');
+function fetchClientsFromBase($tableId) {
+    global $API_CONFIG, $FIELDS;
+    try {
+        $siteFilter = 'كتلوجات'; // لو القيمة في الجدول فعلاً "كتلوجات"، سيبها كده. لو "كتالوجات"، غيّرها.
+        $results = [];
+        $page = 1;
+        $pageSize = 100; // جلب 100 سجل في كل صفحة
 
-// تنظيف البيانات
-function sanitizeData_Clients($data) {
-    if (is_array($data)) {
-        return array_map('sanitizeData_Clients', $data);
+        do {
+            $response = makeApiRequest("rows/table/{$tableId}/", 'GET', null, [
+                'page' => $page,
+                'size' => $pageSize,
+                'filter__field_6756__contains' => $siteFilter, // فلترة على مستوى الـ API
+                'order_by' => 'field_6759' // ترتيب حسب حقل order
+            ]);
+            if (!$response || !isset($response['results'])) {
+                error_log("فشل جلب البيانات من Baserow: " . print_r($response, true));
+                break;
+            }
+            $results = array_merge($results, $response['results']);
+            $page++;
+        } while (isset($response['next'])); // استمر طالما فيه صفحات إضافية
+
+        // فلترة إضافية على العميل لو لازم
+        $results = array_filter($results, function($item) use ($siteFilter) {
+            $location = $item[$GLOBALS['FIELDS']['catalogs']['location']] ?? '';
+            return stripos($location, $siteFilter) !== false;
+        });
+
+        return array_values($results);
+    } catch (Exception $e) {
+        error_log("خطأ في جلب الكتالوجات: " . $e->getMessage());
+        return [];
     }
-    return htmlspecialchars($data ?? '', ENT_QUOTES, 'UTF-8');
 }
-
-$clientsData_Clients = sanitizeData_Clients($clientsData_Clients);
+$clientsData_Clients = fetchClientsFromBase($API_CONFIG['catalogsTableId']);
 ?>
 
 <style>
@@ -257,8 +305,9 @@ $clientsData_Clients = sanitizeData_Clients($clientsData_Clients);
                         <?php foreach ($clientsData_Clients as $client): ?>
                             <div class="swiper-slide">
                                 <div class="client-logo will-change-transform">
-                                    <img src="<?php echo $client['الصورة'] ?? ''; ?>" 
-                                         alt="شعار عميل <?php echo $client['الاسم'] ?? ''; ?>"
+                                    <?php $image = $client[$FIELDS['catalogs']['image']] ?? ''; ?>
+                                    <img src="<?php echo $image; ?>" 
+                                         alt="شعار عميل <?php echo $client[$FIELDS['catalogs']['name_ar']] ?? ''; ?>"
                                          loading="lazy">
                                 </div>
                             </div>
@@ -267,37 +316,37 @@ $clientsData_Clients = sanitizeData_Clients($clientsData_Clients);
                         <!-- شعارات عملاء افتراضية للعرض -->
                         <div class="swiper-slide">
                             <div class="client-logo">
-                                <img src="https://via.placeholder.com/120x80/977e2b/ffffff?text=عميل+1" alt="شعار عميل 1" loading="lazy">
+                                <img <?php $image = $client[$FIELDS['catalogs']['image']] ?? ''; ?> src="<?php echo $image; ?>" alt="شعار عميل 1" loading="lazy">
                             </div>
                         </div>
                         <div class="swiper-slide">
                             <div class="client-logo">
-                                <img src="https://via.placeholder.com/120x80/b89635/ffffff?text=عميل+2" alt="شعار عميل 2" loading="lazy">
+                                <img <?php $image = $client[$FIELDS['catalogs']['image']] ?? ''; ?> src="<?php echo $image; ?>" alt="شعار عميل 2" loading="lazy">
                             </div>
                         </div>
                         <div class="swiper-slide">
                             <div class="client-logo">
-                                <img src="https://via.placeholder.com/120x80/d4b85a/ffffff?text=عميل+3" alt="شعار عميل 3" loading="lazy">
+                                <img <?php $image = $client[$FIELDS['catalogs']['image']] ?? ''; ?> src="<?php echo $image; ?>" alt="شعار عميل 3" loading="lazy">
                             </div>
                         </div>
                         <div class="swiper-slide">
                             <div class="client-logo">
-                                <img src="https://via.placeholder.com/120x80/977e2b/ffffff?text=عميل+4" alt="شعار عميل 4" loading="lazy">
+                                <img <?php $image = $client[$FIELDS['catalogs']['image']] ?? ''; ?> src="<?php echo $image; ?>" alt="شعار عميل 4" loading="lazy">
                             </div>
                         </div>
                         <div class="swiper-slide">
                             <div class="client-logo">
-                                <img src="https://via.placeholder.com/120x80/b89635/ffffff?text=عميل+5" alt="شعار عميل 5" loading="lazy">
+                                <img <?php $image = $client[$FIELDS['catalogs']['image']] ?? ''; ?> src="<?php echo $image; ?>" alt="شعار عميل 5" loading="lazy">
                             </div>
                         </div>
                         <div class="swiper-slide">
                             <div class="client-logo">
-                                <img src="https://via.placeholder.com/120x80/d4b85a/ffffff?text=عميل+6" alt="شعار عميل 6" loading="lazy">
+                                <img <?php $image = $client[$FIELDS['catalogs']['image']] ?? ''; ?> src="<?php echo $image; ?>" alt="شعار عميل 6" loading="lazy">
                             </div>
                         </div>
                         <div class="swiper-slide">
-                            <div class="client-logo">
-                                <img src="https://via.placeholder.com/120x80/977e2b/ffffff?text=عميل+7" alt="شعار عميل 7" loading="lazy">
+                            <div c  lass="client-logo">
+                                <img <?php $image = $client[$FIELDS['catalogs']['image']] ?? ''; ?> src="<?php echo $image; ?>" alt="شعار عميل 7" loading="lazy">
                             </div>
                         </div>
                     <?php endif; ?>
