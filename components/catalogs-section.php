@@ -61,7 +61,7 @@ function fetchCatalogsFromBase($tableId) {
     global $API_CONFIG;
     try {
         // جلب السجلات مع فلترة الحالة (افتراضياً 'active' أو 'نشط'، قم بتعديل حسب القيم الفعلية)
-        $response = makeApiRequest("rows/table/{$tableId}/"); // فلت عالة
+        $response = makeApiRequest("rows/table/{$tableId}/?filter__الموقع__contains=الكلمة"); // فلت عالة////////
         if (!$response || !isset($response['results'])) {
             return [];
         }
