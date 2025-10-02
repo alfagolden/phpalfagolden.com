@@ -129,7 +129,6 @@ if (!is_array($sliderData_MainSlider)) {
     width: 100%;
     position: relative;
     overflow: hidden;
-    aspect-ratio: 16 / 9; /* نسبة ثابتة لتجنب الفراغات */
 }
 .main-slider .swiper {
     width: 100%;
@@ -139,7 +138,7 @@ if (!is_array($sliderData_MainSlider)) {
     position: relative;
     overflow: hidden;
     width: 100%;
-    height: 100%;
+    height: 80%;
     background: #f8f9fa; /* خلفية لملء أي فراغات */
 }
 .main-slider .swiper-slide img {
