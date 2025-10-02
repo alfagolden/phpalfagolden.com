@@ -56,13 +56,29 @@ function makeApiRequest($endpoint, $method = 'GET', $data = null) {
     $decoded = json_decode($response, true);
     return $decoded ?: null;
 }
+
 function fetchCatalogsFromBase($tableId) {
     global $API_CONFIG;
     try {
-        // فلترة على الحقل 6756 = كتالوجات + ترتيب بالـ id + حد 8
-        $url = "rows/table/{$tableId}?user_field_names=false&filter__field_6756__equal=كتالوجات=8";
-        
-        $response = makeApiRequest($url);
+        // الفلاتر بتاعت Baserow (AND على قيمة "كتلوجات" في الحقل "الصفحة الرئيسية")
+        $filters = [
+            "filter_type" => "AND",
+            "filters" => [
+                [
+                    "type" => "has_value_equal",
+                    "field" => "الصفحة الرئيسية",
+                    "value" => "كتلوجات"
+                ]
+            ],
+            "groups" => []
+        ];
+
+        // إرسال الفلاتر كـ POST body
+        $response = makeApiRequest(
+            "rows/table/{$tableId}/?user_field_names=true&size=8&order_by=-id",
+            "POST",
+            $filters
+        );
 
         if (!$response || !isset($response['results'])) {
             return [];
@@ -70,7 +86,7 @@ function fetchCatalogsFromBase($tableId) {
 
         $results = $response['results'];
 
-        // طباعة للديباج
+        // طباعة JSON للديباج
         echo json_encode($results, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
         return $results;
