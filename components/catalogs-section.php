@@ -42,7 +42,7 @@ function makeApiRequest($endpoint, $method = 'GET', $data = null) {
     ];
     // $response['results']
     if ($data) {
-        $options['http']['content'] = json_encode($data);
+        $options['http']['content'] = json_encode($data['results']);
     }
    
    
@@ -61,15 +61,26 @@ function fetchCatalogsFromBase($tableId) {
     global $API_CONFIG;
     try {
         // جلب السجلات مع فلترة الحالة (افتراضياً 'active' أو 'نشط'، قم بتعديل حسب القيم الفعلية)
-        $response = makeApiRequest("rows/table/{$tableId}");
+        $response = makeApiRequest("rows/table/{$tableId}/"); // فلت عالة
         if (!$response || !isset($response['results'])) {
             return [];
         }
         $results = $response['results'];
-   echo($results);
+        
+        // ترتيب السجلات حسب 'ترتيب' ثم 'ترتيب فرعي' (تحويل إلى أرقام إذا أمكن)
+        usort($results, function($a, $b) {
+            $orderA = (float)($a[$GLOBALS['FIELDS']['catalogs']['order']] ?? 0);
+            $orderB = (float)($b[$GLOBALS['FIELDS']['catalogs']['order']] ?? 0);
+            if ($orderA === $orderB) {
+                $subOrderA = (float)($a[$GLOBALS['FIELDS']['catalogs']['sub_order']] ?? 0);
+                $subOrderB = (float)($b[$GLOBALS['FIELDS']['catalogs']['sub_order']] ?? 0);
+                return $subOrderA <=> $subOrderB;
+            }
+            return $orderA <=> $orderB;
+        });
         
         // حد 8 سجلات فقط
-        return $results;
+        return array_slice($results, 0, 8);
     } catch (Exception $e) {
         error_log("خطأ في جلب الكتالوجات: " . $e->getMessage());
         return [];
@@ -328,7 +339,7 @@ function getCatalogGalleryId($catalogName) {
                     <?php foreach ($catalogData_Catalogs as $index => $catalog): ?>
                         <a href="#"
                            class="catalog-item gallery-trigger-link scale-in will-change-transform"
-                           data-gallery-id="<?php echo getCatalogGalleryId($catalog[$FIELDS['field_6754']] ?? ''); ?>"
+                           data-gallery-id="<?php echo getCatalogGalleryId($catalog[$FIELDS['catalogs']['name_ar']] ?? ''); ?>"
                            data-aos="zoom-in"
                            data-aos-delay="<?php echo $index * 100; ?>"
                            aria-label="فتح معرض <?php echo !empty($catalog[$FIELDS['catalogs']['name_en']]) ? $catalog[$FIELDS['catalogs']['name_en']] : ($catalog[$FIELDS['catalogs']['name_ar']] ?? ''); ?>"
