@@ -26,7 +26,6 @@ $FIELDS = [
         'description_en' => 'field_7077' // نص-en
     ]
 ];
-// وظائف مساعدة للـ API (Baserow)
 function makeApiRequest($endpoint, $method = 'GET', $data = null, $params = []) {
     global $API_CONFIG;
     $url = $API_CONFIG['baseUrl'] . '/api/database/' . $endpoint;
@@ -88,33 +87,6 @@ function fetchCatalogsFromBase($tableId) {
         });
 
         return array_values($results);
-    } catch (Exception $e) {
-        error_log("خطأ في جلب الكتالوجات: " . $e->getMessage());
-        return [];
-    }
-}
-// جلب بيانات الكتالوجات من Baserow (فلترة ثابتة على "كتالوجات" في حقل "الموقع"، ترتيب، حد 8)
-function fetchCatalogsFromBase($tableId) {
-    global $API_CONFIG;
-    try {
-        // فلتر ثابت: موقع "كتالوجات" فقط
-        $siteFilter = 'كتلوجات';
-        
-        // جلب السجلات مع فلترة الحالة (افتراضياً 'active' أو 'نشط' – عدل حسب القيم في Baserow)
-        $response = makeApiRequest("rows/table/{$tableId}/"); // لو Baserow يدعم server-side filter، أضف ?filter[field_6756][icontains]=كتالوجات
-        if (!$response || !isset($response['results'])) {
-            return [];
-        }
-        $results = $response['results'];
-       
-       $results = array_filter($results, function($item) use ($siteFilter) {
-    $location = $item[$GLOBALS['FIELDS']['catalogs']['location']] ?? '';
-    return stripos($location, $siteFilter) !== false;
-});
-        $results = array_values($results);
-       
-
-        return $results;
     } catch (Exception $e) {
         error_log("خطأ في جلب الكتالوجات: " . $e->getMessage());
         return [];
