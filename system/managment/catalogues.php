@@ -293,7 +293,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_catalog'])) {
 }
 
 // Fetch catalogs from Baserow with filter on location="كتالوجات"
-$filter_param = 'filter[field_6756]__equals'=كتالوجات'; // فلتر server-side على الموقع (جزئي، case-insensitive)
+$filter_param = 'filter[field_6756]__equals=كتالوجات'; // فلتر server-side على الموقع (جزئي، case-insensitive)
 $ch = curl_init(BASE_URL . TABLE_ID . '/?' . $filter_param . '&user_field_names=false&size=' . $page_size . '&page=' . $page);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
