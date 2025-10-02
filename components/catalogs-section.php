@@ -59,7 +59,7 @@ function fetchCatalogsFromBase($tableId) {
     global $API_CONFIG;
     try {
         // فلتر ثابت: موقع "كتالوجات" فقط
-        $siteFilter = 'كتالوجات';
+        $siteFilter = 'كتلوجات';
         
         // جلب السجلات مع فلترة الحالة (افتراضياً 'active' أو 'نشط' – عدل حسب القيم في Baserow)
         $response = makeApiRequest("rows/table/{$tableId}/"); // لو Baserow يدعم server-side filter، أضف ?filter[field_6756][icontains]=كتالوجات
@@ -547,7 +547,6 @@ function getCatalogGalleryId($catalogName) {
         }
     }
   
-    document.addEventListener('siteLanguageChanged', handleLanguageChange);
     document.addEventListener('languageChanged', handleLanguageChange);
   
     if (document.readyState === 'loading') {
