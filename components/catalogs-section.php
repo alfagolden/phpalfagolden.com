@@ -61,7 +61,7 @@ function fetchCatalogsFromBase($tableId) {
     global $API_CONFIG;
     try {
         // جلب السجلات مع فلترة الحالة (افتراضياً 'active' أو 'نشط'، قم بتعديل حسب القيم الفعلية)
-        $response = makeApiRequest("rows/table/{$tableId}/user_field_names=false/?filter_field_6756__equal=كتلوجات"); // فلت عالة////////
+        $response = makeApiRequest("rows/table/{$tableId}/user_field_names=false&filter_field_6756__equal=كتلوجات"); // فلت عالة////////
         if (!$response || !isset($response['results'])) {
             return [];
         }
@@ -328,7 +328,7 @@ function getCatalogGalleryId($catalogName) {
                     <?php foreach ($catalogData_Catalogs as $index => $catalog): ?>
                         <a href="#"
                            class="catalog-item gallery-trigger-link scale-in will-change-transform"
-                           data-gallery-id="<?php echo getCatalogGalleryId($catalog[$FIELDS['catalogs']['name_ar']] ?? ''); ?>"
+                           data-gallery-id="<?php echo getCatalogGalleryId($catalog[$FIELDS['field_6754']] ?? ''); ?>"
                            data-aos="zoom-in"
                            data-aos-delay="<?php echo $index * 100; ?>"
                            aria-label="فتح معرض <?php echo !empty($catalog[$FIELDS['catalogs']['name_en']]) ? $catalog[$FIELDS['catalogs']['name_en']] : ($catalog[$FIELDS['catalogs']['name_ar']] ?? ''); ?>"
