@@ -60,7 +60,7 @@ function fetchCatalogsFromBase($tableId) {
     global $API_CONFIG;
     try {
         // فلترة على الحقل 6756 = كتالوجات + ترتيب بالـ id + حد 8
-        $url = "rows/table/{$tableId}?user_field_names=false&filter__field_6756__equal=كتالوجات&order_by=-id&size=8";
+        $url = "rows/table/{$tableId}?user_field_names=false&filter__field_6756__equal=كتالوجات=8";
         
         $response = makeApiRequest($url);
 
