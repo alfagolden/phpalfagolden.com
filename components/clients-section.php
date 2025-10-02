@@ -60,7 +60,7 @@ function makeApiRequest($endpoint, $method = 'GET', $data = null, $params = []) 
 function fetchClientsFromBase($tableId) {
     global $API_CONFIG, $FIELDS;
     try {
-        $siteFilter = 'كتلوجات'; // لو القيمة في الجدول فعلاً "كتلوجات"، سيبها كده. لو "كتالوجات"، غيّرها.
+        $siteFilter = 'سلايدر العملاء'; // لو القيمة في الجدول فعلاً "كتلوجات"، سيبها كده. لو "كتالوجات"، غيّرها.
         $results = [];
         $page = 1;
         $pageSize = 100; // جلب 100 سجل في كل صفحة
@@ -305,8 +305,7 @@ $clientsData_Clients = fetchClientsFromBase($API_CONFIG['catalogsTableId']);
                         <?php foreach ($clientsData_Clients as $client): ?>
                             <div class="swiper-slide">
                                 <div class="client-logo will-change-transform">
-                                    <?php $image = $client[$FIELDS['catalogs']['image']] ?? ''; ?>
-                                    <img src="<?php echo $image; ?>" 
+                                    <img src="<?php echo $client[$FIELDS['catalogs']['image']] ?? ''; ?>" 
                                          alt="شعار عميل <?php echo $client[$FIELDS['catalogs']['name_ar']] ?? ''; ?>"
                                          loading="lazy">
                                 </div>
@@ -316,37 +315,37 @@ $clientsData_Clients = fetchClientsFromBase($API_CONFIG['catalogsTableId']);
                         <!-- شعارات عملاء افتراضية للعرض -->
                         <div class="swiper-slide">
                             <div class="client-logo">
-                                <img <?php $image = $client[$FIELDS['catalogs']['image']] ?? ''; ?> src="<?php echo $image; ?>" alt="شعار عميل 1" loading="lazy">
+                                <img src="https://via.placeholder.com/120x80/977e2b/ffffff?text=عميل+1" alt="شعار عميل 1" loading="lazy">
                             </div>
                         </div>
                         <div class="swiper-slide">
                             <div class="client-logo">
-                                <img <?php $image = $client[$FIELDS['catalogs']['image']] ?? ''; ?> src="<?php echo $image; ?>" alt="شعار عميل 2" loading="lazy">
+                                <img src="https://via.placeholder.com/120x80/b89635/ffffff?text=عميل+2" alt="شعار عميل 2" loading="lazy">
                             </div>
                         </div>
                         <div class="swiper-slide">
                             <div class="client-logo">
-                                <img <?php $image = $client[$FIELDS['catalogs']['image']] ?? ''; ?> src="<?php echo $image; ?>" alt="شعار عميل 3" loading="lazy">
+                                <img src="https://via.placeholder.com/120x80/d4b85a/ffffff?text=عميل+3" alt="شعار عميل 3" loading="lazy">
                             </div>
                         </div>
                         <div class="swiper-slide">
                             <div class="client-logo">
-                                <img <?php $image = $client[$FIELDS['catalogs']['image']] ?? ''; ?> src="<?php echo $image; ?>" alt="شعار عميل 4" loading="lazy">
+                                <img src="https://via.placeholder.com/120x80/977e2b/ffffff?text=عميل+4" alt="شعار عميل 4" loading="lazy">
                             </div>
                         </div>
                         <div class="swiper-slide">
                             <div class="client-logo">
-                                <img <?php $image = $client[$FIELDS['catalogs']['image']] ?? ''; ?> src="<?php echo $image; ?>" alt="شعار عميل 5" loading="lazy">
+                                <img src="https://via.placeholder.com/120x80/b89635/ffffff?text=عميل+5" alt="شعار عميل 5" loading="lazy">
                             </div>
                         </div>
                         <div class="swiper-slide">
                             <div class="client-logo">
-                                <img <?php $image = $client[$FIELDS['catalogs']['image']] ?? ''; ?> src="<?php echo $image; ?>" alt="شعار عميل 6" loading="lazy">
+                                <img src="https://via.placeholder.com/120x80/d4b85a/ffffff?text=عميل+6" alt="شعار عميل 6" loading="lazy">
                             </div>
                         </div>
                         <div class="swiper-slide">
-                            <div c  lass="client-logo">
-                                <img <?php $image = $client[$FIELDS['catalogs']['image']] ?? ''; ?> src="<?php echo $image; ?>" alt="شعار عميل 7" loading="lazy">
+                            <div class="client-logo">
+                                <img src="https://via.placeholder.com/120x80/977e2b/ffffff?text=عميل+7" alt="شعار عميل 7" loading="lazy">
                             </div>
                         </div>
                     <?php endif; ?>
