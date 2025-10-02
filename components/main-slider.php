@@ -2,40 +2,65 @@
 // مكون السلايدر الرئيسي - مستقل بالكامل مع دعم الترجمة
 
 // إعدادات قاعدة البيانات للمكون
-if (!defined('NOCODB_TOKEN')) {
-    define('NOCODB_TOKEN', 'fwVaKHr6zbDns5iW9u8annJUf5LCBJXjqPfujIpV');
-    define('NOCODB_API_URL', 'https://app.nocodb.com/api/v2/tables/');
-}
-
 // دالة جلب البيانات للمكون
-function fetchNocoDB_Slider($tableId, $viewId = '') {
-    $url = NOCODB_API_URL . $tableId . '/records';
-    if (!empty($viewId)) {
-        $url .= '?viewId=' . $viewId;
+//baserow
+$api_config_slider = [
+    'baseUrl' => 'https://base.alfagolden.com',
+    'token' => 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy',
+    'sliderTableId' => 698 // جدول السلايدر
+];
+$FIELDS = [
+    'slider' => [
+        'name_ar' => 'field_6754', // الاسم
+        'image' => 'field_6755', // الصورة
+        'location' => 'field_6756', // الموقع (فلترة ثابتة عليه)
+        'link' => 'field_6757', // الرابط
+        'file_id' => 'field_6758', // معرف الملف
+        'order' => 'field_6759', // ترتيب
+        'sub_order' => 'field_6760', // ترتيب فرعي
+        'sub_name_ar' => 'field_6761', // الاسم الفرعي
+        'name_en' => 'field_6762', // name (الاسم الإنجليزي)
+        'status' => 'field_7072', // الحالة
+        'status_en' => 'field_7073', // الحالة-en
+        'sub_name_en' => 'field_7075', // الاسم الفرعي-en
+        'description_ar' => 'field_7076', // نص
+        'description_en' => 'field_7077' // نص-en
+    ]
+];
+//end baserow
+function makeApiRequestSlider($endpoint, $method = 'GET', $data = null, $params = []) {
+    global $api_config_slider;
+    $url = $api_config_slider['baseUrl'] . '/api/database/' . $endpoint;
+    if (!empty($params)) {
+        $url .= '?' . http_build_query($params);
     }
-
     $options = [
         'http' => [
-            'header' => "xc-token: " . NOCODB_TOKEN . "\r\n" .
-                       "Content-Type: application/json\r\n",
-            'method' => 'GET',
-            'timeout' => 10
+            'method' => $method,
+            'header' => [
+                'Authorization: Token ' . $api_config_slider['token'],
+                'Content-Type: application/json'
+            ]
         ]
     ];
-
-    $context = stream_context_create($options);
-    $result = @file_get_contents($url, false, $context);
-
-    if ($result === FALSE) {
-        return [];
+    if ($data) {
+        $options['http']['content'] = json_encode($data);
     }
+    $context = stream_context_create($options);
+    $response = @file_get_contents($url, false, $context);
+    if ($response === false) {
+        error_log("فشل طلب API: $url");
+        return null;
+    }
+    $decoded = json_decode($response, true);
+    if (!$decoded) {
+        error_log("فشل فك JSON: " . print_r($response, true));
+    }
+    return $decoded;
+}   
 
-    $data = json_decode($result, true);
-    return isset($data['list']) ? $data['list'] : [];
-}
-
-// جلب بيانات السلايدر
-$sliderData_MainSlider = fetchNocoDB_Slider('ma95crsjyfik3ce', 'vwbkey10hmb8eo3i');
+    // جلب بيانات السلايدر
+    $sliderData_MainSlider = makeApiRequestSlider('rows/table/' . $api_config_slider['sliderTableId'] . '/', 'GET', null, $params);
 
 // تنظيف البيانات
 function sanitizeData_Slider($data) {
@@ -54,8 +79,8 @@ $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
    - السجلات بدون اسم تُدفع لآخر القائمة
 */
 usort($sliderData_MainSlider, function($a, $b) {
-    $an = isset($a['الاسم']) ? mb_strtolower(trim($a['الاسم']), 'UTF-8') : '';
-    $bn = isset($b['الاسم']) ? mb_strtolower(trim($b['الاسم']), 'UTF-8') : '';
+    $an = isset($a[$FIELDS['slider']['name_ar']]) ? mb_strtolower(trim($a[$FIELDS['slider']['name_ar']]), 'UTF-8') : '';
+    $bn = isset($b[$FIELDS['slider']['name_ar']]) ? mb_strtolower(trim($b[$FIELDS['slider']['name_ar']]), 'UTF-8') : '';
 
     // ضع العناصر الفارغة في النهاية
     if ($an === '' && $bn === '') return 0;
@@ -205,8 +230,8 @@ usort($sliderData_MainSlider, function($a, $b) {
                 <?php if (!empty($sliderData_MainSlider)): ?>
                     <?php foreach ($sliderData_MainSlider as $index => $slide): ?>
                         <div class="swiper-slide">
-                            <img src="<?php echo $slide['الصورة'] ?? ''; ?>"
-                                 alt="<?php echo $slide['الاسم'] ?? 'صورة ' . ($index + 1); ?>"
+                            <img src="<?php echo $slide[$FIELDS['slider']['image']] ?? ''; ?>"
+                                 alt="<?php echo $slide[$FIELDS['slider']['name_ar']] ?? 'صورة ' . ($index + 1); ?>"
                                  loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>">
                         </div>
                     <?php endforeach; ?>
