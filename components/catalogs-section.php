@@ -5,7 +5,7 @@
 $API_CONFIG = [
     'baseUrl' => 'https://base.alfagolden.com',
     'token' => 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy',
-    'catalogsTableId' => 698  // جدول الكتالوجات
+    // 'catalogsTableId' => 698  // جدول الكتالوجات
 ];
 // خرائط الحقول لجدول الكتالوجات (بناءً على السيكما المقدمة)
 $FIELDS = [
