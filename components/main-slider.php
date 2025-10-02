@@ -2,41 +2,62 @@
 // مكون السلايدر الرئيسي - مستقل بالكامل مع دعم الترجمة
 
 // إعدادات قاعدة البيانات للمكون
-if (!defined('NOCODB_TOKEN')) {
-    define('NOCODB_TOKEN', 'fwVaKHr6zbDns5iW9u8annJUf5LCBJXjqPfujIpV');
-    define('NOCODB_API_URL', 'https://app.nocodb.com/api/v2/tables/');
-}
+$api_config_slider = [
+    'baseUrl' => 'https://base.alfagolden.com',
+    'token' => 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy',
+    'sliderTableId' => 698
+];
+$FIELDS = [
+    'slider' => [
+        'name_ar' => 'field_6754',
+        'image' => 'field_6755',
+        'location' => 'field_6756',
+        'link' => 'field_6757',
+        'file_id' => 'field_6758',
+        'order' => 'field_6759',
+        'sub_order' => 'field_6760',
+        'sub_name_ar' => 'field_6761',
+        'name_en' => 'field_6762',
+        'status' => 'field_7072',
+        'status_en' => 'field_7073',
+        'sub_name_en' => 'field_7075',
+        'description_ar' => 'field_7076',
+        'description_en' => 'field_7077'
+    ]
+];
 
-// دالة جلب البيانات للمكون
-function fetchNocoDB_Slider($tableId, $viewId = '') {
-    $url = NOCODB_API_URL . $tableId . '/records';
-    if (!empty($viewId)) {
-        $url .= '?viewId=' . $viewId;
+// دالة جلب البيانات من Baserow
+function makeApiRequestSlider($endpoint, $method = 'GET', $data = null, $params = []) {
+    global $api_config_slider;
+    $url = $api_config_slider['baseUrl'] . '/api/database/' . $endpoint;
+    if (!empty($params)) {
+        $url .= '?' . http_build_query($params);
     }
-
     $options = [
         'http' => [
-            'header' => "xc-token: " . NOCODB_TOKEN . "\r\n" .
-                       "Content-Type: application/json\r\n",
-            'method' => 'GET',
-            'timeout' => 10
+            'method' => $method,
+            'header' => [
+                'Authorization: Token ' . $api_config_slider['token'],
+                'Content-Type: application/json'
+            ]
         ]
     ];
-
+    if ($data) {
+        $options['http']['content'] = json_encode($data);
+    }
     $context = stream_context_create($options);
-    $result = @file_get_contents($url, false, $context);
-
-    if ($result === FALSE) {
-        error_log("فشل جلب البيانات من NocoDB: $url");
+    $response = @file_get_contents($url, false, $context);
+    if ($response === false) {
+        error_log("فشل طلب API: $url");
         return [];
     }
-
-    $data = json_decode($result, true);
-    return isset($data['list']) ? $data['list'] : [];
+    $decoded = json_decode($response, true);
+    if (!$decoded) {
+        error_log("فشل فك JSON: " . print_r($response, true));
+        return [];
+    }
+    return isset($decoded['results']) ? $decoded['results'] : $decoded;
 }
-
-// جلب بيانات السلايدر
-$sliderData_MainSlider = fetchNocoDB_Slider('ma95crsjyfik3ce', 'vwbkey10hmb8eo3i');
 
 // تنظيف البيانات
 function sanitizeData_Slider($data) {
@@ -54,17 +75,36 @@ function sanitizeData_Slider($data) {
     return $sanitized;
 }
 
-$sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
+// جلب بيانات السلايدر
+$params = []; // يمكنك إضافة معايير فلترة لو لازم
+$sliderData_MainSlider = makeApiRequestSlider('rows/table/' . $api_config_slider['sliderTableId'] . '/', 'GET', null, $params);
 
-// ترتيب السجلات حسب الاسم
-usort($sliderData_MainSlider, function($a, $b) {
-    $an = isset($a['الاسم']) ? mb_strtolower(trim($a['الاسم']), 'UTF-8') : '';
-    $bn = isset($b['الاسم']) ? mb_strtolower(trim($b['الاسم']), 'UTF-8') : '';
-    if ($an === '' && $bn === '') return 0;
-    if ($an === '') return 1;
-    if ($bn === '') return -1;
-    return $an <=> $bn;
-});
+// فحص البيانات
+if (!is_array($sliderData_MainSlider)) {
+    $sliderData_MainSlider = [];
+    error_log("لا توجد بيانات سلايدر متاحة.");
+} else {
+    $sliderData_MainSlider = sanitizeData_Slider($sliderData_MainSlider);
+
+    // ترتيب السجلات حسب الاسم الأبجدي
+    usort($sliderData_MainSlider, function($a, $b) use ($FIELDS) {
+        $nameA = $a[$FIELDS['slider']['name_ar']] ?? '';
+        $nameB = $b[$FIELDS['slider']['name_ar']] ?? '';
+        if (empty($nameA) && empty($nameB)) return 0;
+        if (empty($nameA)) return 1;
+        if (empty($nameB)) return -1;
+        return strcmp($nameA, $nameB);
+    });
+
+    // فلترة حسب الموقع (إذا لزم)
+    $siteFilter = isset($siteFilter) ? $siteFilter : '';
+    if (!empty($siteFilter)) {
+        $sliderData_MainSlider = array_filter($sliderData_MainSlider, function($item) use ($siteFilter, $FIELDS) {
+            $location = $item[$FIELDS['slider']['location']] ?? '';
+            return stripos($location, $siteFilter) !== false;
+        });
+    }
+}
 ?>
 
 <style>
@@ -89,7 +129,7 @@ usort($sliderData_MainSlider, function($a, $b) {
     width: 100%;
     position: relative;
     overflow: hidden;
-    aspect-ratio: 16 / 9; /* تحديد نسبة العرض للارتفاع لتجنب التشويه */
+    aspect-ratio: 16 / 9; /* نسبة ثابتة لتجنب الفراغات */
 }
 .main-slider .swiper {
     width: 100%;
@@ -100,18 +140,14 @@ usort($sliderData_MainSlider, function($a, $b) {
     overflow: hidden;
     width: 100%;
     height: 100%;
+    background: #f8f9fa; /* خلفية لملء أي فراغات */
 }
 .main-slider .swiper-slide img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* تغيير إلى cover لملء الحاوية مع الحفاظ على النسب */
+    object-fit: cover; /* ملء الحاوية مع الحفاظ على النسب */
     display: block;
-    transition: transform 0.3s ease-out; /* تقليل مدة التأثير لتجنب التشويه */
 }
-.main-slider .swiper-slide-active img {
-    transform: none;
-}
-
 .main-slider .swiper-button-next,
 .main-slider .swiper-button-prev {
     color: var(--gold);
@@ -136,7 +172,6 @@ usort($sliderData_MainSlider, function($a, $b) {
     font-size: 18px;
     font-weight: 600;
 }
-
 .main-slider .swiper-pagination-bullet {
     background: rgba(255, 255, 255, 0.6);
     opacity: 1;
@@ -151,10 +186,9 @@ usort($sliderData_MainSlider, function($a, $b) {
     border-radius: 5px;
     border-color: rgba(255, 255, 255, 0.3);
 }
-
 @media (max-width: 768px) {
     .main-slider {
-        aspect-ratio: 4 / 3; /* تعديل النسبة للشاشات الصغيرة */
+        aspect-ratio: 4 / 3; /* نسبة مختلفة للشاشات الصغيرة */
     }
     .main-slider .swiper-button-next,
     .main-slider .swiper-button-prev {
@@ -166,7 +200,6 @@ usort($sliderData_MainSlider, function($a, $b) {
         font-size: 14px;
     }
 }
-
 .slider-standalone {
     background: #f8f9fa;
     min-height: 100vh;
@@ -202,8 +235,8 @@ usort($sliderData_MainSlider, function($a, $b) {
                 <?php if (!empty($sliderData_MainSlider)): ?>
                     <?php foreach ($sliderData_MainSlider as $index => $slide): ?>
                         <div class="swiper-slide">
-                            <img src="<?php echo !empty($slide['الصورة']) ? $slide['الصورة'] : 'https://via.placeholder.com/1200x600/977e2b/ffffff?text=صورة+غير+متوفرة'; ?>"
-                                 alt="<?php echo !empty($slide['الاسم']) ? $slide['الاسم'] : 'صورة ' . ($index + 1); ?>"
+                            <img src="<?php echo !empty($slide[$FIELDS['slider']['image']]['url']) ? $slide[$FIELDS['slider']['image']]['url'] : (!empty($slide[$FIELDS['slider']['image']]) ? $slide[$FIELDS['slider']['image']] : 'https://via.placeholder.com/1200x600/977e2b/ffffff?text=صورة+غير+متوفرة'); ?>"
+                                 alt="<?php echo !empty($slide[$FIELDS['slider']['name_ar']]) ? $slide[$FIELDS['slider']['name_ar']] : 'صورة ' . ($index + 1); ?>"
                                  loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>">
                         </div>
                     <?php endforeach; ?>
