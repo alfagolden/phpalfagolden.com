@@ -30,7 +30,7 @@ $FIELDS = [
 function makeApiRequest($endpoint, $method = 'GET', $data = null) {
     global $API_CONFIG;
    
-    $url = $API_CONFIG['baseUrl'] . '/api/database/' . $endpoint;
+    $url = $API_CONFIG['baseUrl'] . '/rows/table/' . $endpoint;
     $options = [
         'http' => [
             'method' => $method,
