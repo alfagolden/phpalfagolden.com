@@ -60,7 +60,7 @@ function fetchCatalogsFromBase($tableId) {
     global $API_CONFIG;
     try {
         // جلب السجلات مع فلترة الحالة (افتراضياً 'active' أو 'نشط'، قم بتعديل حسب القيم الفعلية)
-        $response = makeApiRequest("rows/table/{$tableId}/"); // فلت عالة
+        $response = makeApiRequest("rows/table/{$tableId}/?filter__field_6756__contains=كتلوجات"); // فلت عالة
         if (!$response || !isset($response['results'])) {
             return [];
         }
