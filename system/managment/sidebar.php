@@ -14,46 +14,35 @@ $site_title = "GoldCMS";
 $user_name = "John Doe";
 $user_role = "Administrator";
 
-// تحديد الصفحة الحالية
-$page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
-$allowed_pages = [
-    'dashboard' => 'Dashboard',
-    'content' => 'Content',
-    'media' => 'Media Library',
-    'users' => 'Users',
-    'settings' => 'Settings',
-    'analytics' => 'Analytics',
-    'notifications' => 'Notifications',
-    'comments' => 'Comments',
-    'plugins' => 'Plugins',
-    'support' => 'Support'
-];
+// تحديد الصفحة الحالية من GET parameter
+$current_page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 
-// فحص صحة الصفحة
-if (!array_key_exists($page, $allowed_pages)) {
-    $page = 'dashboard';
-}
-
-// تحديث nav_items لتحديد الـ active
+// قائمة الروابط مع روابط الـ href الجديدة
 $nav_items = [
-    ['icon' => 'fa-home', 'text' => 'Dashboard', 'page' => 'dashboard', 'active' => ($page === 'dashboard')],
-    ['icon' => 'fa-file-alt', 'text' => 'Content', 'page' => 'content', 'active' => ($page === 'content'), 'badge' => '12'],
-    ['icon' => 'fa-images', 'text' => 'Media Library', 'page' => 'media', 'active' => ($page === 'media'), 'badge' => null],
-    ['icon' => 'fa-users', 'text' => 'Users', 'page' => 'users', 'active' => ($page === 'users'), 'badge' => null],
-    ['icon' => 'fa-cog', 'text' => 'Settings', 'page' => 'settings', 'active' => ($page === 'settings'), 'badge' => null],
-    ['icon' => 'fa-chart-line', 'text' => 'Analytics', 'page' => 'analytics', 'active' => ($page === 'analytics'), 'badge' => null],
-    ['icon' => 'fa-bell', 'text' => 'Notifications', 'page' => 'notifications', 'active' => ($page === 'notifications'), 'badge' => '3'],
-    ['icon' => 'fa-comments', 'text' => 'Comments', 'page' => 'comments', 'active' => ($page === 'comments'), 'badge' => null],
-    ['icon' => 'fa-plug', 'text' => 'Plugins', 'page' => 'plugins', 'active' => ($page === 'plugins'), 'badge' => null],
-    ['icon' => 'fa-life-ring', 'text' => 'Support', 'page' => 'support', 'active' => ($page === 'support'), 'badge' => null]
+    ['icon' => 'fa-home', 'text' => 'Dashboard', 'page' => 'dashboard', 'active' => ($current_page == 'dashboard')],
+    ['icon' => 'fa-file-alt', 'text' => 'Content', 'page' => 'content', 'active' => ($current_page == 'content')],
+    ['icon' => 'fa-images', 'text' => 'Media Library', 'page' => 'media', 'active' => ($current_page == 'media')],
+    ['icon' => 'fa-users', 'text' => 'Users', 'page' => 'users', 'active' => ($current_page == 'users')],
+    ['icon' => 'fa-cog', 'text' => 'Settings', 'page' => 'settings', 'active' => ($current_page == 'settings')],
+    ['icon' => 'fa-chart-line', 'text' => 'Analytics', 'page' => 'analytics', 'active' => ($current_page == 'analytics')],
+    ['icon' => 'fa-bell', 'text' => 'Notifications', 'page' => 'notifications', 'badge' => '3', 'active' => ($current_page == 'notifications')],
+    ['icon' => 'fa-comments', 'text' => 'Comments', 'page' => 'comments', 'active' => ($current_page == 'comments')],
+    ['icon' => 'fa-plug', 'text' => 'Plugins', 'page' => 'plugins', 'active' => ($current_page == 'plugins')],
+    ['icon' => 'fa-life-ring', 'text' => 'Support', 'page' => 'support', 'active' => ($current_page == 'support')]
 ];
+
+// تحديد مسار الصفحة للـ include
+$page_file = "pages/{$current_page}.php";
+if (!file_exists($page_file)) {
+    $page_file = "pages/dashboard.php"; // fallback to dashboard if page not found
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($allowed_pages[$page] ?? 'Dashboard'); ?> - Elegant Gold Admin Dashboard</title>
+    <title>Elegant Gold Admin Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -244,7 +233,6 @@ $nav_items = [
             padding: 30px;
             box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(<?php echo COLOR_GOLD; ?>, 0.1);
-            min-height: 60vh;
         }
         @media (max-width: 992px) {
             .sidebar {
@@ -296,7 +284,7 @@ $nav_items = [
                     <a href="?page=<?php echo htmlspecialchars($item['page']); ?>" class="nav-link<?php echo $item['active'] ? ' active' : ''; ?>">
                         <i class="fas <?php echo htmlspecialchars($item['icon']); ?>"></i>
                         <span><?php echo htmlspecialchars($item['text']); ?></span>
-                        <?php if ($item['badge']): ?>
+                        <?php if (isset($item['badge'])): ?>
                             <span class="badge"><?php echo htmlspecialchars($item['badge']); ?></span>
                         <?php endif; ?>
                     </a>
@@ -316,29 +304,15 @@ $nav_items = [
             <button class="menu-toggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <h1 class="page-title"><?php echo htmlspecialchars($allowed_pages[$page] ?? 'Dashboard Overview'); ?></h1>
+            <h1 class="page-title"><?php echo ucfirst(str_replace('-', ' ', $current_page)); ?> Page</h1>
         </div>
         <div class="page-content">
-            <?php
-            // تحميل المحتوى المناسب
-            if (file_exists("pages/{$page}.php")) {
-                include "pages/{$page}.php";
-            } else {
-                include "pages/dashboard.php";
-            }
-            ?>
+            <?php include $page_file; ?>
         </div>
     </div>
     <script>
         document.querySelector('.menu-toggle').addEventListener('click', function() {
             document.querySelector('.sidebar').classList.toggle('active');
-        });
-        const navLinks = document.querySelectorAll('.nav-link');
-        navLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                navLinks.forEach(l => l.classList.remove('active'));
-                this.classList.add('active');
-            });
         });
     </script>
 </body>
