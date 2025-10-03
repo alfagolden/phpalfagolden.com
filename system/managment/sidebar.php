@@ -13,39 +13,39 @@ define('COLOR_TEXT_GRAY', '#666666');
 $site_title = "GoldCMS";
 $user_name = "John Doe";
 $user_role = "Administrator";
-$nav_items = [
-    ['icon' => 'fa-home', 'text' => 'Dashboard', 'active' => true, 'badge' => null],
-    ['icon' => 'fa-file-alt', 'text' => 'Content', 'active' => false, 'badge' => '12'],
-    ['icon' => 'fa-images', 'text' => 'Media Library', 'active' => false, 'badge' => null],
-    ['icon' => 'fa-users', 'text' => 'Users', 'active' => false, 'badge' => null],
-    ['icon' => 'fa-cog', 'text' => 'Settings', 'active' => false, 'badge' => null],
-    ['icon' => 'fa-chart-line', 'text' => 'Analytics', 'active' => false, 'badge' => null],
-    ['icon' => 'fa-bell', 'text' => 'Notifications', 'active' => false, 'badge' => '3'],
-    ['icon' => 'fa-comments', 'text' => 'Comments', 'active' => false, 'badge' => null],
-    ['icon' => 'fa-plug', 'text' => 'Plugins', 'active' => false, 'badge' => null],
-    ['icon' => 'fa-life-ring', 'text' => 'Support', 'active' => false, 'badge' => null]
+
+// تحديد الصفحة الحالية
+$page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
+$allowed_pages = [
+    'dashboard' => 'Dashboard',
+    'content' => 'Content',
+    'media' => 'Media Library',
+    'users' => 'Users',
+    'settings' => 'Settings',
+    'analytics' => 'Analytics',
+    'notifications' => 'Notifications',
+    'comments' => 'Comments',
+    'plugins' => 'Plugins',
+    'support' => 'Support'
 ];
-$cards = [
-    [
-        'icon' => 'fa-file-alt',
-        'title' => 'Content Management',
-        'content' => 'Create, edit, and manage all your website content from one central location. Powerful editing tools with real-time preview.'
-    ],
-    [
-        'icon' => 'fa-users',
-        'title' => 'User Management',
-        'content' => 'Control user roles, permissions, and access levels. Manage registrations and user activity with detailed analytics.'
-    ],
-    [
-        'icon' => 'fa-chart-line',
-        'title' => 'Performance Analytics',
-        'content' => 'Track visitor statistics, engagement metrics, and conversion rates with beautiful visual reports.'
-    ],
-    [
-        'icon' => 'fa-cog',
-        'title' => 'System Settings',
-        'content' => 'Configure your website\'s appearance, functionality, and security settings with our intuitive control panel.'
-    ]
+
+// فحص صحة الصفحة
+if (!array_key_exists($page, $allowed_pages)) {
+    $page = 'dashboard';
+}
+
+// تحديث nav_items لتحديد الـ active
+$nav_items = [
+    ['icon' => 'fa-home', 'text' => 'Dashboard', 'page' => 'dashboard', 'active' => ($page === 'dashboard')],
+    ['icon' => 'fa-file-alt', 'text' => 'Content', 'page' => 'content', 'active' => ($page === 'content'), 'badge' => '12'],
+    ['icon' => 'fa-images', 'text' => 'Media Library', 'page' => 'media', 'active' => ($page === 'media'), 'badge' => null],
+    ['icon' => 'fa-users', 'text' => 'Users', 'page' => 'users', 'active' => ($page === 'users'), 'badge' => null],
+    ['icon' => 'fa-cog', 'text' => 'Settings', 'page' => 'settings', 'active' => ($page === 'settings'), 'badge' => null],
+    ['icon' => 'fa-chart-line', 'text' => 'Analytics', 'page' => 'analytics', 'active' => ($page === 'analytics'), 'badge' => null],
+    ['icon' => 'fa-bell', 'text' => 'Notifications', 'page' => 'notifications', 'active' => ($page === 'notifications'), 'badge' => '3'],
+    ['icon' => 'fa-comments', 'text' => 'Comments', 'page' => 'comments', 'active' => ($page === 'comments'), 'badge' => null],
+    ['icon' => 'fa-plug', 'text' => 'Plugins', 'page' => 'plugins', 'active' => ($page === 'plugins'), 'badge' => null],
+    ['icon' => 'fa-life-ring', 'text' => 'Support', 'page' => 'support', 'active' => ($page === 'support'), 'badge' => null]
 ];
 ?>
 <!DOCTYPE html>
@@ -53,7 +53,7 @@ $cards = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elegant Gold Admin Dashboard</title>
+    <title><?php echo htmlspecialchars($allowed_pages[$page] ?? 'Dashboard'); ?> - Elegant Gold Admin Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -238,54 +238,13 @@ $cards = [
             -webkit-text-fill-color: transparent;
             letter-spacing: 1px;
         }
-        .content-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
-        }
-        .card {
+        .page-content {
             background: var(--light-card);
             border-radius: 18px;
             padding: 30px;
             box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
-            transition: var(--transition);
             border: 1px solid rgba(<?php echo COLOR_GOLD; ?>, 0.1);
-        }
-        .card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 18px 35px rgba(<?php echo COLOR_GOLD; ?>, 0.2);
-            border: 1px solid rgba(<?php echo COLOR_GOLD; ?>, 0.4);
-        }
-        .card-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-        .card-icon {
-            width: 55px;
-            height: 55px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 18px;
-            box-shadow: 0 4px 10px rgba(<?php echo COLOR_GOLD; ?>, 0.3);
-        }
-        .card-icon i {
-            font-size: 24px;
-            color: var(--white);
-        }
-        .card-title {
-            font-size: 22px;
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-        .card-content {
-            color: var(--text-gray);
-            line-height: 1.7;
-            font-size: 15px;
+            min-height: 60vh;
         }
         @media (max-width: 992px) {
             .sidebar {
@@ -334,7 +293,7 @@ $cards = [
         <ul class="nav-links">
             <?php foreach ($nav_items as $item): ?>
                 <li class="nav-item">
-                    <a href="#" class="nav-link<?php echo $item['active'] ? ' active' : ''; ?>">
+                    <a href="?page=<?php echo htmlspecialchars($item['page']); ?>" class="nav-link<?php echo $item['active'] ? ' active' : ''; ?>">
                         <i class="fas <?php echo htmlspecialchars($item['icon']); ?>"></i>
                         <span><?php echo htmlspecialchars($item['text']); ?></span>
                         <?php if ($item['badge']): ?>
@@ -357,20 +316,17 @@ $cards = [
             <button class="menu-toggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <h1 class="page-title">Dashboard Overview</h1>
+            <h1 class="page-title"><?php echo htmlspecialchars($allowed_pages[$page] ?? 'Dashboard Overview'); ?></h1>
         </div>
-        <div class="content-cards">
-            <?php foreach ($cards as $card): ?>
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">
-                            <i class="fas <?php echo htmlspecialchars($card['icon']); ?>"></i>
-                        </div>
-                        <h3 class="card-title"><?php echo htmlspecialchars($card['title']); ?></h3>
-                    </div>
-                    <p class="card-content"><?php echo htmlspecialchars($card['content']); ?></p>
-                </div>
-            <?php endforeach; ?>
+        <div class="page-content">
+            <?php
+            // تحميل المحتوى المناسب
+            if (file_exists("pages/{$page}.php")) {
+                include "pages/{$page}.php";
+            } else {
+                include "pages/dashboard.php";
+            }
+            ?>
         </div>
     </div>
     <script>
