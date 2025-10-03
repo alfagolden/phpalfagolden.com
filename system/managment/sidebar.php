@@ -245,11 +245,15 @@ if (!file_exists($page_file)) {
             transition: var(--transition);
         }
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-        }
+    display: flex;
+    justify-content: flex-start; /* يخلي العنوان يبدأ من الشمال */
+    align-items: center;
+    gap: 20px;
+}
+.page-title {
+    text-align: left;
+}
+
         .page-title {
             font-size: 32px;
             font-weight: 700;
