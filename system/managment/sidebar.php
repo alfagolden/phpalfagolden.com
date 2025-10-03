@@ -32,7 +32,7 @@ $nav_items = [
 ];
 
 // تحديد مسار الصفحة للـ include
-$page_file = "/{$current_page}.php";
+$page_file = "{$current_page}.php";//في نفس الفولدر
 if (!file_exists($page_file)) {
     $page_file = "pages/home.php"; // fallback to dashboard if page not found
 }
@@ -63,6 +63,37 @@ if (!file_exists($page_file)) {
             --sidebar-width: 300px;
             --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        /* السايدبار دايمًا ثابتة شمال */
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--white);
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    transition: var(--transition);
+    box-shadow: 0 0 40px rgba(0,0,0,0.1);
+    z-index: 100;
+}
+
+/* المحتوى مزاح بالافتراضي */
+.main-content {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    padding: 40px;
+    transition: var(--transition);
+}
+
+/* لو السايدبار متقفلة، يزق المحتوى */
+.sidebar.collapsed {
+    width: 0;
+    overflow: hidden;
+}
+
+.main-content.expanded {
+    margin-left: 0;
+}
+
         body {
             background: linear-gradient(145deg, var(--light-bg), #e8ecef, #ffffff);
             color: var(--text-dark);
@@ -311,6 +342,15 @@ if (!file_exists($page_file)) {
         </div>
     </div>
     <script>
+        const sidebar = document.querySelector('.sidebar');
+const mainContent = document.querySelector('.main-content');
+const toggleBtn = document.querySelector('.menu-toggle');
+
+toggleBtn.addEventListener('click', () => {
+    sidebar.classList.toggle('collapsed');
+    mainContent.classList.toggle('expanded');
+});
+
         document.querySelector('.menu-toggle').addEventListener('click', function() {
             document.querySelector('.sidebar').classList.toggle('active');
         });
