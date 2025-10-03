@@ -32,7 +32,7 @@ $nav_items = [
 ];
 
 // تحديد مسار الصفحة للـ include
-$page_file = "/{$current_page}.php";
+$page_file = "{$current_page}.php";//في نفس الفولدر
 if (!file_exists($page_file)) {
     $page_file = "pages/home.php"; // fallback to dashboard if page not found
 }
