@@ -9,8 +9,8 @@ define('COLOR_LIGHT_CARD', '#e0e0e0');
 define('COLOR_TEXT_DARK', '#333333');
 define('COLOR_TEXT_GRAY', '#666666');
 
-// Sample data for dynamic home
-$site_title = "";
+// Sample data for dynamic home.php
+$site_title = "GoldCMS";
 $user_name = "";
 $user_role = "";
 
@@ -20,7 +20,7 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 // قائمة الروابط مع روابط الـ href الجديدة
 $nav_items = [
     ['icon' => 'fa-home', 'text' => 'Dashboard', 'page' => 'dashboard', 'active' => ($current_page == 'dashboard')],
-    ['icon' => 'fa-file-alt', 'text' => 'home', 'page' => 'home', 'active' => ($current_page == 'home')],
+    ['icon' => 'fa-file-alt', 'text' => 'home.php', 'page' => 'home.php', 'active' => ($current_page == 'home.php')],
     ['icon' => 'fa-images', 'text' => 'Media Library', 'page' => 'media', 'active' => ($current_page == 'media')],
     ['icon' => 'fa-users', 'text' => 'Users', 'page' => 'users', 'active' => ($current_page == 'users')],
     ['icon' => 'fa-cog', 'text' => 'Settings', 'page' => 'settings', 'active' => ($current_page == 'settings')],
@@ -98,7 +98,7 @@ if (!file_exists($page_file)) {
             border-radius: 12px;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-home.php: center;
             box-shadow: 0 6px 12px rgba(<?php echo COLOR_GOLD; ?>, 0.4);
             transition: var(--transition);
         }
