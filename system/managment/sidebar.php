@@ -19,7 +19,7 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 
 // قائمة الروابط مع روابط الـ href الجديدة
 $nav_items = [
-    ['icon' => 'fa-home', 'text' => 'Dashboard', 'page' => 'dashboard', 'active' => ($current_page == 'home')],
+    ['icon' => 'fa-home', 'text' => 'Dashboard', 'page' => 'dashboard', 'active' => ($current_page == 'products.php')],
     ['icon' => 'fa-file-alt', 'text' => 'Content', 'page' => 'content', 'active' => ($current_page == 'content')],
     ['icon' => 'fa-images', 'text' => 'Media Library', 'page' => 'media', 'active' => ($current_page == 'media')],
     ['icon' => 'fa-users', 'text' => 'Users', 'page' => 'users', 'active' => ($current_page == 'users')],
