@@ -245,15 +245,11 @@ if (!file_exists($page_file)) {
             transition: var(--transition);
         }
         .header {
-    display: flex;
-    justify-content: flex-start; /* يخلي العنوان يبدأ من الشمال */
-    align-items: center;
-    gap: 20px;
-}
-.page-title {
-    text-align: left;
-}
-
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
         .page-title {
             font-size: 32px;
             font-weight: 700;
@@ -305,13 +301,9 @@ if (!file_exists($page_file)) {
 </head>
 <body>
     <div class="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-crown"></i>
-                </div>
-                <div class="logo-text"><?php echo htmlspecialchars($site_title); ?></div>
-            </div>
+        <div class="sidebar-header container" style="display: flex; justify-content: center; align-items: center;width: 50%;">
+        <img src="logo.png" alt="logo" class="logo-img" style="width: 100%;">
+
         </div>
         <ul class="nav-links">
             <?php foreach ($nav_items as $item): ?>
