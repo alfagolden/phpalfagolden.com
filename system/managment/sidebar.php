@@ -9,18 +9,18 @@ define('COLOR_LIGHT_CARD', '#e0e0e0');
 define('COLOR_TEXT_DARK', '#333333');
 define('COLOR_TEXT_GRAY', '#666666');
 
-// Sample data for dynamic home.php
+// Sample data for dynamic content
 $site_title = "GoldCMS";
 $user_name = "";
 $user_role = "";
 
 // تحديد الصفحة الحالية من GET parameter
-$current_page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
+$current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
 
 // قائمة الروابط مع روابط الـ href الجديدة
 $nav_items = [
-    ['icon' => 'fa-home', 'text' => 'Dashboard', 'page' => 'dashboard', 'active' => ($current_page == 'dashboard')],
-    ['icon' => 'fa-file-alt', 'text' => 'home.php', 'page' => 'home.php', 'active' => ($current_page == 'home.php')],
+    ['icon' => 'fa-home', 'text' => 'home', 'page' => 'home', 'active' => ($current_page == 'home')],
+    ['icon' => 'fa-file-alt', 'text' => 'Content', 'page' => 'content', 'active' => ($current_page == 'content')],
     ['icon' => 'fa-images', 'text' => 'Media Library', 'page' => 'media', 'active' => ($current_page == 'media')],
     ['icon' => 'fa-users', 'text' => 'Users', 'page' => 'users', 'active' => ($current_page == 'users')],
     ['icon' => 'fa-cog', 'text' => 'Settings', 'page' => 'settings', 'active' => ($current_page == 'settings')],
@@ -34,7 +34,7 @@ $nav_items = [
 // تحديد مسار الصفحة للـ include
 $page_file = "pages/{$current_page}.php";
 if (!file_exists($page_file)) {
-    $page_file = "pages/dashboard.php"; // fallback to dashboard if page not found
+    $page_file = "pages/home.php"; // fallback to dashboard if page not found
 }
 ?>
 <!DOCTYPE html>
@@ -98,7 +98,7 @@ if (!file_exists($page_file)) {
             border-radius: 12px;
             display: flex;
             align-items: center;
-            justify-home.php: center;
+            justify-content: center;
             box-shadow: 0 6px 12px rgba(<?php echo COLOR_GOLD; ?>, 0.4);
             transition: var(--transition);
         }
