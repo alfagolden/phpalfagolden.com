@@ -9,7 +9,7 @@ define('COLOR_LIGHT_CARD', '#e0e0e0');
 define('COLOR_TEXT_DARK', '#333333');
 define('COLOR_TEXT_GRAY', '#666666');
 
-// Sample data for dynamic content
+// Sample data for dynamic home
 $site_title = "";
 $user_name = "";
 $user_role = "";
@@ -20,7 +20,7 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 // قائمة الروابط مع روابط الـ href الجديدة
 $nav_items = [
     ['icon' => 'fa-home', 'text' => 'Dashboard', 'page' => 'dashboard', 'active' => ($current_page == 'dashboard')],
-    ['icon' => 'fa-file-alt', 'text' => 'Content', 'page' => 'content', 'active' => ($current_page == 'content')],
+    ['icon' => 'fa-file-alt', 'text' => 'home', 'page' => 'home', 'active' => ($current_page == 'home')],
     ['icon' => 'fa-images', 'text' => 'Media Library', 'page' => 'media', 'active' => ($current_page == 'media')],
     ['icon' => 'fa-users', 'text' => 'Users', 'page' => 'users', 'active' => ($current_page == 'users')],
     ['icon' => 'fa-cog', 'text' => 'Settings', 'page' => 'settings', 'active' => ($current_page == 'settings')],
