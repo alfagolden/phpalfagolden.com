@@ -10,9 +10,9 @@ define('COLOR_TEXT_DARK', '#333333');
 define('COLOR_TEXT_GRAY', '#666666');
 
 // Sample data for dynamic content
-$site_title = "GoldCMS";
-$user_name = "John Doe";
-$user_role = "Administrator";
+$site_title = "";
+$user_name = "";
+$user_role = "";
 
 // تحديد الصفحة الحالية من GET parameter
 $current_page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
