@@ -3,7 +3,7 @@
 const API_TOKEN = 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy';
 const TABLE_ID = 698; // جدول الكتالوجات
 const BASE_URL = 'https://base.alfagolden.com/api/database/rows/table/';
-const UPLOAD_DIR = 'Uploads/';
+const UPLOAD_DIR = 'uploads/';
 const UPLOAD_URL = 'https://alfagolden.com/system/m/up.php';
 
 // Initialize upload directory
@@ -33,6 +33,7 @@ function ensureUploadDirectory() {
     }
     return true;
 }
+
 try {
     ensureUploadDirectory();
 } catch (Exception $e) {
@@ -128,7 +129,7 @@ $catalogs = [];
 $total_count = 0;
 $next_page_url = null;
 $previous_page_url = null;
-$locations = ['كتلوجات', 'سلايدر العملاء', 'سلايدر الهيدر']; // Dynamic array of locations
+$locations = ['كتلوجات', 'سلايدر العملاء','سلايدر الهيدر']; // Dynamic array of locations
 
 // Handle form submission for adding a catalog
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
@@ -156,6 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
             $message_type = 'error';
         }
     }
+
     if (!$message && $name_ar) {
         $data = [
             'field_6759' => $order,
@@ -172,6 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
             'field_7076' => $description_ar,
             'field_7077' => $description_en
         ];
+
         $ch = curl_init(BASE_URL . TABLE_ID . '/?user_field_names=false');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
@@ -184,6 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curl_error = curl_error($ch);
         curl_close($ch);
+
         error_log("📤 إضافة كتالوج: HTTP $http_code, البيانات: " . json_encode($data));
         if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
         if ($http_code === 200) {
@@ -227,6 +231,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
             $message_type = 'error';
         }
     }
+
     if (!$message && $name_ar) {
         $data = [
             'field_6759' => $order,
@@ -243,6 +248,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
             'field_7076' => $description_ar,
             'field_7077' => $description_en
         ];
+
         $ch = curl_init(BASE_URL . TABLE_ID . '/' . $catalog_id . '/?user_field_names=true');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
@@ -255,6 +261,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curl_error = curl_error($ch);
         curl_close($ch);
+
         error_log("📤 تحديث البيانات: HTTP $http_code, البيانات: " . json_encode($data));
         if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
         if ($http_code === 200) {
@@ -284,6 +291,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_catalog'])) {
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curl_error = curl_error($ch);
     curl_close($ch);
+
     error_log("📤 حذف البيانات: ID $catalog_id, HTTP $http_code");
     if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
     if ($http_code === 204) {
@@ -327,36 +335,20 @@ $total_pages = ceil($total_count / $page_size);
 // Status options for the form
 $statuses = ['نشط', 'غير نشط'];
 ?>
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة الصفحة الرئيسية - Baserow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Cairo', sans-serif;
-        }
-        :root {
-            --gold-light: <?php echo COLOR_GOLD_LIGHT; ?>;
-            --gold: <?php echo COLOR_GOLD; ?>;
-            --gold-dark: <?php echo COLOR_GOLD_DARK; ?>;
-            --white: <?php echo COLOR_WHITE; ?>;
-            --light-bg: <?php echo COLOR_LIGHT_BG; ?>;
-            --light-card: <?php echo COLOR_LIGHT_CARD; ?>;
-            --text-dark: <?php echo COLOR_TEXT_DARK; ?>;
-            --text-gray: <?php echo COLOR_TEXT_GRAY; ?>;
-            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
         body {
-            background: linear-gradient(145deg, var(--light-bg), #e8ecef, #ffffff);
-            color: var(--text-dark);
-            min-height: 100vh;
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: #1e293b;
         }
         .container {
             max-width: 80rem;
@@ -364,50 +356,41 @@ $statuses = ['نشط', 'غير نشط'];
             padding: 1.5rem;
         }
         .card {
-            background: var(--light-card);
-            border-radius: 18px;
-            padding: 30px;
-            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
-            transition: var(--transition);
-            border: 1px solid rgba(<?php echo COLOR_GOLD; ?>, 0.1);
+            background: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 18px 35px rgba(<?php echo COLOR_GOLD; ?>, 0.2);
-            border: 1px solid rgba(<?php echo COLOR_GOLD; ?>, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
         }
         .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
             font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
         .btn:hover {
             transform: translateY(-2px);
         }
         .btn-primary {
-            background: var(--gold);
-            color: var(--white);
+            background: #1e40af;
+            color: #ffffff;
         }
         .btn-primary:hover {
-            background: var(--gold-dark);
+            background: #1e3a8a;
         }
         .btn-secondary {
-            background: var(--white);
-            color: var(--text-dark);
-            border: 1px solid var(--gold);
+            background: #e5e7eb;
+            color: #1e293b;
         }
         .btn-secondary:hover {
-            background: rgba(<?php echo COLOR_GOLD; ?>, 0.1);
+            background: #d1d5db;
         }
         .btn-danger {
             background: #dc2626;
-            color: var(--white);
+            color: #ffffff;
         }
         .btn-danger:hover {
             background: #b91c1c;
@@ -432,113 +415,96 @@ $statuses = ['نشط', 'غير نشط'];
             pointer-events: auto;
         }
         .modal-content {
-            background: var(--white);
-            border-radius: 18px;
-            padding: 30px;
+            background: #ffffff;
+            border-radius: 1rem;
+            padding: 2rem;
             max-width: 90%;
-            width: 40rem;
-            box-shadow: 0 8px 30px rgba(<?php echo COLOR_GOLD; ?>, 0.2);
+            width: 32rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
         }
         .input, .select, .textarea {
-            border: 1px solid rgba(<?php echo COLOR_GOLD; ?>, 0.3);
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 15px;
-            transition: var(--transition);
-            width: 100%;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            font-size: 0.875rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
         .input:focus, .select:focus, .textarea:focus {
-            border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(<?php echo COLOR_GOLD; ?>, 0.2);
+            border-color: #1e40af;
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
             outline: none;
         }
         .drop-zone {
-            border: 2px dashed rgba(<?php echo COLOR_GOLD; ?>, 0.3);
+            border: 2px dashed #d1d5db;
             padding: 1.5rem;
             text-align: center;
-            border-radius: 8px;
+            border-radius: 0.5rem;
             cursor: pointer;
-            transition: var(--transition);
+            transition: border-color 0.3s ease, background-color 0.3s ease;
         }
         .drop-zone.dragover {
-            border-color: var(--gold);
-            background: rgba(<?php echo COLOR_GOLD; ?>, 0.1);
+            border-color: #1e40af;
+            background-color: #eff6ff;
         }
         .image-preview {
             max-width: 120px;
             max-height: 120px;
             object-fit: cover;
-            border-radius: 8px;
-            border: 1px solid rgba(<?php echo COLOR_GOLD; ?>, 0.3);
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
         }
         .toast {
             position: fixed;
             bottom: 1.5rem;
             right: 1.5rem;
-            padding: 12px 24px;
-            border-radius: 8px;
-            color: var(--white);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            color: #ffffff;
             z-index: 1000;
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
         .toast.show {
             opacity: 1;
         }
         .toast.success {
-            background: var(--gold);
+            background: #1e40af;
         }
         .toast.error {
             background: #dc2626;
         }
         .tab {
-            padding: 12px 24px;
+            padding: 0.75rem 1.5rem;
             font-weight: 600;
-            color: var(--text-gray);
+            color: #64748b;
             border-bottom: 2px solid transparent;
-            transition: var(--transition);
-            text-decoration: none;
+            transition: color 0.3s ease, border-bottom 0.3s ease;
         }
         .tab.active {
-            color: var(--gold);
-            border-bottom: 2px solid var(--gold);
+            color: #1e40af;
+            border-bottom: 2px solid #1e40af;
         }
         .tab:hover {
-            color: var(--gold-dark);
+            color: #1e3a8a;
         }
         table {
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            border-radius: 8px;
+            border-radius: 0.5rem;
             overflow: hidden;
         }
         th, td {
-            padding: 12px;
+            padding: 1rem;
             text-align: right;
         }
         th {
-            background: var(--gold);
-            color: var(--white);
+            background: #f8fafc;
             font-weight: 600;
-        }
-        tr {
-            background: var(--white);
+            color: #1e293b;
         }
         tr:hover {
-            background: rgba(<?php echo COLOR_GOLD; ?>, 0.1);
-        }
-        .pagination {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 16px;
+            background: #f1f5f9;
         }
         @media (max-width: 640px) {
             .container {
@@ -548,41 +514,43 @@ $statuses = ['نشط', 'غير نشط'];
                 width: 95%;
             }
             .btn {
-                padding: 8px 16px;
+                padding: 0.5rem 1rem;
             }
             .input, .select, .textarea {
-                font-size: 14px;
+                font-size: 0.85rem;
             }
             th, td {
-                padding: 8px;
-                font-size: 14px;
-            }
-            .form-grid {
-                grid-template-columns: 1fr;
+                padding: 0.75rem;
+                font-size: 0.85rem;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 style="font-size: 32px; font-weight: 700; background: linear-gradient(to right, var(--gold-light), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 1px; text-align: center; margin-bottom: 40px;">إدارة الصفحة الرئيسية</h1>
+        <h1 class="text-2xl md:text-3xl font-bold text-center mb-8 text-gray-800">إدارة الصفحة الرئيسية</h1>
+
         <!-- Tabs for Locations -->
-        <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; border-bottom: 1px solid rgba(<?php echo COLOR_GOLD; ?>, 0.1);">
+        <div class="flex flex-wrap gap-4 mb-6 border-b border-gray-200">
             <?php foreach ($locations as $loc): ?>
                 <a href="?location=<?= urlencode($loc) ?>&page=1&page_size=<?= $page_size ?>" class="tab <?= $selected_location === $loc ? 'active' : '' ?>">
                     <?= htmlspecialchars($loc) ?>
                 </a>
             <?php endforeach; ?>
         </div>
+
         <!-- Messages -->
         <?php if ($message): ?>
-            <div class="toast show <?php echo $message_type; ?>" style="width: auto; max-width: 90%;"><?php echo htmlspecialchars($message); ?></div>
+            <div class="p-4 mb-6 rounded-lg bg-opacity-90 <?= $message_type === 'success' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800' ?>">
+                <?= htmlspecialchars($message) ?>
+            </div>
         <?php endif; ?>
+
         <!-- Add catalog form -->
-        <div class="card">
-            <h2 style="font-size: 22px; font-weight: 600; color: var(--text-dark); margin-bottom: 24px;">إضافة كتالوج جديد</h2>
+        <div class="card p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-700 mb-6">إضافة كتالوج جديد</h2>
             <form id="addCatalogForm" method="POST" enctype="multipart/form-data">
-                <div class="form-grid">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <input name="order" type="text" placeholder="ترتيب" class="input">
                     <input name="sub_order" type="text" placeholder="ترتيب فرعي" class="input">
                     <input name="name_ar" type="text" placeholder="الاسم (بالعربية)" class="input" required>
@@ -599,29 +567,30 @@ $statuses = ['نشط', 'غير نشط'];
                             <option value="<?= htmlspecialchars($loc) ?>" <?= $selected_location === $loc ? 'selected' : '' ?>><?= htmlspecialchars($loc) ?></option>
                         <?php endforeach; ?>
                     </select>
-                    <div style="grid-column: span 2;">
+                    <div class="lg:col-span-2">
                         <div class="drop-zone" id="addDropZone">اسحب الصورة هنا أو انقر لاختيار ملف</div>
                         <input id="addCatalogImage" name="catalog_image" type="file" accept="image/*" class="hidden">
-                        <div id="addImagePreview" class="hidden" style="margin-top: 16px;">
+                        <div id="addImagePreview" class="hidden mt-4">
                             <img src="" alt="معاينة الصورة" class="image-preview">
-                            <button type="button" onclick="clearAddImage()" class="btn btn-danger" style="margin-top: 8px;">إزالة الصورة</button>
+                            <button type="button" onclick="clearAddImage()" class="mt-2 btn btn-danger">إزالة الصورة</button>
                         </div>
                     </div>
-                    <input name="link" type="url" placeholder="الرابط" class="input">
+                    <!--<input name="link" type="url" placeholder="الرابط" class="input">-->
                     <input name="file_id" type="text" placeholder="معرف الملف" class="input">
-                    <textarea name="description_ar" placeholder="نص الوصف (بالعربية)" class="textarea" style="grid-column: span 2;"></textarea>
-                    <textarea name="description_en" placeholder="نص الوصف (بالإنجليزية)" class="textarea" style="grid-column: span 2;"></textarea>
+                    <textarea name="description_ar" placeholder="نص الوصف (بالعربية)" class="textarea col-span-2"></textarea>
+                    <textarea name="description_en" placeholder="نص الوصف (بالإنجليزية)" class="textarea col-span-2"></textarea>
                 </div>
-                <button type="submit" name="add_catalog" class="btn btn-primary" style="margin-top: 24px;">إضافة الكتالوج</button>
+                <button type="submit" name="add_catalog" class="mt-6 btn btn-primary">إضافة الكتالوج</button>
             </form>
         </div>
+
         <!-- Pagination -->
-        <div class="pagination">
+        <div class="flex flex-col sm:flex-row justify-between mb-6 items-center gap-4">
             <a href="?location=<?= urlencode($selected_location) ?>&page=<?= $page - 1 ?>&page_size=<?= $page_size ?>" class="btn btn-primary <?= $previous_page_url ? '' : 'opacity-50 pointer-events-none' ?>">الصفحة السابقة</a>
-            <div style="display: flex; align-items: center; gap: 16px;">
-                <form method="GET" style="display: flex; align-items: center;">
+            <div class="flex items-center gap-4">
+                <form method="GET" class="inline-flex items-center">
                     <input type="hidden" name="location" value="<?= htmlspecialchars($selected_location) ?>">
-                    <label for="page_size" style="color: var(--text-gray); font-weight: 600; margin-left: 8px;">عدد الكتالوجات في الصفحة:</label>
+                    <label for="page_size" class="text-gray-600 font-medium ml-2">عدد الكتالوجات في الصفحة:</label>
                     <select name="page_size" onchange="this.form.submit()" class="select">
                         <option value="10" <?= $page_size == 10 ? 'selected' : '' ?>>10</option>
                         <option value="20" <?= $page_size == 20 ? 'selected' : '' ?>>20</option>
@@ -629,32 +598,34 @@ $statuses = ['نشط', 'غير نشط'];
                         <option value="100" <?= $page_size == 100 ? 'selected' : '' ?>>100</option>
                     </select>
                 </form>
-                <span style="color: var(--text-gray); font-weight: 600;">الصفحة <?= $page ?> من <?= $total_pages ?> (إجمالي الكتالوجات: <?= $total_count ?>)</span>
+                <span class="text-gray-600 font-medium">الصفحة <?= $page ?> من <?= $total_pages ?> (إجمالي الكتالوجات: <?= $total_count ?>)</span>
             </div>
             <a href="?location=<?= urlencode($selected_location) ?>&page=<?= $page + 1 ?>&page_size=<?= $page_size ?>" class="btn btn-primary <?= $next_page_url ? '' : 'opacity-50 pointer-events-none' ?>">الصفحة التالية</a>
         </div>
+
         <!-- Delete Modal -->
         <div id="deleteModal" class="modal hidden">
             <div class="modal-content">
-                <h3 style="font-size: 20px; font-weight: 600; color: var(--text-dark); margin-bottom: 16px;">تأكيد الحذف</h3>
-                <p style="margin-bottom: 24px; color: var(--text-gray);">هل أنت متأكد من حذف هذا الكتالوج؟</p>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">تأكيد الحذف</h3>
+                <p class="mb-6 text-gray-600">هل أنت متأكد من حذف هذا الكتالوج؟</p>
                 <form id="deleteForm" method="POST">
                     <input type="hidden" name="catalog_id" id="deleteCatalogId">
-                    <div style="display: flex; justify-content: end; gap: 12px;">
+                    <div class="flex justify-end gap-3">
                         <button type="button" onclick="closeDeleteModal()" class="btn btn-secondary">إلغاء</button>
                         <button type="submit" name="delete_catalog" class="btn btn-danger">تأكيد</button>
                     </div>
                 </form>
             </div>
         </div>
+
         <!-- Update Modal -->
         <div id="updateModal" class="modal hidden">
-            <div class="modal-content" style="max-width: 48rem;">
-                <h3 style="font-size: 20px; font-weight: 600; color: var(--text-dark); margin-bottom: 16px;">تحديث الكتالوج</h3>
+            <div class="modal-content max-w-2xl">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">تحديث الكتالوج</h3>
                 <form id="updateForm" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="catalog_id" id="updateCatalogId">
                     <input type="hidden" name="current_image" id="currentImage">
-                    <div class="form-grid">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <input name="order" id="updateOrder" type="text" placeholder="ترتيب" class="input">
                         <input name="sub_order" id="updateSubOrder" type="text" placeholder="ترتيب فرعي" class="input">
                         <input name="name_ar" id="updateNameAr" type="text" placeholder="الاسم (بالعربية)" class="input" required>
@@ -671,30 +642,31 @@ $statuses = ['نشط', 'غير نشط'];
                                 <option value="<?= htmlspecialchars($loc) ?>"><?= htmlspecialchars($loc) ?></option>
                             <?php endforeach; ?>
                         </select>
-                        <div style="grid-column: span 2;">
+                        <div class="lg:col-span-2">
                             <div class="drop-zone" id="updateDropZone">اسحب الصورة هنا أو انقر لاختيار ملف</div>
                             <input id="updateCatalogImage" name="catalog_image" type="file" accept="image/*" class="hidden">
-                            <div id="updateImagePreview" class="hidden" style="margin-top: 16px;">
+                            <div id="updateImagePreview" class="hidden mt-4">
                                 <img src="" alt="معاينة الصورة" class="image-preview">
-                                <button type="button" onclick="clearUpdateImage()" class="btn btn-danger" style="margin-top: 8px;">إزالة الصورة</button>
+                                <button type="button" onclick="clearUpdateImage()" class="mt-2 btn btn-danger">إزالة الصورة</button>
                             </div>
                         </div>
                         <input name="link" id="updateLink" type="url" placeholder="الرابط" class="input">
                         <input name="file_id" id="updateFileId" type="text" placeholder="معرف الملف" class="input">
-                        <textarea name="description_ar" id="updateDescriptionAr" placeholder="نص الوصف (بالعربية)" class="textarea" style="grid-column: span 2;"></textarea>
-                        <textarea name="description_en" id="updateDescriptionEn" placeholder="نص الوصف (بالإنجليزية)" class="textarea" style="grid-column: span 2;"></textarea>
+                        <textarea name="description_ar" id="updateDescriptionAr" placeholder="نص الوصف (بالعربية)" class="textarea col-span-2"></textarea>
+                        <textarea name="description_en" id="updateDescriptionEn" placeholder="نص الوصف (بالإنجليزية)" class="textarea col-span-2"></textarea>
                     </div>
-                    <div style="display: flex; justify-content: end; gap: 12px; margin-top: 24px;">
+                    <div class="flex justify-end gap-3 mt-6">
                         <button type="button" onclick="closeUpdateModal()" class="btn btn-secondary">إلغاء</button>
                         <button type="submit" name="update_catalog" class="btn btn-primary">تحديث</button>
                     </div>
                 </form>
             </div>
         </div>
+
         <!-- Catalogs table -->
-        <div class="card" style="margin-top: 24px;">
-            <h2 style="font-size: 22px; font-weight: 600; color: var(--text-dark); margin-bottom: 24px;"><?php echo htmlspecialchars($selected_location); ?></h2>
-            <div style="overflow-x: auto;">
+        <div class="card p-6">
+            <h2 class="text-xl font-semibold text-gray-700 mb-6"><?= htmlspecialchars($selected_location) ?></h2>
+            <div class="overflow-x-auto">
                 <table>
                     <thead>
                         <tr>
@@ -710,32 +682,32 @@ $statuses = ['نشط', 'غير نشط'];
                     </thead>
                     <tbody>
                         <?php if (empty($catalogs)): ?>
-                            <tr><td colspan="8" style="text-align: center; color: var(--text-gray); padding: 16px;">لا توجد بيانات متاحة لموقع "<?php echo htmlspecialchars($selected_location); ?>"</td></tr>
+                            <tr><td colspan="8" class="text-center text-gray-600 py-4">لا توجد بيانات متاحة لموقع "<?= htmlspecialchars($selected_location) ?>"</td></tr>
                         <?php else: ?>
                             <?php foreach ($catalogs as $catalog): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($catalog['field_6759'] ?? 'غير متوفر'); ?></td>
-                                    <td><?php echo htmlspecialchars($catalog['field_6754'] ?? 'غير متوفر'); ?></td>
-                                    <td><?php echo htmlspecialchars($catalog['field_6762'] ?? 'غير متوفر'); ?></td>
-                                    <td><?php echo htmlspecialchars($catalog['field_6756'] ?? 'غير متوفر'); ?></td>
-                                    <td><?php echo htmlspecialchars($catalog['field_7072'] ?? 'غير متوفر'); ?></td>
+                                    <td><?= htmlspecialchars($catalog['field_6759'] ?? 'غير متوفر') ?></td>
+                                    <td><?= htmlspecialchars($catalog['field_6754'] ?? 'غير متوفر') ?></td>
+                                    <td><?= htmlspecialchars($catalog['field_6762'] ?? 'غير متوفر') ?></td>
+                                    <td><?= htmlspecialchars($catalog['field_6756'] ?? 'غير متوفر') ?></td>
+                                    <td><?= htmlspecialchars($catalog['field_7072'] ?? 'غير متوفر') ?></td>
                                     <td>
                                         <?php if (!empty($catalog['field_6755'])): ?>
-                                            <img src="<?php echo htmlspecialchars($catalog['field_6755']); ?>" alt="<?php echo htmlspecialchars($catalog['field_6754'] ?? 'كتالوج'); ?>" style="width: 48px; height: 48px; object-fit: cover; border-radius: 8px;">
+                                            <img src="<?= htmlspecialchars($catalog['field_6755']) ?>" alt="<?= htmlspecialchars($catalog['field_6754'] ?? 'كتالوج') ?>" class="w-12 h-12 object-cover rounded-lg">
                                         <?php else: ?>
                                             غير متوفر
                                         <?php endif; ?>
                                     </td>
                                     <td>
                                         <?php if (!empty($catalog['field_6757'])): ?>
-                                            <a href="<?php echo htmlspecialchars($catalog['field_6757']); ?>" target="_blank" style="color: var(--gold); text-decoration: none;">عرض الرابط</a>
+                                            <a href="<?= htmlspecialchars($catalog['field_6757']) ?>" target="_blank" class="text-blue-600 hover:underline">عرض الرابط</a>
                                         <?php else: ?>
                                             غير متوفر
                                         <?php endif; ?>
                                     </td>
-                                    <td style="display: flex; gap: 8px;">
-                                        <button type="button" onclick="openUpdateModal(<?php echo $catalog['id']; ?>, '<?php echo htmlspecialchars($catalog['field_6759'] ?? ''); ?>', '<?php echo htmlspecialchars($catalog['field_6760'] ?? ''); ?>', '<?php echo htmlspecialchars($catalog['field_6754'] ?? ''); ?>', '<?php echo htmlspecialchars($catalog['field_6762'] ?? ''); ?>', '<?php echo htmlspecialchars($catalog['field_6761'] ?? ''); ?>', '<?php echo htmlspecialchars($catalog['field_7075'] ?? ''); ?>', '<?php echo htmlspecialchars($catalog['field_7072'] ?? ''); ?>', '<?php echo htmlspecialchars($catalog['field_6755'] ?? ''); ?>', '<?php echo htmlspecialchars($catalog['field_6757'] ?? ''); ?>', '<?php echo htmlspecialchars($catalog['field_6758'] ?? ''); ?>', '<?php echo htmlspecialchars($catalog['field_7076'] ?? ''); ?>', '<?php echo htmlspecialchars($catalog['field_7077'] ?? ''); ?>', '<?php echo htmlspecialchars($catalog['field_6756'] ?? ''); ?>')" class="btn btn-primary">تحرير</button>
-                                        <button type="button" onclick="openDeleteModal(<?php echo $catalog['id']; ?>)" class="btn btn-danger">حذف</button>
+                                    <td class="flex gap-2">
+                                        <button type="button" onclick="openUpdateModal(<?= $catalog['id'] ?>, '<?= htmlspecialchars($catalog['field_6759'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6760'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6754'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6762'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6761'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7075'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7072'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6755'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6757'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6758'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7076'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7077'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6756'] ?? '') ?>')" class="btn btn-primary">تحرير</button>
+                                        <button type="button" onclick="openDeleteModal(<?= $catalog['id'] ?>)" class="btn btn-danger">حذف</button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -744,9 +716,11 @@ $statuses = ['نشط', 'غير نشط'];
                 </table>
             </div>
         </div>
+
         <!-- Toast Notification -->
         <div id="toast" class="toast"></div>
     </div>
+
     <script>
         // Show toast notification
         function showToast(message, type) {
@@ -757,16 +731,19 @@ $statuses = ['نشط', 'غير نشط'];
                 toast.className = 'toast';
             }, 3000);
         }
+
         // Open delete modal
         function openDeleteModal(catalogId) {
             document.getElementById('deleteCatalogId').value = catalogId;
             document.getElementById('deleteModal').classList.remove('hidden');
         }
+
         // Close delete modal
         function closeDeleteModal() {
             document.getElementById('deleteModal').classList.add('hidden');
             document.getElementById('deleteCatalogId').value = '';
         }
+
         // Open update modal
         function openUpdateModal(catalogId, order, subOrder, nameAr, nameEn, subNameAr, subNameEn, status, catalogImage, link, fileId, descriptionAr, descriptionEn, location) {
             document.getElementById('updateCatalogId').value = catalogId;
@@ -792,6 +769,7 @@ $statuses = ['نشط', 'غير نشط'];
             }
             document.getElementById('updateModal').classList.remove('hidden');
         }
+
         // Close update modal
         function closeUpdateModal() {
             document.getElementById('updateModal').classList.add('hidden');
@@ -799,16 +777,19 @@ $statuses = ['نشط', 'غير نشط'];
             document.getElementById('updateImagePreview').classList.add('hidden');
             document.getElementById('updateCatalogImage').value = '';
         }
+
         // Clear add image
         function clearAddImage() {
             document.getElementById('addCatalogImage').value = '';
             document.getElementById('addImagePreview').classList.add('hidden');
         }
+
         // Clear update image
         function clearUpdateImage() {
             document.getElementById('updateCatalogImage').value = '';
             document.getElementById('updateImagePreview').classList.add('hidden');
         }
+
         // Image preview and drag-and-drop for add form
         const addDropZone = document.getElementById('addDropZone');
         const addFileInput = document.getElementById('addCatalogImage');
@@ -852,6 +833,7 @@ $statuses = ['نشط', 'غير نشط'];
                 showToast('يرجى اختيار صورة صالحة', 'error');
             }
         });
+
         // Image preview and drag-and-drop for update form
         const updateDropZone = document.getElementById('updateDropZone');
         const updateFileInput = document.getElementById('updateCatalogImage');
@@ -895,9 +877,10 @@ $statuses = ['نشط', 'غير نشط'];
                 showToast('يرجى اختيار صورة صالحة', 'error');
             }
         });
+
         // Show toast for PHP messages
         <?php if ($message): ?>
-            showToast('<?php echo htmlspecialchars($message); ?>', '<?php echo $message_type; ?>');
+            showToast('<?= htmlspecialchars($message) ?>', '<?= $message_type ?>');
         <?php endif; ?>
     </script>
 </body>
