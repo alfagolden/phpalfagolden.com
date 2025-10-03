@@ -1,0 +1,389 @@
+<?php
+// Define color constants for the elegant gold, white, and light gray theme
+define('COLOR_GOLD_LIGHT', '#f9e79f');
+define('COLOR_GOLD', '#d4a017');
+define('COLOR_GOLD_DARK', '#b7950b');
+define('COLOR_WHITE', '#ffffff');
+define('COLOR_LIGHT_BG', '#f5f5f5');
+define('COLOR_LIGHT_CARD', '#e0e0e0');
+define('COLOR_TEXT_DARK', '#333333');
+define('COLOR_TEXT_GRAY', '#666666');
+
+// Sample data for dynamic content
+$site_title = "GoldCMS";
+$user_name = "John Doe";
+$user_role = "Administrator";
+$nav_items = [
+    ['icon' => 'fa-home', 'text' => 'Dashboard', 'active' => true, 'badge' => null],
+    ['icon' => 'fa-file-alt', 'text' => 'Content', 'active' => false, 'badge' => '12'],
+    ['icon' => 'fa-images', 'text' => 'Media Library', 'active' => false, 'badge' => null],
+    ['icon' => 'fa-users', 'text' => 'Users', 'active' => false, 'badge' => null],
+    ['icon' => 'fa-cog', 'text' => 'Settings', 'active' => false, 'badge' => null],
+    ['icon' => 'fa-chart-line', 'text' => 'Analytics', 'active' => false, 'badge' => null],
+    ['icon' => 'fa-bell', 'text' => 'Notifications', 'active' => false, 'badge' => '3'],
+    ['icon' => 'fa-comments', 'text' => 'Comments', 'active' => false, 'badge' => null],
+    ['icon' => 'fa-plug', 'text' => 'Plugins', 'active' => false, 'badge' => null],
+    ['icon' => 'fa-life-ring', 'text' => 'Support', 'active' => false, 'badge' => null]
+];
+$cards = [
+    [
+        'icon' => 'fa-file-alt',
+        'title' => 'Content Management',
+        'content' => 'Create, edit, and manage all your website content from one central location. Powerful editing tools with real-time preview.'
+    ],
+    [
+        'icon' => 'fa-users',
+        'title' => 'User Management',
+        'content' => 'Control user roles, permissions, and access levels. Manage registrations and user activity with detailed analytics.'
+    ],
+    [
+        'icon' => 'fa-chart-line',
+        'title' => 'Performance Analytics',
+        'content' => 'Track visitor statistics, engagement metrics, and conversion rates with beautiful visual reports.'
+    ],
+    [
+        'icon' => 'fa-cog',
+        'title' => 'System Settings',
+        'content' => 'Configure your website\'s appearance, functionality, and security settings with our intuitive control panel.'
+    ]
+];
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elegant Gold Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Georgia', 'Times New Roman', serif;
+        }
+        :root {
+            --gold-light: <?php echo COLOR_GOLD_LIGHT; ?>;
+            --gold: <?php echo COLOR_GOLD; ?>;
+            --gold-dark: <?php echo COLOR_GOLD_DARK; ?>;
+            --white: <?php echo COLOR_WHITE; ?>;
+            --light-bg: <?php echo COLOR_LIGHT_BG; ?>;
+            --light-card: <?php echo COLOR_LIGHT_CARD; ?>;
+            --text-dark: <?php echo COLOR_TEXT_DARK; ?>;
+            --text-gray: <?php echo COLOR_TEXT_GRAY; ?>;
+            --sidebar-width: 300px;
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        body {
+            background: linear-gradient(145deg, var(--light-bg), #e8ecef, #ffffff);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--white);
+            height: 100vh;
+            position: fixed;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            transition: var(--transition);
+            border-right: 2px solid rgba(<?php echo COLOR_GOLD; ?>, 0.3);
+        }
+        .sidebar-header {
+            padding: 30px 25px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(<?php echo COLOR_GOLD; ?>, 0.1);
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 12px rgba(<?php echo COLOR_GOLD; ?>, 0.4);
+            transition: var(--transition);
+        }
+        .logo-icon:hover {
+            transform: scale(1.05);
+        }
+        .logo-icon i {
+            font-size: 24px;
+            color: var(--white);
+        }
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--gold-light), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .nav-links {
+            padding: 25px 0;
+            overflow-y: auto;
+            height: calc(100vh - 160px);
+        }
+        .nav-item {
+            list-style: none;
+            margin-bottom: 10px;
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 16px 30px;
+            text-decoration: none;
+            color: var(--text-dark);
+            font-size: 17px;
+            font-weight: 500;
+            transition: var(--transition);
+            border-left: 4px solid transparent;
+            position: relative;
+            border-radius: 0 10px 10px 0;
+            margin: 0 15px;
+        }
+        .nav-link:hover {
+            background: rgba(<?php echo COLOR_GOLD; ?>, 0.1);
+            border-left: 4px solid var(--gold);
+            transform: translateX(5px);
+        }
+        .nav-link.active {
+            background: rgba(<?php echo COLOR_GOLD; ?>, 0.2);
+            border-left: 4px solid var(--gold);
+            box-shadow: 0 6px 15px rgba(<?php echo COLOR_GOLD; ?>, 0.3);
+        }
+        .nav-link i {
+            width: 30px;
+            font-size: 20px;
+            margin-right: 18px;
+            color: var(--gold);
+            transition: var(--transition);
+        }
+        .nav-link:hover i, .nav-link.active i {
+            color: var(--gold-dark);
+            transform: scale(1.15);
+        }
+        .nav-link span {
+            flex: 1;
+        }
+        .badge {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: var(--white);
+            padding: 4px 12px;
+            border-radius: 25px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-left: 12px;
+            animation: pulse 2s infinite;
+        }
+        .user-info {
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            border-top: 1px solid rgba(<?php echo COLOR_GOLD; ?>, 0.1);
+            position: absolute;
+            bottom: 0;
+            width: calc(var(--sidebar-width) - 50px);
+        }
+        .user-avatar {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 22px;
+            color: var(--white);
+            box-shadow: 0 4px 10px rgba(<?php echo COLOR_GOLD; ?>, 0.3);
+        }
+        .user-details h4 {
+            font-size: 17px;
+            margin-bottom: 5px;
+            color: var(--text-dark);
+        }
+        .user-details p {
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 40px;
+            transition: var(--transition);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--gold-light), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
+        .content-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .card {
+            background: var(--light-card);
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+            border: 1px solid rgba(<?php echo COLOR_GOLD; ?>, 0.1);
+        }
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 18px 35px rgba(<?php echo COLOR_GOLD; ?>, 0.2);
+            border: 1px solid rgba(<?php echo COLOR_GOLD; ?>, 0.4);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        .card-icon {
+            width: 55px;
+            height: 55px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 18px;
+            box-shadow: 0 4px 10px rgba(<?php echo COLOR_GOLD; ?>, 0.3);
+        }
+        .card-icon i {
+            font-size: 24px;
+            color: var(--white);
+        }
+        .card-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        .card-content {
+            color: var(--text-gray);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .menu-toggle {
+                display: block;
+            }
+        }
+        .menu-toggle {
+            display: none;
+            background: var(--light-card);
+            border: none;
+            color: var(--gold);
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            font-size: 22px;
+            cursor: pointer;
+            margin-right: 18px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(<?php echo COLOR_GOLD; ?>, 0.8); }
+            70% { box-shadow: 0 0 0 12px rgba(<?php echo COLOR_GOLD; ?>, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(<?php echo COLOR_GOLD; ?>, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <div class="logo-text"><?php echo htmlspecialchars($site_title); ?></div>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <?php foreach ($nav_items as $item): ?>
+                <li class="nav-item">
+                    <a href="#" class="nav-link<?php echo $item['active'] ? ' active' : ''; ?>">
+                        <i class="fas <?php echo htmlspecialchars($item['icon']); ?>"></i>
+                        <span><?php echo htmlspecialchars($item['text']); ?></span>
+                        <?php if ($item['badge']): ?>
+                            <span class="badge"><?php echo htmlspecialchars($item['badge']); ?></span>
+                        <?php endif; ?>
+                    </a>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+        <div class="user-info">
+            <div class="user-avatar"><?php echo strtoupper(substr($user_name, 0, 2)); ?></div>
+            <div class="user-details">
+                <h4><?php echo htmlspecialchars($user_name); ?></h4>
+                <p><?php echo htmlspecialchars($user_role); ?></p>
+            </div>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="header">
+            <button class="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="page-title">Dashboard Overview</h1>
+        </div>
+        <div class="content-cards">
+            <?php foreach ($cards as $card): ?>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas <?php echo htmlspecialchars($card['icon']); ?>"></i>
+                        </div>
+                        <h3 class="card-title"><?php echo htmlspecialchars($card['title']); ?></h3>
+                    </div>
+                    <p class="card-content"><?php echo htmlspecialchars($card['content']); ?></p>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <script>
+        document.querySelector('.menu-toggle').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('active');
+        });
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
