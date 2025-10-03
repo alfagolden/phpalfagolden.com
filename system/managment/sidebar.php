@@ -70,6 +70,30 @@ if (!file_exists($page_file)) {
             display: flex;
             overflow-x: hidden;
         }
+        .page-content {
+    background: var(--light-card);
+    border-radius: 18px;
+    padding: 30px;
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(<?php echo COLOR_GOLD; ?>, 0.1);
+    opacity: 0;
+    transform: translateX(20px);
+    animation: slideIn 0.6s ease forwards;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+
+
         .sidebar {
             width: var(--sidebar-width);
             background: var(--white);
@@ -311,7 +335,25 @@ if (!file_exists($page_file)) {
         </div>
     </div>
     <script>
-        document.querySelector('.menu-toggle').addEventListener('click', function() {
+       
+       document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+        // إضافة انيميشن خروج قبل الانتقال
+        const pageContent = document.querySelector('.page-content');
+        pageContent.style.animation = 'slideOut 0.4s ease forwards';
+    });
+});
+
+// أنيميشن الخروج
+const style = document.createElement('style');
+style.innerHTML = `
+@keyframes slideOut {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(-40px); }
+}`;
+document.head.appendChild(style);
+
+       document.querySelector('.menu-toggle').addEventListener('click', function() {
             document.querySelector('.sidebar').classList.toggle('active');
         });
     </script>
