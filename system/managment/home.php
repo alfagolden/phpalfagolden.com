@@ -3,8 +3,8 @@
 const API_TOKEN = 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy';
 const TABLE_ID = 698; // جدول الكتالوجات
 const BASE_URL = 'https://base.alfagolden.com/api/database/rows/table/';
-const UPLOAD_DIR = 'Uploads/';
-const UPLOAD_URL = 'https://alfagolden.com/system/m/up.php';
+const UPLOAD_DIR = 'uploads/';
+const UPLOAD_URL = 'https://alfagolden.com/system/managment/up.php';
 // Initialize upload directory
 function ensureUploadDirectory() {
     $dir = UPLOAD_DIR;
@@ -1195,7 +1195,7 @@ $statuses = ['نشط', 'غير نشط'];
             preview.classList.add('d-none');
             input.value = '';
             uploadArea.innerHTML = `
-                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>-
                 <p class="image-upload-text text-muted mb-0">انقر هنا لاختيار صورة</p>
                 <small class="image-upload-hint">أو اسحب الصورة هنا (الحد الأقصى 5 ميجا بايت)</small>
             `;
