@@ -186,55 +186,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_order'])) {
         goto skip_order;
     }
 
-    // Swap orders
-    $currentOrder = is_numeric($all[$currentIndex]['field_6759']) ? (float)$all[$currentIndex]['field_6759'] : 999999;
-    $targetOrder = is_numeric($all[$targetIndex]['field_6759']) ? (float)$all[$targetIndex]['field_6759'] : 999999;
+    // Move the item in the array
+    $itemToMove = array_splice($all, $currentIndex, 1)[0];
+    array_splice($all, $targetIndex, 0, [$itemToMove]);
 
-    // Update current item
-    $patchCurrent = ['field_6759' => (string)$targetOrder];
-    $ch = curl_init(BASE_URL . TABLE_ID . '/' . $catalog_id . '/');
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($patchCurrent));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Authorization: Token ' . API_TOKEN,
-        'Content-Type: application/json'
-    ]);
-    $response = curl_exec($ch);
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curl_error = curl_error($ch);
-    curl_close($ch);
+    // Reassign order values starting from 1
+    foreach ($all as $index => &$item) {
+        $newOrder = $index + 1; // Start from 1
+        $item['field_6759'] = (string)$newOrder;
 
-    if ($curl_error || $http_code !== 200) {
-        error_log("❌ فشل تحديث الترتيب للعنصر $catalog_id: HTTP $http_code, خطأ cURL: $curl_error");
-        $message = 'فشل تحديث الترتيب.';
-        $message_type = 'error';
-        goto skip_order;
+        // Update the item in Baserow
+        $patchData = ['field_6759' => $item['field_6759']];
+        $ch = curl_init(BASE_URL . TABLE_ID . '/' . $item['id'] . '/');
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($patchData));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Token ' . API_TOKEN,
+            'Content-Type: application/json'
+        ]);
+        $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curl_error = curl_error($ch);
+        curl_close($ch);
+
+        if ($curl_error || $http_code !== 200) {
+            error_log("❌ فشل تحديث الترتيب للعنصر " . $item['id'] . ": HTTP $http_code, خطأ cURL: $curl_error");
+            $message = 'فشل تحديث الترتيب.';
+            $message_type = 'error';
+            goto skip_order;
+        }
     }
 
-    // Update target item
-    $patchTarget = ['field_6759' => (string)$currentOrder];
-    $ch = curl_init(BASE_URL . TABLE_ID . '/' . $all[$targetIndex]['id'] . '/');
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($patchTarget));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Authorization: Token ' . API_TOKEN,
-        'Content-Type: application/json'
-    ]);
-    $response = curl_exec($ch);
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curl_error = curl_error($ch);
-    curl_close($ch);
-
-    if ($curl_error || $http_code !== 200) {
-        error_log("❌ فشل تحديث الترتيب للعنصر " . $all[$targetIndex]['id'] . ": HTTP $http_code, خطأ cURL: $curl_error");
-        $message = 'فشل تحديث الترتيب.';
-        $message_type = 'error';
-        goto skip_order;
-    }
-
-    error_log("✅ تم تبديل الترتيب بنجاح: ID $catalog_id إلى $targetOrder, ID " . $all[$targetIndex]['id'] . " إلى $currentOrder");
+    error_log("✅ تم إعادة ترتيب العناصر بنجاح: ID $catalog_id إلى الموقع $targetIndex");
     $message = 'تم تحديث الترتيب بنجاح!';
     $message_type = 'success';
 }
