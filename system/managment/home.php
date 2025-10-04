@@ -396,7 +396,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_image_order'])
     }
 }
 
-// Handle updating catalog order
 if (isset($_GET['action']) && $_GET['action'] === 'update_order') {
     $catalog_id = (int)$_GET['catalog_id'];
     $direction = $_GET['direction'];
@@ -436,7 +435,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'update_order') {
         exit;
     }
 }
-
 // Fetch catalog images
 if (isset($_GET['action']) && $_GET['action'] === 'get_images') {
     $catalog_id = (int)$_GET['catalog_id'];
