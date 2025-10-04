@@ -124,7 +124,7 @@ $catalogs = [];
 $total_count = 0;
 $next_page_url = null;
 $previous_page_url = null;
-$locations = ['كتلوجات', 'سلايدر العملاء','سلايدر الهيدر']; // Dynamic array of locations
+$locations = ['كتلوجات', 'سلايدر العملاء', 'سلايدر الهيدر']; // Dynamic array of locations
 // Handle form submission for adding a catalog
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
     $order = $_POST['order'] ?? '';
@@ -321,425 +321,825 @@ $statuses = ['نشط', 'غير نشط'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة الصفحة الرئيسية - Baserow</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
+        :root {
+            --gold: #977e2b;
+            --gold-hover: #b89635;
+            --gold-light: rgba(151, 126, 43, 0.1);
+            --dark-gray: #2c2c2c;
+            --medium-gray: #666;
+            --light-gray: #f8f9fa;
+            --white: #ffffff;
+            --border-color: #e5e7eb;
+            --success: #28a745;
+            --error: #dc3545;
+        }
         body {
             font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            color: #1e293b;
+            font-size: 16px;
+            direction: rtl;
+            background: var(--light-gray);
+            color: var(--dark-gray);
+            margin: 0;
+            padding: 0;
         }
         .container {
-            max-width: 80rem;
+            padding: 24px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 1.5rem;
         }
         .card {
-            background: #ffffff;
-            border-radius: 1rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
         }
         .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        .card-header {
+            padding: 24px 28px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--light-gray);
+            border-radius: 12px 12px 0 0;
+        }
+        .card-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--dark-gray);
         }
         .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
             font-weight: 600;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-        .btn:hover {
-            transform: translateY(-2px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-family: inherit;
         }
         .btn-primary {
-            background: #1e40af;
-            color: #ffffff;
+            background: var(--gold);
+            color: var(--white);
         }
         .btn-primary:hover {
-            background: #1e3a8a;
+            background: var(--gold-hover);
+            transform: translateY(-1px);
         }
         .btn-secondary {
-            background: #e5e7eb;
-            color: #1e293b;
+            background: var(--medium-gray);
+            color: var(--white);
         }
         .btn-secondary:hover {
-            background: #d1d5db;
+            background: #555;
+            transform: translateY(-1px);
         }
-        .btn-danger {
-            background: #dc2626;
-            color: #ffffff;
+        .btn-sm {
+            padding: 10px 20px;
+            font-size: 14px;
         }
-        .btn-danger:hover {
-            background: #b91c1c;
-        }
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
+        .btn.rounded-circle {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease-in-out;
         }
-        .modal:not(.hidden) {
-            opacity: 1;
-            pointer-events: auto;
+        .form-group {
+            margin-bottom: 24px;
         }
-        .modal-content {
-            background: #ffffff;
-            border-radius: 1rem;
-            padding: 2rem;
-            max-width: 90%;
-            width: 32rem;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        .form-label {
+            display: block;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--dark-gray);
+            margin-bottom: 8px;
         }
-        .input, .select, .textarea {
-            border: 1px solid #e5e7eb;
-            border-radius: 0.5rem;
-            padding: 0.75rem;
-            font-size: 0.875rem;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            box-sizing: border-box;
         }
-        .input:focus, .select:focus, .textarea:focus {
-            border-color: #1e40af;
-            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+        .form-control:focus {
             outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px var(--gold-light);
         }
-        .drop-zone {
-            border: 2px dashed #d1d5db;
-            padding: 1.5rem;
-            text-align: center;
-            border-radius: 0.5rem;
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            font-size: 14px;
+        }
+        .breadcrumb-link {
+            color: var(--medium-gray);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        .breadcrumb-link:hover {
+            color: var(--gold);
+        }
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 20px;
+        }
+        .gallery-item {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            transition: all 0.3s ease;
             cursor: pointer;
-            transition: border-color 0.3s ease, background-color 0.3s ease;
         }
-        .drop-zone.dragover {
-            border-color: #1e40af;
-            background-color: #eff6ff;
+        .gallery-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .gallery-item-image {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            background: var(--light-gray);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .gallery-item-content {
+            padding: 20px;
+            position: relative;
+        }
+        .gallery-item-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark-gray);
+            margin: 0 0 16px 0;
+            text-align: center;
+        }
+        .gallery-item-actions {
+            position: absolute;
+            top: -50px;
+            left: 16px;
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .gallery-item:hover .gallery-item-actions {
+            opacity: 1;
+            top: 16px;
+        }
+        .gallery-placeholder {
+            width: 100%;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--light-gray);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .gallery-placeholder i {
+            font-size: 48px;
+            color: var(--gold);
         }
         .image-preview {
-            max-width: 120px;
-            max-height: 120px;
-            object-fit: cover;
-            border-radius: 0.5rem;
-            border: 1px solid #e5e7eb;
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-dialog {
+            background: var(--white);
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            padding: 24px 28px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--medium-gray);
+        }
+        .modal-body {
+            padding: 28px;
+        }
+        .modal-footer {
+            padding: 24px 28px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+        }
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1100;
         }
         .toast {
-            position: fixed;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            color: #ffffff;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-        }
-        .toast.show {
-            opacity: 1;
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 350px;
+            font-size: 16px;
         }
         .toast.success {
-            background: #1e40af;
+            border-color: var(--success);
+            color: var(--success);
         }
         .toast.error {
-            background: #dc2626;
+            border-color: var(--error);
+            color: var(--error);
+        }
+        .image-upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: var(--light-gray);
+            cursor: pointer;
+        }
+        .image-upload-area:hover {
+            border-color: var(--gold);
+            background: var(--gold-light);
+        }
+        .image-upload-text {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        .image-upload-hint {
+            font-size: 14px;
+            color: var(--medium-gray);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .empty-state i {
+            font-size: 64px;
+            color: var(--medium-gray);
+            margin-bottom: 20px;
+        }
+        .empty-state h3 {
+            font-size: 20px;
+            color: var(--dark-gray);
+            margin-bottom: 12px;
+        }
+        .empty-state p {
+            font-size: 16px;
+            color: var(--medium-gray);
+            margin-bottom: 24px;
+        }
+        .d-none {
+            display: none !important;
+        }
+        .d-flex {
+            display: flex;
+        }
+        .align-items-center {
+            align-items: center;
+        }
+        .justify-content-between {
+            justify-content: space-between;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-muted {
+            color: var(--medium-gray);
+        }
+        .me-1 {
+            margin-right: 4px;
+        }
+        .me-2 {
+            margin-right: 8px;
+        }
+        .ms-2 {
+            margin-left: 8px;
+        }
+        .mt-2 {
+            margin-top: 8px;
+        }
+        .mt-3 {
+            margin-top: 16px;
+        }
+        .mb-0 {
+            margin-bottom: 0;
+        }
+        .mb-2 {
+            margin-bottom: 8px;
+        }
+        .mb-3 {
+            margin-bottom: 16px;
+        }
+        .mx-2 {
+            margin-left: 8px;
+            margin-right: 8px;
+        }
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
         }
         .tab {
-            padding: 0.75rem 1.5rem;
+            padding: 12px 24px;
+            font-size: 16px;
             font-weight: 600;
-            color: #64748b;
-            border-bottom: 2px solid transparent;
-            transition: color 0.3s ease, border-bottom 0.3s ease;
+            color: var(--medium-gray);
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
         }
         .tab.active {
-            color: #1e40af;
-            border-bottom: 2px solid #1e40af;
+            background: var(--gold);
+            color: var(--white);
+            border-color: var(--gold);
         }
         .tab:hover {
-            color: #1e3a8a;
+            background: var(--gold-light);
+            color: var(--gold);
         }
-        .catalog-grid {
-            display: grid;
-         gap: 20px; /* المسافة بين العناصر */
-  grid-template-columns: repeat(3, 1fr); /* 3 أعمدة على الكبير */
-            padding: 1rem;
-        }
-        .catalog-card {
-            background: #ffffff;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-            padding: 1rem;
-            text-align: right;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .catalog-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-        }
-        .catalog-card img {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
-        }
-        .catalog-card p {
-            margin: 0.5rem 0;
-            font-size: 0.875rem;
-            color: #1e293b;
-        }
-        .catalog-card a {
-            color: #1e40af;
-            text-decoration: underline;
-        }
-        .catalog-card a:hover {
-            color: #1e3a8a;
-        }
-        @media (max-width: 640px) {
+        @media (max-width: 768px) {
             .container {
-                padding: 1rem;
+                padding: 16px;
             }
-            .modal-content {
-                width: 95%;
+            .card {
+                border-radius: 0;
+                margin-left: -16px;
+                margin-right: -16px;
+            сначала
+            .gallery-grid {
+                gap: 16px;
+            }
+            .card-title {
+                font-size: 18px;
             }
             .btn {
-                padding: 0.5rem 1rem;
+                font-size: 14px;
             }
-            .input, .select, .textarea {
-                font-size: 0.85rem;
-            }
-            .catalog-grid {
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                gap: 1rem;
-            }
-            .catalog-card {
-                padding: 0.75rem;
-            }
-            .catalog-card img {
-                height: 100px;
-            }
-            .catalog-card p {
-                font-size: 0.8rem;
+            .modal-dialog {
+                width: 95%;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="text-2xl md:text-3xl font-bold text-center mb-8 text-gray-800">إدارة الصفحة الرئيسية</h1>
+        <!-- Breadcrumb and Header -->
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-2">
+                                <li class="breadcrumb-item">
+                                    <a href="#" class="breadcrumb-link">
+                                        <i class="fas fa-layer-group me-1"></i>الكتالوجات
+                                    </a>
+                                </li>
+                            </ol>
+                        </nav>
+                        <h1 class="card-title">إدارة الصفحة الرئيسية</h1>
+                    </div>
+                    <div>
+                        <button id="addCatalogBtn" class="btn btn-primary" onclick="openAddModal()">
+                            <i class="fas fa-plus me-2"></i>إضافة كتالوج جديد
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Tabs for Locations -->
-        <div class="flex flex-wrap gap-4 mb-6 border-b border-gray-200">
+        <div class="tabs">
             <?php foreach ($locations as $loc): ?>
                 <a href="?location=<?= urlencode($loc) ?>&page=1&page_size=<?= $page_size ?>" class="tab <?= $selected_location === $loc ? 'active' : '' ?>">
                     <?= htmlspecialchars($loc) ?>
                 </a>
             <?php endforeach; ?>
         </div>
-        <!-- Messages -->
-        <?php if ($message): ?>
-            <div class="p-4 mb-6 rounded-lg bg-opacity-90 <?= $message_type === 'success' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800' ?>">
-                <?= htmlspecialchars($message) ?>
-            </div>
-        <?php endif; ?>
-        <!-- Button to open Add Catalog Modal -->
-        <div class="mb-8">
-            <button type="button" onclick="openAddModal()" class="btn btn-primary">إضافة كتالوج جديد</button>
-        </div>
-        <!-- Add Catalog Modal -->
-        <div id="addModal" class="modal hidden">
-            <div class="modal-content max-w-2xl">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">إضافة كتالوج جديد</h3>
-                <form id="addCatalogForm" method="POST" enctype="multipart/form-data">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <input name="order" type="text" placeholder="ترتيب" class="input">
-                        <input name="sub_order" type="text" placeholder="ترتيب فرعي" class="input">
-                        <input name="name_ar" type="text" placeholder="الاسم (بالعربية)" class="input" required>
-                        <input name="name_en" type="text" placeholder="الاسم (بالإنجليزية)" class="input">
-                        <input name="sub_name_ar" type="text" placeholder="الاسم الفرعي (بالعربية)" class="input">
-                        <input name="sub_name_en" type="text" placeholder="الاسم الفرعي (بالإنجليزية)" class="input">
-                        <select name="status" class="select">
-                            <?php foreach ($statuses as $status): ?>
-                                <option value="<?= htmlspecialchars($status) ?>"><?= htmlspecialchars($status) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <select name="location" class="select">
-                            <?php foreach ($locations as $loc): ?>
-                                <option value="<?= htmlspecialchars($loc) ?>" <?= $selected_location === $loc ? 'selected' : '' ?>><?= htmlspecialchars($loc) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <div class="lg:col-span-2">
-                            <div class="drop-zone" id="addDropZone">اسحب الصورة هنا أو انقر لاختيار ملف</div>
-                            <input id="addCatalogImage" name="catalog_image" type="file" accept="image/*" class="hidden">
-                            <div id="addImagePreview" class="hidden mt-4">
-                                <img src="" alt="معاينة الصورة" class="image-preview">
-                                <button type="button" onclick="clearAddImage()" class="mt-2 btn btn-danger">إزالة الصورة</button>
-                            </div>
-                        </div>
-                        <input name="file_id" type="text" placeholder="معرف الملف" class="input">
-                        <textarea name="description_ar" placeholder="نص الوصف (بالعربية)" class="textarea col-span-2"></textarea>
-                        <textarea name="description_en" placeholder="نص الوصف (بالإنجليزية)" class="textarea col-span-2"></textarea>
-                    </div>
-                    <div class="flex justify-end gap-3 mt-6">
-                        <button type="button" onclick="closeAddModal()" class="btn btn-secondary">إلغاء</button>
-                        <button type="submit" name="add_catalog" class="btn btn-primary">إضافة</button>
-                    </div>
-                </form>
-            </div>
-        </div>
         <!-- Pagination -->
-        <div class="flex flex-col sm:flex-row justify-between mb-6 items-center gap-4">
-            <a href="?location=<?= urlencode($selected_location) ?>&page=<?= $page - 1 ?>&page_size=<?= $page_size ?>" class="btn btn-primary <?= $previous_page_url ? '' : 'opacity-50 pointer-events-none' ?>">الصفحة السابقة</a>
-            <div class="flex items-center gap-4">
-                <form method="GET" class="inline-flex items-center">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="?location=<?= urlencode($selected_location) ?>&page=<?= $page - 1 ?>&page_size=<?= $page_size ?>" class="btn btn-primary <?= $previous_page_url ? '' : 'd-none' ?>">
+                <i class="fas fa-chevron-right me-2"></i>الصفحة السابقة
+            </a>
+            <div class="d-flex align-items-center gap-4">
+                <form method="GET" class="d-flex align-items-center">
                     <input type="hidden" name="location" value="<?= htmlspecialchars($selected_location) ?>">
-                    <label for="page_size" class="text-gray-600 font-medium ml-2">عدد الكتالوجات في الصفحة:</label>
-                    <select name="page_size" onchange="this.form.submit()" class="select">
+                    <label for="page_size" class="form-label me-2">عدد الكتالوجات في الصفحة:</label>
+                    <select name="page_size" onchange="this.form.submit()" class="form-control">
                         <option value="10" <?= $page_size == 10 ? 'selected' : '' ?>>10</option>
                         <option value="20" <?= $page_size == 20 ? 'selected' : '' ?>>20</option>
                         <option value="50" <?= $page_size == 50 ? 'selected' : '' ?>>50</option>
                         <option value="100" <?= $page_size == 100 ? 'selected' : '' ?>>100</option>
                     </select>
                 </form>
-                <span class="text-gray-600 font-medium">الصفحة <?= $page ?> من <?= $total_pages ?> (إجمالي الكتالوجات: <?= $total_count ?>)</span>
+                <span class="text-muted">الصفحة <?= $page ?> من <?= $total_pages ?> (إجمالي الكتالوجات: <?= $total_count ?>)</span>
             </div>
-            <a href="?location=<?= urlencode($selected_location) ?>&page=<?= $page + 1 ?>&page_size=<?= $page_size ?>" class="btn btn-primary <?= $next_page_url ? '' : 'opacity-50 pointer-events-none' ?>">الصفحة التالية</a>
-        </div>
-        <!-- Delete Modal -->
-        <div id="deleteModal" class="modal hidden">
-            <div class="modal-content">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">تأكيد الحذف</h3>
-                <p class="mb-6 text-gray-600">هل أنت متأكد من حذف هذا الكتالوج؟</p>
-                <form id="deleteForm" method="POST">
-                    <input type="hidden" name="catalog_id" id="deleteCatalogId">
-                    <div class="flex justify-end gap-3">
-                        <button type="button" onclick="closeDeleteModal()" class="btn btn-secondary">إلغاء</button>
-                        <button type="submit" name="delete_catalog" class="btn btn-danger">تأكيد</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        <!-- Update Modal -->
-        <div id="updateModal" class="modal hidden">
-            <div class="modal-content max-w-2xl">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">تحديث الكتالوج</h3>
-                <form id="updateForm" method="POST" enctype="multipart/form-data">
-                    <input type="hidden" name="catalog_id" id="updateCatalogId">
-                    <input type="hidden" name="current_image" id="currentImage">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <input name="order" id="updateOrder" type="text" placeholder="ترتيب" class="input">
-                        <input name="sub_order" id="updateSubOrder" type="text" placeholder="ترتيب فرعي" class="input">
-                        <input name="name_ar" id="updateNameAr" type="text" placeholder="الاسم (بالعربية)" class="input" required>
-                        <input name="name_en" id="updateNameEn" type="text" placeholder="الاسم (بالإنجليزية)" class="input">
-                        <input name="sub_name_ar" id="updateSubNameAr" type="text" placeholder="الاسم الفرعي (بالعربية)" class="input">
-                        <input name="sub_name_en" id="updateSubNameEn" type="text" placeholder="الاسم الفرعي (بالإنجليزية)" class="input">
-                        <select name="status" id="updateStatus" class="select">
-                            <?php foreach ($statuses as $status): ?>
-                                <option value="<?= htmlspecialchars($status) ?>"><?= htmlspecialchars($status) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <select name="location" id="updateLocation" class="select">
-                            <?php foreach ($locations as $loc): ?>
-                                <option value="<?= htmlspecialchars($loc) ?>"><?= htmlspecialchars($loc) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <div class="lg:col-span-2">
-                            <div class="drop-zone" id="updateDropZone">اسحب الصورة هنا أو انقر لاختيار ملف</div>
-                            <input id="updateCatalogImage" name="catalog_image" type="file" accept="image/*" class="hidden">
-                            <div id="updateImagePreview" class="hidden mt-4">
-                                <img src="" alt="معاينة الصورة" class="image-preview">
-                                <button type="button" onclick="clearUpdateImage()" class="mt-2 btn btn-danger">إزالة الصورة</button>
-                            </div>
-                        </div>
-                        <input name="link" id="updateLink" type="url" placeholder="الرابط" class="input">
-                        <input name="file_id" id="updateFileId" type="text" placeholder="معرف الملف" class="input">
-                        <textarea name="description_ar" id="updateDescriptionAr" placeholder="نص الوصف (بالعربية)" class="textarea col-span-2"></textarea>
-                        <textarea name="description_en" id="updateDescriptionEn" placeholder="نص الوصف (بالإنجليزية)" class="textarea col-span-2"></textarea>
-                    </div>
-                    <div class="flex justify-end gap-3 mt-6">
-                        <button type="button" onclick="closeUpdateModal()" class="btn btn-secondary">إلغاء</button>
-                        <button type="submit" name="update_catalog" class="btn btn-primary">تحديث</button>
-                    </div>
-                </form>
-            </div>
+            <a href="?location=<?= urlencode($selected_location) ?>&page=<?= $page + 1 ?>&page_size=<?= $page_size ?>" class="btn btn-primary <?= $next_page_url ? '' : 'd-none' ?>">
+                الصفحة التالية<i class="fas fa-chevron-left ms-2"></i>
+            </a>
         </div>
         <!-- Catalogs Grid -->
-        <div class="card p-6">
-            <h2 class="text-xl font-semibold text-gray-700 mb-6"><?= htmlspecialchars($selected_location) ?></h2>
-            <?php if (empty($catalogs)): ?>
-                <p class="text-center text-gray-600 py-4">لا توجد بيانات متاحة لموقع "<?= htmlspecialchars($selected_location) ?>"</p>
-            <?php else: ?>
-                <div class="catalog-grid">
-                    <?php foreach ($catalogs as $catalog): ?>
-                        <div class="catalog-card">
-                            <?php if (!empty($catalog['field_6755'])): ?>
-                                <img src="<?= htmlspecialchars($catalog['field_6755']) ?>" alt="<?= htmlspecialchars($catalog['field_6754'] ?? 'كتالوج') ?>">
-                            <?php else: ?>
-                                <p>الصورة: غير متوفر</p>
-                            <?php endif; ?>
-                            <p><strong>ترتيب:</strong> <?= htmlspecialchars($catalog['field_6759'] ?? 'غير متوفر') ?></p>
-                            <p><strong>الاسم (عربي):</strong> <?= htmlspecialchars($catalog['field_6754'] ?? 'غير متوفر') ?></p>
-                            <p><strong>الاسم (إنجليزي):</strong> <?= htmlspecialchars($catalog['field_6762'] ?? 'غير متوفر') ?></p>
-                            <p><strong>الموقع:</strong> <?= htmlspecialchars($catalog['field_6756'] ?? 'غير متوفر') ?></p>
-                            <p><strong>الحالة:</strong> <?= htmlspecialchars($catalog['field_7072'] ?? 'غير متوفر') ?></p>
-                            <p><strong>الرابط:</strong> 
-                                <?php if (!empty($catalog['field_6757'])): ?>
-                                    <a href="<?= htmlspecialchars($catalog['field_6757']) ?>" target="_blank">عرض الرابط</a>
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title"><?= htmlspecialchars($selected_location) ?></h2>
+            </div>
+            <div class="card-body">
+                <?php if (empty($catalogs)): ?>
+                    <div class="empty-state">
+                        <i class="fas fa-folder-plus"></i>
+                        <h3>لا توجد كتالوجات</h3>
+                        <p>ابدأ بإضافة أول كتالوج في "<?= htmlspecialchars($selected_location) ?>"</p>
+                        <button onclick="openAddModal()" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>إضافة أول كتالوج
+                        </button>
+                    </div>
+                <?php else: ?>
+                    <div class="gallery-grid">
+                        <?php foreach ($catalogs as $catalog): ?>
+                            <div class="gallery-item">
+                                <?php if (!empty($catalog['field_6755'])): ?>
+                                    <img src="<?= htmlspecialchars($catalog['field_6755']) ?>" alt="<?= htmlspecialchars($catalog['field_6754'] ?? 'كتالوج') ?>" class="gallery-item-image">
                                 <?php else: ?>
-                                    غير متوفر
+                                    <div class="gallery-placeholder"><i class="fas fa-folder"></i></div>
                                 <?php endif; ?>
-                            </p>
-                            <div class="flex gap-2 mt-4">
-                                <button type="button" onclick="openUpdateModal(<?= $catalog['id'] ?>, '<?= htmlspecialchars($catalog['field_6759'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6760'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6754'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6762'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6761'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7075'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7072'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6755'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6757'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6758'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7076'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7077'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6756'] ?? '') ?>')" class="btn btn-primary">تحرير</button>
-                                <button type="button" onclick="openDeleteModal(<?= $catalog['id'] ?>)" class="btn btn-danger">حذف</button>
+                                <div class="gallery-item-content">
+                                    <h3 class="gallery-item-title"><?= htmlspecialchars($catalog['field_6754'] ?? 'غير متوفر') ?></h3>
+                                    <div class="gallery-item-actions">
+                                        <button onclick="openUpdateModal(<?= $catalog['id'] ?>, '<?= htmlspecialchars($catalog['field_6759'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6760'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6754'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6762'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6761'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7075'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7072'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6755'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6757'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6758'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7076'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7077'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6756'] ?? '') ?>')" class="btn btn-primary btn-sm rounded-circle">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button onclick="openDeleteModal(<?= $catalog['id'] ?>)" class="btn btn-secondary btn-sm rounded-circle">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+        <!-- Add Catalog Modal -->
+        <div class="modal" id="addModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">إضافة كتالوج جديد</h5>
+                        <button type="button" class="btn-close" onclick="closeAddModal()">&times;</button>
+                    </div>
+                    <form id="addCatalogForm" enctype="multipart/form-data" method="POST">
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="addOrder" class="form-label">ترتيب</label>
+                                <input type="text" class="form-control" id="addOrder" name="order">
+                            </div>
+                            <div class="form-group">
+                                <label for="addSubOrder" class="form-label">ترتيب فرعي</label>
+                                <input type="text" class="form-control" id="addSubOrder" name="sub_order">
+                            </div>
+                            <div class="form-group">
+                                <label for="addNameAr" class="form-label">الاسم (بالعربية)</label>
+                                <input type="text" class="form-control" id="addNameAr" name="name_ar" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="addNameEn" class="form-label">الاسم (بالإنجليزية)</label>
+                                <input type="text" class="form-control" id="addNameEn" name="name_en">
+                            </div>
+                            <div class="form-group">
+                                <label for="addSubNameAr" class="form-label">الاسم الفرعي (بالعربية)</label>
+                                <input type="text" class="form-control" id="addSubNameAr" name="sub_name_ar">
+                            </div>
+                            <div class="form-group">
+                                <label for="addSubNameEn" class="form-label">الاسم الفرعي (بالإنجليزية)</label>
+                                <input type="text" class="form-control" id="addSubNameEn" name="sub_name_en">
+                            </div>
+                            <div class="form-group">
+                                <label for="addStatus" class="form-label">الحالة</label>
+                                <select class="form-control" id="addStatus" name="status">
+                                    <?php foreach ($statuses as $status): ?>
+                                        <option value="<?= htmlspecialchars($status) ?>"><?= htmlspecialchars($status) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="addLocation" class="form-label">الموقع</label>
+                                <select class="form-control" id="addLocation" name="location">
+                                    <?php foreach ($locations as $loc): ?>
+                                        <option value="<?= htmlspecialchars($loc) ?>" <?= $selected_location === $loc ? 'selected' : '' ?>><?= htmlspecialchars($loc) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="addCatalogImage" class="form-label">صورة الكتالوج</label>
+                                <div class="image-upload-area" id="addDropZone">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                    <p class="image-upload-text text-muted mb-0">انقر هنا لاختيار صورة</p>
+                                    <small class="image-upload-hint">أو اسحب الصورة هنا (الحد الأقصى 5 ميجا بايت)</small>
+                                </div>
+                                <input type="file" class="form-control d-none" id="addCatalogImage" name="catalog_image" accept="image/*">
+                                <div id="addImagePreview" class="mt-3 d-none text-center">
+                                    <img class="image-preview" alt="معاينة الصورة">
+                                    <div class="mt-2">
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="removeAddImagePreview()">
+                                            <i class="fas fa-times me-1"></i>إزالة الصورة
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="addLink" class="form-label">الرابط</label>
+                                <input type="url" class="form-control" id="addLink" name="link">
+                            </div>
+                            <div class="form-group">
+                                <label for="addFileId" class="form-label">معرف الملف</label>
+                                <input type="text" class="form-control" id="addFileId" name="file_id">
+                            </div>
+                            <div class="form-group">
+                                <label for="addDescriptionAr" class="form-label">نص الوصف (بالعربية)</label>
+                                <textarea class="form-control" id="addDescriptionAr" name="description_ar"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="addDescriptionEn" class="form-label">نص الوصف (بالإنجليزية)</label>
+                                <textarea class="form-control" id="addDescriptionEn" name="description_en"></textarea>
                             </div>
                         </div>
-                    <?php endforeach; ?>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" onclick="closeAddModal()">إلغاء</button>
+                            <button type="submit" class="btn btn-primary" name="add_catalog">
+                                <span class="button-text">حفظ البيانات</span>
+                                <span class="spinner d-none ms-2"></span>
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            <?php endif; ?>
+            </div>
         </div>
-        <!-- Toast Notification -->
-        <div id="toast" class="toast"></div>
+        <!-- Update Catalog Modal -->
+        <div class="modal" id="updateModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">تحديث الكتالوج</h5>
+                        <button type="button" class="btn-close" onclick="closeUpdateModal()">&times;</button>
+                    </div>
+                    <form id="updateCatalogForm" enctype="multipart/form-data" method="POST">
+                        <div class="modal-body">
+                            <input type="hidden" id="updateCatalogId" name="catalog_id">
+                            <input type="hidden" id="currentImage" name="current_image">
+                            <div class="form-group">
+                                <label for="updateOrder" class="form-label">ترتيب</label>
+                                <input type="text" class="form-control" id="updateOrder" name="order">
+                            </div>
+                            <div class="form-group">
+                                <label for="updateSubOrder" class="form-label">ترتيب فرعي</label>
+                                <input type="text" class="form-control" id="updateSubOrder" name="sub_order">
+                            </div>
+                            <div class="form-group">
+                                <label for="updateNameAr" class="form-label">الاسم (بالعربية)</label>
+                                <input type="text" class="form-control" id="updateNameAr" name="name_ar" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="updateNameEn" class="form-label">الاسم (بالإنجليزية)</label>
+                                <input type="text" class="form-control" id="updateNameEn" name="name_en">
+                            </div>
+                            <div class="form-group">
+                                <label for="updateSubNameAr" class="form-label">الاسم الفرعي (بالعربية)</label>
+                                <input type="text" class="form-control" id="updateSubNameAr" name="sub_name_ar">
+                            </div>
+                            <div class="form-group">
+                                <label for="updateSubNameEn" class="form-label">الاسم الفرعي (بالإنجليزية)</label>
+                                <input type="text" class="form-control" id="updateSubNameEn" name="sub_name_en">
+                            </div>
+                            <div class="form-group">
+                                <label for="updateStatus" class="form-label">الحالة</label>
+                                <select class="form-control" id="updateStatus" name="status">
+                                    <?php foreach ($statuses as $status): ?>
+                                        <option value="<?= htmlspecialchars($status) ?>"><?= htmlspecialchars($status) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="updateLocation" class="form-label">الموقع</label>
+                                <select class="form-control" id="updateLocation" name="location">
+                                    <?php foreach ($locations as $loc): ?>
+                                        <option value="<?= htmlspecialchars($loc) ?>"><?= htmlspecialchars($loc) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="updateCatalogImage" class="form-label">صورة الكتالوج</label>
+                                <div class="image-upload-area" id="updateDropZone">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                    <p class="image-upload-text text-muted mb-0">انقر هنا لاختيار صورة</p>
+                                    <small class="image-upload-hint">أو اسحب الصورة هنا (الحد الأقصى 5 ميجا بايت)</small>
+                                </div>
+                                <input type="file" class="form-control d-none" id="updateCatalogImage" name="catalog_image" accept="image/*">
+                                <div id="updateImagePreview" class="mt-3 d-none text-center">
+                                    <img class="image-preview" alt="معاينة الصورة">
+                                    <div class="mt-2">
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="removeUpdateImagePreview()">
+                                            <i class="fas fa-times me-1"></i>إزالة الصورة
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="updateLink" class="form-label">الرابط</label>
+                                <input type="url" class="form-control" id="updateLink" name="link">
+                            </div>
+                            <div class="form-group">
+                                <label for="updateFileId" class="form-label">معرف الملف</label>
+                                <input type="text" class="form-control" id="updateFileId" name="file_id">
+                            </div>
+                            <div class="form-group">
+                                <label for="updateDescriptionAr" class="form-label">نص الوصف (بالعربية)</label>
+                                <textarea class="form-control" id="updateDescriptionAr" name="description_ar"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="updateDescriptionEn" class="form-label">نص الوصف (بالإنجليزية)</label>
+                                <textarea class="form-control" id="updateDescriptionEn" name="description_en"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" onclick="closeUpdateModal()">إلغاء</button>
+                            <button type="submit" class="btn btn-primary" name="update_catalog">
+                                <span class="button-text">حفظ البيانات</span>
+                                <span class="spinner d-none ms-2"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- Delete Catalog Modal -->
+        <div class="modal" id="deleteModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">تأكيد الحذف</h5>
+                        <button type="button" class="btn-close" onclick="closeDeleteModal()">&times;</button>
+                    </div>
+                    <form id="deleteCatalogForm" method="POST">
+                        <div class="modal-body">
+                            <p>هل أنت متأكد من حذف هذا الكتالوج؟</p>
+                            <input type="hidden" id="deleteCatalogId" name="catalog_id">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">إلغاء</button>
+                            <button type="submit" class="btn btn-primary" name="delete_catalog">
+                                <span class="button-text">تأكيد</span>
+                                <span class="spinner d-none ms-2"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- Toast Container -->
+        <div class="toast-container"></div>
     </div>
     <script>
         // Show toast notification
-        function showToast(message, type) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = `toast show ${type}`;
+        function showToast(message, type = 'success') {
+            const toastContainer = document.querySelector('.toast-container');
+            const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
+            const className = type === 'error' ? 'error' : 'success';
+            const toastHtml = `
+                <div class="toast ${className}">
+                    <i class="fas ${icon}"></i>
+                    <span>${message}</span>
+                    <button type="button" class="btn-close" onclick="this.parentElement.remove()" style="margin-right: auto; background: none; border: none; font-size: 18px; cursor: pointer;">&times;</button>
+                </div>
+            `;
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
             setTimeout(() => {
-                toast.className = 'toast';
-            }, 3000);
+                const toasts = toastContainer.querySelectorAll('.toast');
+                if (toasts.length > 0) toasts[0].remove();
+            }, 5000);
+        }
+        // Show loading state
+        function showLoading(button) {
+            const text = button.querySelector('.button-text');
+            const spinner = button.querySelector('.spinner');
+            if (text) text.textContent = 'جاري الحفظ...';
+            if (spinner) spinner.classList.remove('d-none');
+            button.disabled = true;
+        }
+        // Hide loading state
+        function hideLoading(button) {
+            const text = button.querySelector('.button-text');
+            const spinner = button.querySelector('.spinner');
+            if (text) text.textContent = button.getAttribute('name') === 'delete_catalog' ? 'تأكيد' : 'حفظ البيانات';
+            if (spinner) spinner.classList.add('d-none');
+            button.disabled = false;
         }
         // Open add modal
         function openAddModal() {
-            document.getElementById('addModal').classList.remove('hidden');
+            document.getElementById('addModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
             document.getElementById('addCatalogForm').reset();
-            document.getElementById('addImagePreview').classList.add('hidden');
-            document.getElementById('addCatalogImage').value = '';
+            document.getElementById('addImagePreview').classList.add('d-none');
+            document.getElementById('addDropZone').innerHTML = `
+                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                <p class="image-upload-text text-muted mb-0">انقر هنا لاختيار صورة</p>
+                <small class="image-upload-hint">أو اسحب الصورة هنا (الحد الأقصى 5 ميجا بايت)</small>
+            `;
         }
         // Close add modal
         function closeAddModal() {
-            document.getElementById('addModal').classList.add('hidden');
+            document.getElementById('addModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
             document.getElementById('addCatalogForm').reset();
-            document.getElementById('addImagePreview').classList.add('hidden');
+            document.getElementById('addImagePreview').classList.add('d-none');
             document.getElementById('addCatalogImage').value = '';
         }
         // Open delete modal
         function openDeleteModal(catalogId) {
             document.getElementById('deleteCatalogId').value = catalogId;
-            document.getElementById('deleteModal').classList.remove('hidden');
+            document.getElementById('deleteModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
         }
         // Close delete modal
         function closeDeleteModal() {
-            document.getElementById('deleteModal').classList.add('hidden');
+            document.getElementById('deleteModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
             document.getElementById('deleteCatalogId').value = '';
         }
         // Open update modal
@@ -759,121 +1159,195 @@ $statuses = ['نشط', 'غير نشط'];
             document.getElementById('updateDescriptionAr').value = descriptionAr;
             document.getElementById('updateDescriptionEn').value = descriptionEn;
             const preview = document.getElementById('updateImagePreview');
+            const dropZone = document.getElementById('updateDropZone');
             if (catalogImage) {
                 preview.querySelector('img').src = catalogImage;
-                preview.classList.remove('hidden');
+                preview.classList.remove('d-none');
+                dropZone.innerHTML = `
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <p class="image-upload-text text-success mb-0">تم اختيار الصورة بنجاح</p>
+                    <small class="image-upload-hint">الصورة الحالية</small>
+                `;
             } else {
-                preview.classList.add('hidden');
+                preview.classList.add('d-none');
+                dropZone.innerHTML = `
+                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                    <p class="image-upload-text text-muted mb-0">انقر هنا لاختيار صورة</p>
+                    <small class="image-upload-hint">أو اسحب الصورة هنا (الحد الأقصى 5 ميجا بايت)</small>
+                `;
             }
-            document.getElementById('updateModal').classList.remove('hidden');
+            document.getElementById('updateModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
         }
         // Close update modal
         function closeUpdateModal() {
-            document.getElementById('updateModal').classList.add('hidden');
-            document.getElementById('updateForm').reset();
-            document.getElementById('updateImagePreview').classList.add('hidden');
+            document.getElementById('updateModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+            document.getElementById('updateCatalogForm').reset();
+            document.getElementById('updateImagePreview').classList.add('d-none');
             document.getElementById('updateCatalogImage').value = '';
         }
-        // Clear add image
-        function clearAddImage() {
-            document.getElementById('addCatalogImage').value = '';
-            document.getElementById('addImagePreview').classList.add('hidden');
-        }
-        // Clear update image
-        function clearUpdateImage() {
-            document.getElementById('updateCatalogImage').value = '';
-            document.getElementById('updateImagePreview').classList.add('hidden');
-        }
-        // Image preview and drag-and-drop for add form
-        const addDropZone = document.getElementById('addDropZone');
-        const addFileInput = document.getElementById('addCatalogImage');
-        addDropZone.addEventListener('click', () => addFileInput.click());
-        addDropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            addDropZone.classList.add('dragover');
-        });
-        addDropZone.addEventListener('dragleave', () => {
-            addDropZone.classList.remove('dragover');
-        });
-        addDropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            addDropZone.classList.remove('dragover');
-            const file = e.dataTransfer.files[0];
-            if (file && file.type.startsWith('image/')) {
-                addFileInput.files = e.dataTransfer.files;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const preview = document.getElementById('addImagePreview');
-                    preview.querySelector('img').src = e.target.result;
-                    preview.classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            } else {
-                showToast('يرجى اختيار صورة صالحة', 'error');
-            }
-        });
-        addFileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
+        // Remove image preview for add form
+        function removeAddImagePreview() {
             const preview = document.getElementById('addImagePreview');
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    preview.querySelector('img').src = e.target.result;
-                    preview.classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            } else {
-                preview.classList.add('hidden');
-                showToast('يرجى اختيار صورة صالحة', 'error');
-            }
-        });
-        // Image preview and drag-and-drop for update form
-        const updateDropZone = document.getElementById('updateDropZone');
-        const updateFileInput = document.getElementById('updateCatalogImage');
-        updateDropZone.addEventListener('click', () => updateFileInput.click());
-        updateDropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            updateDropZone.classList.add('dragover');
-        });
-        updateDropZone.addEventListener('dragleave', () => {
-            updateDropZone.classList.remove('dragover');
-        });
-        updateDropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            updateDropZone.classList.remove('dragover');
-            const file = e.dataTransfer.files[0];
-            if (file && file.type.startsWith('image/')) {
-                updateFileInput.files = e.dataTransfer.files;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const preview = document.getElementById('updateImagePreview');
-                    preview.querySelector('img').src = e.target.result;
-                    preview.classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            } else {
-                showToast('يرجى اختيار صورة صالحة', 'error');
-            }
-        });
-        updateFileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
+            const input = document.getElementById('addCatalogImage');
+            const uploadArea = document.getElementById('addDropZone');
+            preview.classList.add('d-none');
+            input.value = '';
+            uploadArea.innerHTML = `
+                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                <p class="image-upload-text text-muted mb-0">انقر هنا لاختيار صورة</p>
+                <small class="image-upload-hint">أو اسحب الصورة هنا (الحد الأقصى 5 ميجا بايت)</small>
+            `;
+        }
+        // Remove image preview for update form
+        function removeUpdateImagePreview() {
             const preview = document.getElementById('updateImagePreview');
-            if (file && file.type.startsWith('image/')) {
+            const input = document.getElementById('updateCatalogImage');
+            const uploadArea = document.getElementById('updateDropZone');
+            preview.classList.add('d-none');
+            input.value = '';
+            uploadArea.innerHTML = `
+                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                <p class="image-upload-text text-muted mb-0">انقر هنا لاختيار صورة</p>
+                <small class="image-upload-hint">أو اسحب الصورة هنا (الحد الأقصى 5 ميجا بايت)</small>
+            `;
+        }
+        // Handle image upload
+        function handleImageUpload(file, preview, uploadArea) {
+            if (file) {
+                if (!file.type.startsWith('image/')) {
+                    showToast('يرجى اختيار ملف صورة صالح', 'error');
+                    return;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast('حجم الملف كبير جداً. الحد الأقصى 5 ميجا بايت', 'error');
+                    return;
+                }
                 const reader = new FileReader();
-                reader.onload = (e) => {
+                reader.onload = e => {
                     preview.querySelector('img').src = e.target.result;
-                    preview.classList.remove('hidden');
+                    preview.classList.remove('d-none');
+                    uploadArea.innerHTML = `
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <p class="image-upload-text text-success mb-0">تم اختيار الصورة بنجاح</p>
+                        <small class="image-upload-hint">${file.name} (${Math.round(file.size/1024)} كيلو بايت)</small>
+                    `;
                 };
                 reader.readAsDataURL(file);
-            } else {
-                preview.classList.add('hidden');
-                showToast('يرجى اختيار صورة صالحة', 'error');
             }
+        }
+        // Setup image upload
+        function setupImageUpload(inputId, previewId, dropZoneId) {
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+            const uploadArea = document.getElementById(dropZoneId);
+            input.addEventListener('change', e => handleImageUpload(e.target.files[0], preview, uploadArea));
+            uploadArea.addEventListener('click', () => input.click());
+            uploadArea.addEventListener('dragover', e => {
+                e.preventDefault();
+                uploadArea.style.borderColor = 'var(--gold)';
+            });
+            uploadArea.addEventListener('dragleave', e => {
+                e.preventDefault();
+                uploadArea.style.borderColor = 'var(--border-color)';
+            });
+            uploadArea.addEventListener('drop', e => {
+                e.preventDefault();
+                uploadArea.style.borderColor = 'var(--border-color)';
+                const file = e.dataTransfer.files[0];
+                if (file) {
+                    input.files = e.dataTransfer.files;
+                    handleImageUpload(file, preview, uploadArea);
+                }
+            });
+        }
+        // Form submission handling
+        document.addEventListener('DOMContentLoaded', function() {
+            setupImageUpload('addCatalogImage', 'addImagePreview', 'addDropZone');
+            setupImageUpload('updateCatalogImage', 'updateImagePreview', 'updateDropZone');
+            // Handle add form submission
+            document.getElementById('addCatalogForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const submitButton = this.querySelector('button[type="submit"]');
+                showLoading(submitButton);
+                const formData = new FormData(this);
+                formData.append('add_catalog', '1');
+                fetch('', { method: 'POST', body: formData })
+                    .then(response => response.text())
+                    .then(() => {
+                        hideLoading(submitButton);
+                        showToast('تم إضافة الكتالوج بنجاح', 'success');
+                        closeAddModal();
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        hideLoading(submitButton);
+                        showToast('خطأ في الشبكة', 'error');
+                    });
+            });
+            // Handle update form submission
+            document.getElementById('updateCatalogForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const submitButton = this.querySelector('button[type="submit"]');
+                showLoading(submitButton);
+                const formData = new FormData(this);
+                formData.append('update_catalog', '1');
+                fetch('', { method: 'POST', body: formData })
+                    .then(response => response.text())
+                    .then(() => {
+                        hideLoading(submitButton);
+                        showToast('تم تحديث الكتالوج بنجاح', 'success');
+                        closeUpdateModal();
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        hideLoading(submitButton);
+                        showToast('خطأ في الشبكة', 'error');
+                    });
+            });
+            // Handle delete form submission
+            document.getElementById('deleteCatalogForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const submitButton = this.querySelector('button[type="submit"]');
+                showLoading(submitButton);
+                const formData = new FormData(this);
+                formData.append('delete_catalog', '1');
+                fetch('', { method: 'POST', body: formData })
+                    .then(response => response.text())
+                    .then(() => {
+                        hideLoading(submitButton);
+                        showToast('تم حذف الكتالوج بنجاح', 'success');
+                        closeDeleteModal();
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        hideLoading(submitButton);
+                        showToast('خطأ في الشبكة', 'error');
+                    });
+            });
+            // Close modals on click outside or ESC key
+            document.addEventListener('click', e => {
+                if (e.target.classList.contains('modal')) {
+                    document.querySelectorAll('.modal.show').forEach(modal => {
+                        modal.classList.remove('show');
+                        document.body.style.overflow = 'auto';
+                    });
+                }
+            });
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal.show').forEach(modal => {
+                        modal.classList.remove('show');
+                        document.body.style.overflow = 'auto';
+                    });
+                }
+            });
+            // Show PHP messages as toasts
+            <?php if ($message): ?>
+                showToast('<?= htmlspecialchars($message) ?>', '<?= $message_type ?>');
+            <?php endif; ?>
         });
-        // Show toast for PHP messages
-        <?php if ($message): ?>
-            showToast('<?= htmlspecialchars($message) ?>', '<?= $message_type ?>');
-        <?php endif; ?>
     </script>
 </body>
 </html>
