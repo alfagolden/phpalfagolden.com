@@ -1,4 +1,4 @@
-
+```php
 <?php
 // Configuration
 const API_TOKEN = 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy';
@@ -1589,6 +1589,7 @@ $total_pages = ceil($total_count / $page_size);
             document.getElementById('addCatalogModal').classList.remove('show');
             document.body.style.overflow = 'auto';
             document.querySelector('#addCatalogModal form').reset();
+            clearImagePreview('addCatalogModal');
         }
         // Open update modal
         function openUpdateModal(id, order, nameAr, nameEn, image, link, location) {
@@ -1603,12 +1604,14 @@ $total_pages = ceil($total_count / $page_size);
             document.getElementById('updateHeaderSliderFields').classList.toggle('d-none', location !== 'سلايدر الهيدر');
             document.getElementById('updateCatalogModal').classList.add('show');
             document.body.style.overflow = 'hidden';
+            showImagePreview(image, 'updateCatalogModal');
         }
         // Close update modal
         function closeUpdateModal() {
             document.getElementById('updateCatalogModal').classList.remove('show');
             document.body.style.overflow = 'auto';
             document.querySelector('#updateCatalogModal form').reset();
+            clearImagePreview('updateCatalogModal');
         }
         // Open add category modal
         function openAddCategoryModal() {
@@ -1620,6 +1623,7 @@ $total_pages = ceil($total_count / $page_size);
             document.getElementById('addCategoryModal').classList.remove('show');
             document.body.style.overflow = 'auto';
             document.querySelector('#addCategoryModal form').reset();
+            clearImagePreview('addCategoryModal');
         }
         // Open update category modal
         function openUpdateCategoryModal(id, name, image) {
@@ -1628,19 +1632,21 @@ $total_pages = ceil($total_count / $page_size);
             document.getElementById('updateCategoryImage').value = image;
             document.getElementById('updateCategoryModal').classList.add('show');
             document.body.style.overflow = 'hidden';
+            showImagePreview(image, 'updateCategoryModal');
         }
         // Close update category modal
         function closeUpdateCategoryModal() {
             document.getElementById('updateCategoryModal').classList.remove('show');
             document.body.style.overflow = 'auto';
             document.querySelector('#updateCategoryModal form').reset();
+            clearImagePreview('updateCategoryModal');
         }
         // Open products modal
         function openProductsModal(categoryId, categoryName) {
             document.getElementById('productsModalTitle').textContent = `المنتجات - ${categoryName}`;
             document.getElementById('productsModal').classList.add('show');
             document.body.style.overflow = 'hidden';
-            loadProducts(categoryId);
+            fetchProducts(categoryId);
         }
         // Close products modal
         function closeProductsModal() {
@@ -1659,112 +1665,125 @@ $total_pages = ceil($total_count / $page_size);
             document.getElementById('addProductModal').classList.remove('show');
             document.body.style.overflow = 'auto';
             document.querySelector('#addProductModal form').reset();
+            clearImagePreview('addProductModal');
         }
         // Open update product modal
-        function openUpdateProductModal(productId, name, image, categoryId) {
+        function openUpdateProductModal(productId, categoryId, name, image) {
             document.getElementById('updateProductId').value = productId;
             document.getElementById('updateProductName').value = name;
             document.getElementById('updateProductImage').value = image;
             document.getElementById('updateProductCategoryId').value = categoryId;
             document.getElementById('updateProductModal').classList.add('show');
             document.body.style.overflow = 'hidden';
+            showImagePreview(image, 'updateProductModal');
         }
         // Close update product modal
         function closeUpdateProductModal() {
             document.getElementById('updateProductModal').classList.remove('show');
             document.body.style.overflow = 'auto';
             document.querySelector('#updateProductModal form').reset();
+            clearImagePreview('updateProductModal');
         }
-        // Load products via AJAX
-        function loadProducts(categoryId) {
+        // Fetch products via AJAX
+        async function fetchProducts(categoryId) {
             showSpinner();
-            fetch(`?action=get_products&category_id=${categoryId}`, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+            try {
+                const response = await fetch(`fetch_products.php?category_id=${categoryId}`);
+                if (!response.ok) {
+                    throw new Error('فشل جلب المنتجات');
                 }
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('فشل جلب المنتجات');
-                return response.json();
-            })
-            .then(data => {
+                const products = await response.json();
                 const productsList = document.getElementById('productsList');
-                if (data.products && data.products.length > 0) {
-                    let html = '<ul>';
-                    data.products.forEach(product => {
-                        html += `
-                            <li>
-                                ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '<i class="fas fa-image"></i>'}
-                                <span>${product.name}</span>
-                                <div class="actions">
-                                    <button class="btn btn-primary btn-sm rounded-circle" onclick="openUpdateProductModal(${product.id}, '${product.name}', '${product.image}', ${categoryId})">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <form method="POST" style="display:inline;" onsubmit="openConfirmModal(event, 'هل أنت متأكد من حذف المنتج؟', this)">
-                                        <input type="hidden" name="product_id" value="${product.id}">
-                                        <input type="hidden" name="delete_product" value="1">
-                                        <button type="submit" class="btn btn-secondary btn-sm rounded-circle">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </li>
-                        `;
-                    });
-                    html += '</ul>';
-                    productsList.innerHTML = html;
-                } else {
+                productsList.innerHTML = '';
+                if (products.length === 0) {
                     productsList.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-box-open"></i>
                             <h3>لا توجد منتجات</h3>
-                            <p>ابدأ بإضافة أول منتج في هذا القسم</p>
+                            <p>لا توجد منتجات في هذا القسم.</p>
                         </div>
                     `;
+                } else {
+                    const ul = document.createElement('ul');
+                    ul.className = 'products-list';
+                    products.forEach(product => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <img src="${product.field_6748 || ''}" alt="${product.field_6747 || 'منتج'}" onerror="this.src='placeholder.png';">
+                            <span>${product.field_6747 || '---'}</span>
+                            <div class="actions">
+                                <button onclick="openUpdateProductModal(${product.id}, ${categoryId}, '${product.field_6747.replace(/'/g, "\\'")}', '${product.field_6748.replace(/'/g, "\\'")}')" class="btn btn-primary btn-sm rounded-circle">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <form method="POST" style="display:inline;" onsubmit="openConfirmModal(event, 'هل أنت متأكد من حذف المنتج؟', this)">
+                                    <input type="hidden" name="product_id" value="${product.id}">
+                                    <input type="hidden" name="delete_product" value="1">
+                                    <button type="submit" class="btn btn-secondary btn-sm rounded-circle">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        `;
+                        ul.appendChild(li);
+                    });
+                    productsList.appendChild(ul);
                 }
+            } catch (error) {
+                showToast('فشل جلب المنتجات: ' + error.message, 'error');
+            } finally {
                 hideSpinner();
-            })
-            .catch(error => {
-                showToast('خطأ في جلب المنتجات: ' + error.message, 'error');
-                hideSpinner();
+            }
+        }
+        // Show image preview
+        function showImagePreview(imageUrl, modalId) {
+            const modal = document.getElementById(modalId);
+            let preview = modal.querySelector('.image-preview');
+            if (!preview) {
+                preview = document.createElement('img');
+                preview.className = 'image-preview mt-2';
+                const imageInput = modal.querySelector('input[type="file"]');
+                imageInput.parentNode.appendChild(preview);
+            }
+            if (imageUrl) {
+                preview.src = imageUrl;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+            // Add event listener for live preview
+            const fileInput = modal.querySelector('input[type="file"]');
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    preview.src = imageUrl || '';
+                    preview.style.display = imageUrl ? 'block' : 'none';
+                }
             });
         }
+        // Clear image preview
+        function clearImagePreview(modalId) {
+            const modal = document.getElementById(modalId);
+            const preview = modal.querySelector('.image-preview');
+            if (preview) {
+                preview.src = '';
+                preview.style.display = 'none';
+            }
+        }
+        // Initialize toasts on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const toastContainer = document.querySelector('.toast-container');
+            const toasts = toastContainer.querySelectorAll('.toast');
+            toasts.forEach(toast => {
+                setTimeout(() => toast.remove(), 3000);
+            });
+        });
     </script>
 </body>
 </html>
-<?php
-
-
-// Handle AJAX request for products
-if (isset($_GET['action']) && $_GET['action'] === 'get_products' && isset($_GET['category_id'])) {
-    header('Content-Type: application/json');
-    $category_id = (int)$_GET['category_id'];
-    $ch = curl_init(BASE_URL . PRODUCT_TABLE_ID . '/?filter__field_7126__link_row_has=' . $category_id . '&user_field_names=false');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Authorization: Token ' . API_TOKEN,
-        'Content-Type: application/json'
-    ]);
-    // echo(API_TOKEN);
-    $response = curl_exec($ch);
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curl_error = curl_error($ch);
-    curl_close($ch);
-    if ($http_code === 200) {
-        $data = json_decode($response, true);
-        $products = array_map(function($product) {
-            return [
-                'id' => $product['id'],
-                'name' => $product['field_6747'] ?? '---',
-                'image' => $product['field_6748'] ?? ''
-            ];
-        }, $data['results'] ?? []);
-        echo json_encode(['products' => $products]);
-    } else {
-        error_log("❌ فشل جلب المنتجات: HTTP $http_code, الاستجابة: $response");
-        if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
-        echo json_encode(['error' => 'فشل جلب المنتجات']);
-    }
-    exit;
-}
-?>
