@@ -1732,3 +1732,36 @@ $total_pages = ceil($total_count / $page_size);
     </script>
 </body>
 </html>
+<?php
+// Handle AJAX request for products
+if (isset($_GET['action']) && $_GET['action'] === 'get_products' && isset($_GET['category_id'])) {
+    header('Content-Type: application/json');
+    $category_id = (int)$_GET['category_id'];
+    $ch = curl_init(BASE_URL . PRODUCT_TABLE_ID . '/?filter__field_7126__link_row_has=' . $category_id . '&user_field_names=false');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Token ' . API_TOKEN,
+        'Content-Type: application/json'
+    ]);
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    curl_close($ch);
+    if ($http_code === 200) {
+        $data = json_decode($response, true);
+        $products = array_map(function($product) {
+            return [
+                'id' => $product['id'],
+                'name' => $product['field_6747'] ?? '---',
+                'image' => $product['field_6748'] ?? ''
+            ];
+        }, $data['results'] ?? []);
+        echo json_encode(['products' => $products]);
+    } else {
+        error_log("❌ فشل جلب المنتجات: HTTP $http_code, الاستجابة: $response");
+        if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
+        echo json_encode(['error' => 'فشل جلب المنتجات']);
+    }
+    exit;
+}
+?>
