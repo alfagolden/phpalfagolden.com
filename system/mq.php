@@ -628,7 +628,9 @@ usort($filteredQuotes, function($a, $b) use ($FIELDS, $sortBy, $sortDir) {
                         <?php else: ?>
                             <?php foreach ($filteredQuotes as $quote): ?>
                                 <?php
-                                $quoteNumber = $quote[$FIELDS['quotes']['quoteNumber'][0]["value"]] ?? $quote['id'];
+$quoteNumber = !empty($quote[$FIELDS['quotes']['quoteNumber']]) && isset($quote[$FIELDS['quotes']['quoteNumber']][0]['value'])
+    ? convertToEnglishNumbers($quote[$FIELDS['quotes']['quoteNumber']][0]['value'])
+    : 'غير محدد';
                                 $quoteDate = formatDate($quote[$FIELDS['quotes']['date']]);
                                 $clientName = getClientName($quote[$FIELDS['quotes']['client']]);
                                 $totalPrice = formatPrice($quote[$FIELDS['quotes']['totalPrice']]);
@@ -638,7 +640,7 @@ usort($filteredQuotes, function($a, $b) use ($FIELDS, $sortBy, $sortDir) {
                                 ?>
                                 <tr class="table-row">
                                     <td class="table-cell">
-                                        <div class="quote-id">#<?=  $quoteNumber ?></div>
+                                        <div class="quote-id">#<?= convertToEnglishNumbers($quoteNumber) ?></div>
                                     </td>
                                     <td class="table-cell">
                                         <div class="quote-date"><?= $quoteDate ?></div>
