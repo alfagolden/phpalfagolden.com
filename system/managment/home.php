@@ -5,7 +5,6 @@ const TABLE_ID = 698; // جدول الكتالوجات
 const BASE_URL = 'https://base.alfagolden.com/api/database/rows/table/';
 const UPLOAD_DIR = 'uploads/';
 const UPLOAD_URL = 'https://alfagolden.com/system/m/up.php';
-
 // Initialize upload directory
 function ensureUploadDirectory() {
     $dir = UPLOAD_DIR;
@@ -33,13 +32,11 @@ function ensureUploadDirectory() {
     }
     return true;
 }
-
 try {
     ensureUploadDirectory();
 } catch (Exception $e) {
     error_log("❌ خطأ في إعداد مجلد الرفع: " . $e->getMessage());
 }
-
 // External image upload function
 function uploadImageExternal($file) {
     try {
@@ -88,7 +85,6 @@ function uploadImageExternal($file) {
         return uploadImageDirect($file);
     }
 }
-
 // Direct image upload function
 function uploadImageDirect($file) {
     try {
@@ -118,7 +114,6 @@ function uploadImageDirect($file) {
         return ['success' => false, 'message' => $e->getMessage()];
     }
 }
-
 // Initialize variables
 $message = '';
 $message_type = ''; // 'success' or 'error'
@@ -130,7 +125,6 @@ $total_count = 0;
 $next_page_url = null;
 $previous_page_url = null;
 $locations = ['كتلوجات', 'سلايدر العملاء','سلايدر الهيدر']; // Dynamic array of locations
-
 // Handle form submission for adding a catalog
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
     $order = $_POST['order'] ?? '';
@@ -146,7 +140,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
     $file_id = $_POST['file_id'] ?? '';
     $location = $_POST['location'] ?? 'كتالوجات';
     $catalog_image = '';
-
     // Handle image upload
     if (isset($_FILES['catalog_image']) && $_FILES['catalog_image']['error'] === UPLOAD_ERR_OK) {
         $uploadResult = uploadImageExternal($_FILES['catalog_image']);
@@ -157,7 +150,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
             $message_type = 'error';
         }
     }
-
     if (!$message && $name_ar) {
         $data = [
             'field_6759' => $order,
@@ -174,7 +166,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
             'field_7076' => $description_ar,
             'field_7077' => $description_en
         ];
-
         $ch = curl_init(BASE_URL . TABLE_ID . '/?user_field_names=false');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
@@ -187,7 +178,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curl_error = curl_error($ch);
         curl_close($ch);
-
         error_log("📤 إضافة كتالوج: HTTP $http_code, البيانات: " . json_encode($data));
         if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
         if ($http_code === 200) {
@@ -203,7 +193,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
         $message_type = 'error';
     }
 }
-
 // Handle catalog update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
     $catalog_id = (int)$_POST['catalog_id'];
@@ -220,7 +209,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
     $file_id = $_POST['file_id'] ?? '';
     $location = $_POST['location'] ?? 'كتالوجات';
     $catalog_image = $_POST['current_image'] ?? '';
-
     // Handle image upload
     if (isset($_FILES['catalog_image']) && $_FILES['catalog_image']['error'] === UPLOAD_ERR_OK) {
         $uploadResult = uploadImageExternal($_FILES['catalog_image']);
@@ -231,7 +219,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
             $message_type = 'error';
         }
     }
-
     if (!$message && $name_ar) {
         $data = [
             'field_6759' => $order,
@@ -248,7 +235,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
             'field_7076' => $description_ar,
             'field_7077' => $description_en
         ];
-
         $ch = curl_init(BASE_URL . TABLE_ID . '/' . $catalog_id . '/?user_field_names=true');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
@@ -261,7 +247,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curl_error = curl_error($ch);
         curl_close($ch);
-
         error_log("📤 تحديث البيانات: HTTP $http_code, البيانات: " . json_encode($data));
         if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
         if ($http_code === 200) {
@@ -277,7 +262,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
         $message_type = 'error';
     }
 }
-
 // Handle catalog deletion
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_catalog'])) {
     $catalog_id = (int)$_POST['catalog_id'];
@@ -291,7 +275,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_catalog'])) {
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curl_error = curl_error($ch);
     curl_close($ch);
-
     error_log("📤 حذف البيانات: ID $catalog_id, HTTP $http_code");
     if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
     if ($http_code === 204) {
@@ -303,7 +286,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_catalog'])) {
         error_log("❌ فشل حذف البيانات: HTTP $http_code, الاستجابة: $response");
     }
 }
-
 // Fetch catalogs from Baserow with filter on selected location
 $filter_param = 'filter__field_6756__contains=' . urlencode($selected_location);
 $ch = curl_init(BASE_URL . TABLE_ID . '/?' . $filter_param . '&user_field_names=false&size=' . $page_size . '&page=' . $page);
@@ -328,14 +310,11 @@ if ($http_code < 210) {
     if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
 }
 curl_close($ch);
-
 // Calculate total pages
 $total_pages = ceil($total_count / $page_size);
-
 // Status options for the form
 $statuses = ['نشط', 'غير نشط'];
 ?>
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -529,7 +508,6 @@ $statuses = ['نشط', 'غير نشط'];
 <body>
     <div class="container">
         <h1 class="text-2xl md:text-3xl font-bold text-center mb-8 text-gray-800">إدارة الصفحة الرئيسية</h1>
-
         <!-- Tabs for Locations -->
         <div class="flex flex-wrap gap-4 mb-6 border-b border-gray-200">
             <?php foreach ($locations as $loc): ?>
@@ -538,52 +516,57 @@ $statuses = ['نشط', 'غير نشط'];
                 </a>
             <?php endforeach; ?>
         </div>
-
         <!-- Messages -->
         <?php if ($message): ?>
             <div class="p-4 mb-6 rounded-lg bg-opacity-90 <?= $message_type === 'success' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800' ?>">
                 <?= htmlspecialchars($message) ?>
             </div>
         <?php endif; ?>
-
-        <!-- Add catalog form -->
-        <div class="card p-6 mb-8">
-            <h2 class="text-xl font-semibold text-gray-700 mb-6">إضافة كتالوج جديد</h2>
-            <form id="addCatalogForm" method="POST" enctype="multipart/form-data">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <input name="order" type="text" placeholder="ترتيب" class="input">
-                    <input name="sub_order" type="text" placeholder="ترتيب فرعي" class="input">
-                    <input name="name_ar" type="text" placeholder="الاسم (بالعربية)" class="input" required>
-                    <input name="name_en" type="text" placeholder="الاسم (بالإنجليزية)" class="input">
-                    <input name="sub_name_ar" type="text" placeholder="الاسم الفرعي (بالعربية)" class="input">
-                    <input name="sub_name_en" type="text" placeholder="الاسم الفرعي (بالإنجليزية)" class="input">
-                    <select name="status" class="select">
-                        <?php foreach ($statuses as $status): ?>
-                            <option value="<?= htmlspecialchars($status) ?>"><?= htmlspecialchars($status) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="location" class="select">
-                        <?php foreach ($locations as $loc): ?>
-                            <option value="<?= htmlspecialchars($loc) ?>" <?= $selected_location === $loc ? 'selected' : '' ?>><?= htmlspecialchars($loc) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <div class="lg:col-span-2">
-                        <div class="drop-zone" id="addDropZone">اسحب الصورة هنا أو انقر لاختيار ملف</div>
-                        <input id="addCatalogImage" name="catalog_image" type="file" accept="image/*" class="hidden">
-                        <div id="addImagePreview" class="hidden mt-4">
-                            <img src="" alt="معاينة الصورة" class="image-preview">
-                            <button type="button" onclick="clearAddImage()" class="mt-2 btn btn-danger">إزالة الصورة</button>
-                        </div>
-                    </div>
-                    <!--<input name="link" type="url" placeholder="الرابط" class="input">-->
-                    <input name="file_id" type="text" placeholder="معرف الملف" class="input">
-                    <textarea name="description_ar" placeholder="نص الوصف (بالعربية)" class="textarea col-span-2"></textarea>
-                    <textarea name="description_en" placeholder="نص الوصف (بالإنجليزية)" class="textarea col-span-2"></textarea>
-                </div>
-                <button type="submit" name="add_catalog" class="mt-6 btn btn-primary">إضافة الكتالوج</button>
-            </form>
+        <!-- Button to open Add Catalog Modal -->
+        <div class="mb-8">
+            <button type="button" onclick="openAddModal()" class="btn btn-primary">إضافة كتالوج جديد</button>
         </div>
-
+        <!-- Add Catalog Modal -->
+        <div id="addModal" class="modal hidden">
+            <div class="modal-content max-w-2xl">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">إضافة كتالوج جديد</h3>
+                <form id="addCatalogForm" method="POST" enctype="multipart/form-data">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <input name="order" type="text" placeholder="ترتيب" class="input">
+                        <input name="sub_order" type="text" placeholder="ترتيب فرعي" class="input">
+                        <input name="name_ar" type="text" placeholder="الاسم (بالعربية)" class="input" required>
+                        <input name="name_en" type="text" placeholder="الاسم (بالإنجليزية)" class="input">
+                        <input name="sub_name_ar" type="text" placeholder="الاسم الفرعي (بالعربية)" class="input">
+                        <input name="sub_name_en" type="text" placeholder="الاسم الفرعي (بالإنجليزية)" class="input">
+                        <select name="status" class="select">
+                            <?php foreach ($statuses as $status): ?>
+                                <option value="<?= htmlspecialchars($status) ?>"><?= htmlspecialchars($status) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <select name="location" class="select">
+                            <?php foreach ($locations as $loc): ?>
+                                <option value="<?= htmlspecialchars($loc) ?>" <?= $selected_location === $loc ? 'selected' : '' ?>><?= htmlspecialchars($loc) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <div class="lg:col-span-2">
+                            <div class="drop-zone" id="addDropZone">اسحب الصورة هنا أو انقر لاختيار ملف</div>
+                            <input id="addCatalogImage" name="catalog_image" type="file" accept="image/*" class="hidden">
+                            <div id="addImagePreview" class="hidden mt-4">
+                                <img src="" alt="معاينة الصورة" class="image-preview">
+                                <button type="button" onclick="clearAddImage()" class="mt-2 btn btn-danger">إزالة الصورة</button>
+                            </div>
+                        </div>
+                        <input name="file_id" type="text" placeholder="معرف الملف" class="input">
+                        <textarea name="description_ar" placeholder="نص الوصف (بالعربية)" class="textarea col-span-2"></textarea>
+                        <textarea name="description_en" placeholder="نص الوصف (بالإنجليزية)" class="textarea col-span-2"></textarea>
+                    </div>
+                    <div class="flex justify-end gap-3 mt-6">
+                        <button type="button" onclick="closeAddModal()" class="btn btn-secondary">إلغاء</button>
+                        <button type="submit" name="add_catalog" class="btn btn-primary">إضافة</button>
+                    </div>
+                </form>
+            </div>
+        </div>
         <!-- Pagination -->
         <div class="flex flex-col sm:flex-row justify-between mb-6 items-center gap-4">
             <a href="?location=<?= urlencode($selected_location) ?>&page=<?= $page - 1 ?>&page_size=<?= $page_size ?>" class="btn btn-primary <?= $previous_page_url ? '' : 'opacity-50 pointer-events-none' ?>">الصفحة السابقة</a>
@@ -602,7 +585,6 @@ $statuses = ['نشط', 'غير نشط'];
             </div>
             <a href="?location=<?= urlencode($selected_location) ?>&page=<?= $page + 1 ?>&page_size=<?= $page_size ?>" class="btn btn-primary <?= $next_page_url ? '' : 'opacity-50 pointer-events-none' ?>">الصفحة التالية</a>
         </div>
-
         <!-- Delete Modal -->
         <div id="deleteModal" class="modal hidden">
             <div class="modal-content">
@@ -617,7 +599,6 @@ $statuses = ['نشط', 'غير نشط'];
                 </form>
             </div>
         </div>
-
         <!-- Update Modal -->
         <div id="updateModal" class="modal hidden">
             <div class="modal-content max-w-2xl">
@@ -662,7 +643,6 @@ $statuses = ['نشط', 'غير نشط'];
                 </form>
             </div>
         </div>
-
         <!-- Catalogs table -->
         <div class="card p-6">
             <h2 class="text-xl font-semibold text-gray-700 mb-6"><?= htmlspecialchars($selected_location) ?></h2>
@@ -716,11 +696,9 @@ $statuses = ['نشط', 'غير نشط'];
                 </table>
             </div>
         </div>
-
         <!-- Toast Notification -->
         <div id="toast" class="toast"></div>
     </div>
-
     <script>
         // Show toast notification
         function showToast(message, type) {
@@ -731,19 +709,30 @@ $statuses = ['نشط', 'غير نشط'];
                 toast.className = 'toast';
             }, 3000);
         }
-
+        // Open add modal
+        function openAddModal() {
+            document.getElementById('addModal').classList.remove('hidden');
+            document.getElementById('addCatalogForm').reset();
+            document.getElementById('addImagePreview').classList.add('hidden');
+            document.getElementById('addCatalogImage').value = '';
+        }
+        // Close add modal
+        function closeAddModal() {
+            document.getElementById('addModal').classList.add('hidden');
+            document.getElementById('addCatalogForm').reset();
+            document.getElementById('addImagePreview').classList.add('hidden');
+            document.getElementById('addCatalogImage').value = '';
+        }
         // Open delete modal
         function openDeleteModal(catalogId) {
             document.getElementById('deleteCatalogId').value = catalogId;
             document.getElementById('deleteModal').classList.remove('hidden');
         }
-
         // Close delete modal
         function closeDeleteModal() {
             document.getElementById('deleteModal').classList.add('hidden');
             document.getElementById('deleteCatalogId').value = '';
         }
-
         // Open update modal
         function openUpdateModal(catalogId, order, subOrder, nameAr, nameEn, subNameAr, subNameEn, status, catalogImage, link, fileId, descriptionAr, descriptionEn, location) {
             document.getElementById('updateCatalogId').value = catalogId;
@@ -769,7 +758,6 @@ $statuses = ['نشط', 'غير نشط'];
             }
             document.getElementById('updateModal').classList.remove('hidden');
         }
-
         // Close update modal
         function closeUpdateModal() {
             document.getElementById('updateModal').classList.add('hidden');
@@ -777,19 +765,16 @@ $statuses = ['نشط', 'غير نشط'];
             document.getElementById('updateImagePreview').classList.add('hidden');
             document.getElementById('updateCatalogImage').value = '';
         }
-
         // Clear add image
         function clearAddImage() {
             document.getElementById('addCatalogImage').value = '';
             document.getElementById('addImagePreview').classList.add('hidden');
         }
-
         // Clear update image
         function clearUpdateImage() {
             document.getElementById('updateCatalogImage').value = '';
             document.getElementById('updateImagePreview').classList.add('hidden');
         }
-
         // Image preview and drag-and-drop for add form
         const addDropZone = document.getElementById('addDropZone');
         const addFileInput = document.getElementById('addCatalogImage');
@@ -833,7 +818,6 @@ $statuses = ['نشط', 'غير نشط'];
                 showToast('يرجى اختيار صورة صالحة', 'error');
             }
         });
-
         // Image preview and drag-and-drop for update form
         const updateDropZone = document.getElementById('updateDropZone');
         const updateFileInput = document.getElementById('updateCatalogImage');
@@ -877,7 +861,6 @@ $statuses = ['نشط', 'غير نشط'];
                 showToast('يرجى اختيار صورة صالحة', 'error');
             }
         });
-
         // Show toast for PHP messages
         <?php if ($message): ?>
             showToast('<?= htmlspecialchars($message) ?>', '<?= $message_type ?>');
