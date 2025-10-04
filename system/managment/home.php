@@ -1,8 +1,8 @@
 <?php
 // Configuration
 const API_TOKEN = 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy';
-const TABLE_ID = 698; // جدول الكتالوجات
-const TABLE_ID_IMAGES = 699; // جدول صور الكتالوجات
+const TABLE_ID = 698; // جدول الكتلوجات
+const TABLE_ID_IMAGES = 699; // جدول صور الكتلوجات
 const BASE_URL = 'https://base.alfagolden.com/api/database/rows/table/';
 const UPLOAD_DIR = 'Uploads/';
 const UPLOAD_URL = 'https://alfagolden.com/system/managment/up.php';
@@ -130,11 +130,11 @@ $catalogs = [];
 $total_count = 0;
 $next_page_url = null;
 $previous_page_url = null;
-$locations = ['كتالوجات', 'سلايدر العملاء', 'سلايدر الهيدر', 'عملاؤنا'];
+$locations = ['كتلوجات', 'سلايدر العملاء', 'سلايدر الهيدر', 'عملاؤنا'];
 
 // Handle form submission for adding a catalog
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
-    $location = $_POST['location'] ?? 'كتالوجات';
+    $location = $_POST['location'] ?? 'كتلوجات';
     $catalog_image = '';
     $data = [];
 
@@ -163,11 +163,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
                     'field_6756' => $location
                 ];
             }
-        } elseif ($location === 'كتالوجات') {
+        } elseif ($location === 'كتلوجات') {
             $name_ar = $_POST['name_ar'] ?? '';
             $name_en = $_POST['name_en'] ?? '';
             if (!$name_ar || !$catalog_image) {
-                $message = 'الاسم (بالعربية) والصورة مطلوبان للكتالوجات.';
+                $message = 'الاسم (بالعربية) والصورة مطلوبان للكتلوجات.';
                 $message_type = 'error';
             } else {
                 $data = [
@@ -218,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
 // Handle catalog update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
     $catalog_id = (int)$_POST['catalog_id'];
-    $location = $_POST['location'] ?? 'كتالوجات';
+    $location = $_POST['location'] ?? 'كتلوجات';
     $catalog_image = $_POST['current_image'] ?? '';
     $data = [];
 
@@ -247,11 +247,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
                     'field_6756' => $location
                 ];
             }
-        } elseif ($location === 'كتالوجات') {
+        } elseif ($location === 'كتلوجات') {
             $name_ar = $_POST['name_ar'] ?? '';
             $name_en = $_POST['name_en'] ?? '';
             if (!$name_ar || !$catalog_image) {
-                $message = 'الاسم (بالعربية) والصورة مطلوبان للكتالوجات.';
+                $message = 'الاسم (بالعربية) والصورة مطلوبان للكتلوجات.';
                 $message_type = 'error';
             } else {
                 $data = [
@@ -957,7 +957,7 @@ $total_pages = ceil($total_count / $page_size);
                             <ol class="breadcrumb mb-2">
                                 <li class="breadcrumb-item">
                                     <a href="#" class="breadcrumb-link">
-                                        <i class="fas fa-layer-group me-1"></i>الكتالوجات
+                                        <i class="fas fa-layer-group me-1"></i>الكتلوجات
                                     </a>
                                 </li>
                             </ol>
@@ -1019,7 +1019,7 @@ $total_pages = ceil($total_count / $page_size);
                 <?php else: ?>
                     <div class="gallery-grid">
                         <?php foreach ($catalogs as $catalog): ?>
-                            <div class="gallery-item" <?php if ($selected_location === 'كتالوجات'): ?>onclick="openImagesModal(<?= $catalog['id'] ?>, '<?= htmlspecialchars($catalog['field_6754'] ?? '') ?>')"<?php endif; ?>>
+                            <div class="gallery-item" <?php if ($selected_location === 'كتلوجات'): ?>onclick="openImagesModal(<?= $catalog['id'] ?>, '<?= htmlspecialchars($catalog['field_6754'] ?? '') ?>')"<?php endif; ?>>
                                 <?php if (!empty($catalog['field_6755'])): ?>
                                     <img src="<?= htmlspecialchars($catalog['field_6755']) ?>" alt="<?= htmlspecialchars($catalog['field_6754'] ?? 'عنصر') ?>" class="gallery-item-image">
                                 <?php else: ?>
@@ -1027,7 +1027,7 @@ $total_pages = ceil($total_count / $page_size);
                                 <?php endif; ?>
                                 <div class="gallery-item-content">
                                     <h3 class="gallery-item-title">
-                                        <?= htmlspecialchars($catalog['field_6754'] ?? ($selected_location === 'كتالوجات' ? 'غير متوفر' : ($catalog['field_6757'] ?? 'عنصر'))) ?>
+                                        <?= htmlspecialchars($catalog['field_6754'] ?? ($selected_location === 'كتلوجات' ? 'غير متوفر' : ($catalog['field_6757'] ?? 'عنصر'))) ?>
                                     </h3>
                                     <div class="gallery-item-actions">
                                         <?php if ($selected_location === 'سلايدر العملاء' || $selected_location === 'سلايدر الهيدر'): ?>
@@ -1088,7 +1088,7 @@ $total_pages = ceil($total_count / $page_size);
                                     <label for="addLink" class="form-label">الرابط (اختياري)</label>
                                     <input type="url" class="form-control" id="addLink" name="link">
                                 </div>
-                            <?php elseif ($selected_location === 'كتالوجات'): ?>
+                            <?php elseif ($selected_location === 'كتلوجات'): ?>
                                 <div class="form-group">
                                     <label for="addNameAr" class="form-label">الاسم (بالعربية)</label>
                                     <input type="text" class="form-control" id="addNameAr" name="name_ar" required>
@@ -1184,7 +1184,7 @@ $total_pages = ceil($total_count / $page_size);
                                     <label for="updateLink" class="form-label">الرابط (اختياري)</label>
                                     <input type="url" class="form-control" id="updateLink" name="link">
                                 </div>
-                            <?php elseif ($selected_location === 'كتالوجات'): ?>
+                            <?php elseif ($selected_location === 'كتلوجات'): ?>
                                 <div class="form-group">
                                     <label for="updateNameAr" class="form-label">الاسم (بالعربية)</label>
                                     <input type="text" class="form-control" id="updateNameAr" name="name_ar" required>
@@ -1391,7 +1391,7 @@ $total_pages = ceil($total_count / $page_size);
             if (location === 'سلايدر العملاء' || location === 'سلايدر الهيدر') {
                 document.getElementById('updateOrder').value = order || '';
                 document.getElementById('updateLink').value = link || '';
-            } else if (location === 'كتالوجات') {
+            } else if (location === 'كتلوجات') {
                 document.getElementById('updateNameAr').value = nameAr || '';
                 document.getElementById('updateNameEn').value = nameEn || '';
             }
