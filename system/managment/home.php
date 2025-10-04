@@ -1,8 +1,9 @@
-
 <?php
 // Configuration
 const API_TOKEN = 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy';
 const TABLE_ID = 698; // جدول الكتلوجات
+const CATEGORY_TABLE_ID = 713; // جدول أقسام المنتجات
+const PRODUCT_TABLE_ID = 696; // جدول المنتجات
 const BASE_URL = 'https://base.alfagolden.com/api/database/rows/table/';
 const UPLOAD_DIR = 'Uploads/';
 const UPLOAD_URL = 'https://alfagolden.com/system/managment/up.php';
@@ -127,17 +128,15 @@ $page_size = isset($_GET['page_size']) ? (int)$_GET['page_size'] : 10;
 $selected_location = isset($_GET['location']) ? $_GET['location'] : 'كتلوجات';
 $catalogs = [];
 $categories = [];
-$products = [];
 $total_count = 0;
 $next_page_url = null;
 $previous_page_url = null;
 $locations = ['كتلوجات', 'سلايدر العملاء', 'سلايدر الهيدر', 'المنتجات'];
 
-// =============== Handle Order Change ===============
+// =============== Handle Order Change for Catalogs ===============
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_order'])) {
     $catalog_id = (int)$_POST['catalog_id'];
     $direction = $_POST['direction'] ?? 'down';
-    // Fetch all items in the same location
     $ch = curl_init(BASE_URL . TABLE_ID . '/?filter__field_6756__contains=' . urlencode($selected_location) . '&user_field_names=false');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Token ' . API_TOKEN]);
@@ -152,13 +151,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_order'])) {
         goto skip_order;
     }
     $all = json_decode($response, true)['results'] ?? [];
-    // Sort by order as number, handle non-numeric values
     usort($all, function($a, $b) {
         $oa = is_numeric($a['field_6759']) ? (float)$a['field_6759'] : 999999;
         $ob = is_numeric($b['field_6759']) ? (float)$b['field_6759'] : 999999;
         return $oa <=> $ob;
     });
-    // Find current index
     $currentIndex = null;
     foreach ($all as $index => $item) {
         if ($item['id'] == $catalog_id) {
@@ -172,7 +169,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_order'])) {
         $message_type = 'error';
         goto skip_order;
     }
-    // Determine target index
     $targetIndex = $direction === 'up' ? $currentIndex - 1 : $currentIndex + 1;
     if ($targetIndex < 0 || $targetIndex >= count($all)) {
         error_log("❌ لا يمكن التحرك أكثر: ID $catalog_id, الاتجاه: $direction");
@@ -180,14 +176,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_order'])) {
         $message_type = 'error';
         goto skip_order;
     }
-    // Move the item in the array
     $itemToMove = array_splice($all, $currentIndex, 1)[0];
     array_splice($all, $targetIndex, 0, [$itemToMove]);
-    // Reassign order values starting from 1
     foreach ($all as $index => &$item) {
-        $newOrder = $index + 1; // Start from 1
+        $newOrder = $index + 1;
         $item['field_6759'] = (string)$newOrder;
-        // Update the item in Baserow
         $patchData = ['field_6759' => $item['field_6759']];
         $ch = curl_init(BASE_URL . TABLE_ID . '/' . $item['id'] . '/');
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
@@ -275,15 +268,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curl_error = curl_error($ch);
         curl_close($ch);
-        error_log("📤 إضافة: HTTP $http_code, البيانات: " . json_encode($data));
+        error_log("📤 إضافة كتالوج: HTTP $http_code, البيانات: " . json_encode($data));
         if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
         if ($http_code === 200) {
-            $message = 'تم الإضافة بنجاح!';
+            $message = 'تم إضافة الكتالوج بنجاح!';
             $message_type = 'success';
         } else {
-            $message = 'فشل الإضافة.';
+            $message = 'فشل إضافة الكتالوج.';
             $message_type = 'error';
-            error_log("❌ فشل الإضافة: HTTP $http_code, الاستجابة: $response");
+            error_log("❌ فشل إضافة الكتالوج: HTTP $http_code, الاستجابة: $response");
         }
     }
 }
@@ -345,15 +338,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curl_error = curl_error($ch);
         curl_close($ch);
-        error_log("📤 تحديث: HTTP $http_code, البيانات: " . json_encode($data));
+        error_log("📤 تحديث كتالوج: HTTP $http_code, البيانات: " . json_encode($data));
         if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
         if ($http_code === 200) {
-            $message = 'تم التحديث بنجاح!';
+            $message = 'تم تحديث الكتالوج بنجاح!';
             $message_type = 'success';
         } else {
-            $message = 'فشل التحديث.';
+            $message = 'فشل تحديث الكتالوج.';
             $message_type = 'error';
-            error_log("❌ فشل التحديث: HTTP $http_code, الاستجابة: $response");
+            error_log("❌ فشل تحديث الكتالوج: HTTP $http_code, الاستجابة: $response");
         }
     }
 }
@@ -371,22 +364,276 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_catalog'])) {
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curl_error = curl_error($ch);
     curl_close($ch);
-    error_log("📤 حذف: ID $catalog_id, HTTP $http_code");
+    error_log("📤 حذف كتالوج: ID $catalog_id, HTTP $http_code");
     if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
     if ($http_code === 204) {
-        $message = 'تم الحذف بنجاح!';
+        $message = 'تم حذف الكتالوج بنجاح!';
         $message_type = 'success';
     } else {
-        $message = 'فشل الحذف.';
+        $message = 'فشل حذف الكتالوج.';
         $message_type = 'error';
-        error_log("❌ فشل الحذف: HTTP $http_code, الاستجابة: $response");
+        error_log("❌ فشل حذف الكتالوج: HTTP $http_code, الاستجابة: $response");
     }
 }
 
-// =============== Fetch Categories and Products for المنتجات Tab ===============
+// =============== Handle Add Category ===============
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_category'])) {
+    $name = $_POST['name'] ?? '';
+    $image = '';
+    if (!$name) {
+        $message = 'اسم القسم مطلوب.';
+        $message_type = 'error';
+    }
+    if (!$message && isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $uploadResult = uploadImageExternal($_FILES['image']);
+        if ($uploadResult['success']) {
+            $image = $uploadResult['url'];
+        } else {
+            $message = $uploadResult['message'];
+            $message_type = 'error';
+        }
+    }
+    if (!$message) {
+        $data = [
+            'field_7001' => $name,
+            'field_7002' => $image,
+            'field_7003' => '',
+            'field_7004' => '',
+            'field_7005' => '',
+            'field_7006' => '',
+            'field_7127' => []
+        ];
+        $ch = curl_init(BASE_URL . CATEGORY_TABLE_ID . '/?user_field_names=false');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Token ' . API_TOKEN,
+            'Content-Type: application/json'
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curl_error = curl_error($ch);
+        curl_close($ch);
+        error_log("📤 إضافة قسم: HTTP $http_code, البيانات: " . json_encode($data));
+        if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
+        if ($http_code === 200) {
+            $message = 'تم إضافة القسم بنجاح!';
+            $message_type = 'success';
+        } else {
+            $message = 'فشل إضافة القسم.';
+            $message_type = 'error';
+            error_log("❌ فشل إضافة القسم: HTTP $http_code, الاستجابة: $response");
+        }
+    }
+}
+
+// =============== Handle Update Category ===============
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_category'])) {
+    $category_id = (int)$_POST['category_id'];
+    $name = $_POST['name'] ?? '';
+    $image = $_POST['current_image'] ?? '';
+    if (!$name) {
+        $message = 'اسم القسم مطلوب.';
+        $message_type = 'error';
+    }
+    if (!$message && isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $uploadResult = uploadImageExternal($_FILES['image']);
+        if ($uploadResult['success']) {
+            $image = $uploadResult['url'];
+        } else {
+            $message = $uploadResult['message'];
+            $message_type = 'error';
+        }
+    }
+    if (!$message) {
+        $data = [
+            'field_7001' => $name,
+            'field_7002' => $image,
+            'field_7003' => '',
+            'field_7004' => '',
+            'field_7005' => '',
+            'field_7006' => ''
+        ];
+        $ch = curl_init(BASE_URL . CATEGORY_TABLE_ID . '/' . $category_id . '/?user_field_names=true');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Token ' . API_TOKEN,
+            'Content-Type: application/json'
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curl_error = curl_error($ch);
+        curl_close($ch);
+        error_log("📤 تحديث قسم: HTTP $http_code, البيانات: " . json_encode($data));
+        if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
+        if ($http_code === 200) {
+            $message = 'تم تحديث القسم بنجاح!';
+            $message_type = 'success';
+        } else {
+            $message = 'فشل تحديث القسم.';
+            $message_type = 'error';
+            error_log("❌ فشل تحديث القسم: HTTP $http_code, الاستجابة: $response");
+        }
+    }
+}
+
+// =============== Handle Delete Category ===============
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_category'])) {
+    $category_id = (int)$_POST['category_id'];
+    $ch = curl_init(BASE_URL . CATEGORY_TABLE_ID . '/' . $category_id . '/');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Token ' . API_TOKEN
+    ]);
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    curl_close($ch);
+    error_log("📤 حذف قسم: ID $category_id, HTTP $http_code");
+    if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
+    if ($http_code === 204) {
+        $message = 'تم حذف القسم بنجاح!';
+        $message_type = 'success';
+    } else {
+        $message = 'فشل حذف القسم.';
+        $message_type = 'error';
+        error_log("❌ فشل حذف القسم: HTTP $http_code, الاستجابة: $response");
+    }
+}
+
+// =============== Handle Add Product ===============
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_product'])) {
+    $category_id = (int)$_POST['category_id'];
+    $name = $_POST['name'] ?? '';
+    $image = '';
+    if (!$name) {
+        $message = 'اسم المنتج مطلوب.';
+        $message_type = 'error';
+    }
+    if (!$message && isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $uploadResult = uploadImageExternal($_FILES['image']);
+        if ($uploadResult['success']) {
+            $image = $uploadResult['url'];
+        } else {
+            $message = $uploadResult['message'];
+            $message_type = 'error';
+        }
+    }
+    if (!$message) {
+        $data = [
+            'field_6747' => $name,
+            'field_6748' => $image,
+            'field_6750' => '',
+            'field_7126' => [$category_id]
+        ];
+        $ch = curl_init(BASE_URL . PRODUCT_TABLE_ID . '/?user_field_names=false');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Token ' . API_TOKEN,
+            'Content-Type: application/json'
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curl_error = curl_error($ch);
+        curl_close($ch);
+        error_log("📤 إضافة منتج: HTTP $http_code, البيانات: " . json_encode($data));
+        if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
+        if ($http_code === 200) {
+            $message = 'تم إضافة المنتج بنجاح!';
+            $message_type = 'success';
+        } else {
+            $message = 'فشل إضافة المنتج.';
+            $message_type = 'error';
+            error_log("❌ فشل إضافة المنتج: HTTP $http_code, الاستجابة: $response");
+        }
+    }
+}
+
+// =============== Handle Update Product ===============
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_product'])) {
+    $product_id = (int)$_POST['product_id'];
+    $category_id = (int)$_POST['category_id'];
+    $name = $_POST['name'] ?? '';
+    $image = $_POST['current_image'] ?? '';
+    if (!$name) {
+        $message = 'اسم المنتج مطلوب.';
+        $message_type = 'error';
+    }
+    if (!$message && isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $uploadResult = uploadImageExternal($_FILES['image']);
+        if ($uploadResult['success']) {
+            $image = $uploadResult['url'];
+        } else {
+            $message = $uploadResult['message'];
+            $message_type = 'error';
+        }
+    }
+    if (!$message) {
+        $data = [
+            'field_6747' => $name,
+            'field_6748' => $image,
+            'field_6750' => '',
+            'field_7126' => [$category_id]
+        ];
+        $ch = curl_init(BASE_URL . PRODUCT_TABLE_ID . '/' . $product_id . '/?user_field_names=true');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Token ' . API_TOKEN,
+            'Content-Type: application/json'
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curl_error = curl_error($ch);
+        curl_close($ch);
+        error_log("📤 تحديث منتج: HTTP $http_code, البيانات: " . json_encode($data));
+        if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
+        if ($http_code === 200) {
+            $message = 'تم تحديث المنتج بنجاح!';
+            $message_type = 'success';
+        } else {
+            $message = 'فشل تحديث المنتج.';
+            $message_type = 'error';
+            error_log("❌ فشل تحديث المنتج: HTTP $http_code, الاستجابة: $response");
+        }
+    }
+}
+
+// =============== Handle Delete Product ===============
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product'])) {
+    $product_id = (int)$_POST['product_id'];
+    $ch = curl_init(BASE_URL . PRODUCT_TABLE_ID . '/' . $product_id . '/');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Token ' . API_TOKEN
+    ]);
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    curl_close($ch);
+    error_log("📤 حذف منتج: ID $product_id, HTTP $http_code");
+    if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
+    if ($http_code === 204) {
+        $message = 'تم حذف المنتج بنجاح!';
+        $message_type = 'success';
+    } else {
+        $message = 'فشل حذف المنتج.';
+        $message_type = 'error';
+        error_log("❌ فشل حذف المنتج: HTTP $http_code, الاستجابة: $response");
+    }
+}
+
+// =============== Fetch Categories for المنتجات Tab ===============
 if ($selected_location === 'المنتجات') {
-    // Fetch all categories from أقسام المنتجات table (ID: 713)
-    $ch = curl_init(BASE_URL . '713/?user_field_names=false&size=100');
+    $ch = curl_init(BASE_URL . CATEGORY_TABLE_ID . '/?user_field_names=false&size=100');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Authorization: Token ' . API_TOKEN,
@@ -403,33 +650,6 @@ if ($selected_location === 'المنتجات') {
         $total_count = $data['count'] ?? 0;
         $next_page_url = $data['next'] ?? null;
         $previous_page_url = $data['previous'] ?? null;
-
-        // Fetch products for each category
-        foreach ($categories as &$category) {
-            $product_ids = $category['field_7127'] ?? [];
-            $category['products'] = [];
-            if (!empty($product_ids)) {
-                // Convert product IDs to a comma-separated string for the API filter
-                $product_ids_str = implode(',', array_column($product_ids, 'id'));
-                $ch = curl_init(BASE_URL . '696/?filter__id__in=' . urlencode($product_ids_str) . '&user_field_names=false');
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                    'Authorization: Token ' . API_TOKEN,
-                    'Content-Type: application/json'
-                ]);
-                $response = curl_exec($ch);
-                $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                $curl_error = curl_error($ch);
-                curl_close($ch);
-
-                if ($http_code === 200) {
-                    $product_data = json_decode($response, true);
-                    $category['products'] = $product_data['results'] ?? [];
-                } else {
-                    error_log("❌ فشل جلب المنتجات للقسم {$category['id']}: HTTP $http_code, خطأ cURL: $curl_error");
-                }
-            }
-        }
     } else {
         $message = 'فشل جلب بيانات الأقسام.';
         $message_type = 'error';
@@ -438,7 +658,7 @@ if ($selected_location === 'المنتجات') {
     }
 }
 
-// =============== Fetch Catalogs ===============
+// =============== Fetch Catalogs for Other Tabs ===============
 if ($selected_location !== 'المنتجات') {
     $filter_param = 'filter__field_6756__contains=' . urlencode($selected_location);
     $ch = curl_init(BASE_URL . TABLE_ID . '/?' . $filter_param . '&user_field_names=false&size=' . $page_size . '&page=' . $page);
@@ -453,7 +673,6 @@ if ($selected_location !== 'المنتجات') {
     if ($http_code < 210) {
         $data = json_decode($response, true);
         $catalogs = $data['results'] ?? [];
-        // Sort by order
         usort($catalogs, function($a, $b) {
             $oa = is_numeric($a['field_6759']) ? (float)$a['field_6759'] : 999999;
             $ob = is_numeric($b['field_6759']) ? (float)$b['field_6759'] : 999999;
@@ -850,7 +1069,36 @@ $total_pages = ceil($total_count / $page_size);
             flex-direction: column;
             gap: 4px;
         }
-        /* Spinner styles */
+        .products-list {
+            margin-top: 16px;
+        }
+        .products-list ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .products-list li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--dark-gray);
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .products-list img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+        .products-list .actions {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+        }
         .spinner {
             position: fixed;
             top: 0;
@@ -876,26 +1124,6 @@ $total_pages = ceil($total_count / $page_size);
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-        /* Products list styles */
-        .products-list {
-            margin-top: 16px;
-        }
-        .products-list ul {
-            list-style: none;
-            margin: 0;
-        }
-        .products-list li {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            font-size: 14px;
-            color: var(--dark-gray);
-        }
-        .products-list img {
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
         }
         @media (max-width: 768px) {
             .container {
@@ -930,11 +1158,9 @@ $total_pages = ceil($total_count / $page_size);
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <h1 class="card-title">إدارة الصفحة الرئيسية</h1>
-                    <?php if ($selected_location !== 'المنتجات'): ?>
-                        <button class="btn btn-primary" onclick="openAddModal('<?= htmlspecialchars($selected_location) ?>')">
-                            <i class="fas fa-plus me-2"></i>إضافة جديد
-                        </button>
-                    <?php endif; ?>
+                    <button class="btn btn-primary" onclick="openAddModal('<?= htmlspecialchars($selected_location) ?>')">
+                        <i class="fas fa-plus me-2"></i>إضافة جديد
+                    </button>
                 </div>
             </div>
         </div>
@@ -976,12 +1202,15 @@ $total_pages = ceil($total_count / $page_size);
                         <div class="empty-state">
                             <i class="fas fa-folder-plus"></i>
                             <h3>لا توجد أقسام</h3>
-                            <p>لا توجد أقسام منتجات متاحة حاليًا.</p>
+                            <p>ابدأ بإضافة أول قسم في "المنتجات"</p>
+                            <button onclick="openAddCategoryModal()" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>إضافة قسم جديد
+                            </button>
                         </div>
                     <?php else: ?>
                         <div class="gallery-grid">
                             <?php foreach ($categories as $category): ?>
-                                <div class="gallery-item">
+                                <div class="gallery-item" onclick="openProductsModal(<?= $category['id'] ?>, '<?= htmlspecialchars($category['field_7001'] ?? '---') ?>')">
                                     <?php if (!empty($category['field_7002'])): ?>
                                         <img src="<?= htmlspecialchars($category['field_7002']) ?>" alt="<?= htmlspecialchars($category['field_7001'] ?? 'قسم') ?>" class="gallery-item-image">
                                     <?php else: ?>
@@ -989,21 +1218,18 @@ $total_pages = ceil($total_count / $page_size);
                                     <?php endif; ?>
                                     <div class="gallery-item-content">
                                         <h3 class="gallery-item-title"><?= htmlspecialchars($category['field_7001'] ?? '---') ?></h3>
-                                        <?php if (!empty($category['products'])): ?>
-                                            <div class="products-list">
-                                                <h4 class="text-muted mb-2">المنتجات:</h4>
-                                                <ul style="padding-right: 20px;">
-                                                    <?php foreach ($category['products'] as $product): ?>
-                                                        <li>
-                                                            <img src="<?= htmlspecialchars($product['field_6748'] ?? '') ?>" alt="<?= htmlspecialchars($product['field_6747'] ?? 'منتج') ?>" style="width: 50px; height: 50px; object-fit: contain; margin-left: 10px; vertical-align: middle;">
-                                                            <span><?= htmlspecialchars($product['field_6747'] ?? '---') ?></span>
-                                                        </li>
-                                                    <?php endforeach; ?>
-                                                </ul>
-                                            </div>
-                                        <?php else: ?>
-                                            <p class="text-muted">لا توجد منتجات في هذا القسم.</p>
-                                        <?php endif; ?>
+                                        <div class="gallery-item-actions">
+                                            <button onclick="openUpdateCategoryModal(<?= $category['id'] ?>, '<?= htmlspecialchars($category['field_7001'] ?? '') ?>', '<?= htmlspecialchars($category['field_7002'] ?? '') ?>'); event.stopPropagation();" class="btn btn-primary btn-sm rounded-circle">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف القسم؟')">
+                                                <input type="hidden" name="category_id" value="<?= $category['id'] ?>">
+                                                <input type="hidden" name="delete_category" value="1">
+                                                <button type="submit" class="btn btn-secondary btn-sm rounded-circle" onclick="event.stopPropagation();">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -1070,7 +1296,7 @@ $total_pages = ceil($total_count / $page_size);
                 <?php endif; ?>
             </div>
         </div>
-        <!-- Add Modal -->
+        <!-- Add Catalog Modal -->
         <div class="modal" id="addCatalogModal">
             <div class="modal-dialog">
                 <form method="POST" enctype="multipart/form-data">
@@ -1112,7 +1338,7 @@ $total_pages = ceil($total_count / $page_size);
                 </form>
             </div>
         </div>
-        <!-- Update Modal -->
+        <!-- Update Catalog Modal -->
         <div class="modal" id="updateCatalogModal">
             <div class="modal-dialog">
                 <form method="POST" enctype="multipart/form-data">
@@ -1153,6 +1379,130 @@ $total_pages = ceil($total_count / $page_size);
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" onclick="closeUpdateModal()">إلغاء</button>
                         <button type="submit" class="btn btn-primary" name="update_catalog">حفظ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Add Category Modal -->
+        <div class="modal" id="addCategoryModal">
+            <div class="modal-dialog">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <h5 class="modal-title">إضافة قسم جديد</h5>
+                        <button type="button" class="btn-close" onclick="closeAddCategoryModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="form-label">اسم القسم *</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">الصورة</label>
+                            <input type="file" name="image" class="form-control" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeAddCategoryModal()">إلغاء</button>
+                        <button type="submit" class="btn btn-primary" name="add_category">حفظ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Update Category Modal -->
+        <div class="modal" id="updateCategoryModal">
+            <div class="modal-dialog">
+                <form method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="category_id" id="updateCategoryId">
+                    <input type="hidden" name="current_image" id="updateCategoryImage">
+                    <div class="modal-header">
+                        <h5 class="modal-title">تعديل القسم</h5>
+                        <button type="button" class="btn-close" onclick="closeUpdateCategoryModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="form-label">اسم القسم *</label>
+                            <input type="text" name="name" id="updateCategoryName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">الصورة</label>
+                            <input type="file" name="image" class="form-control" accept="image/*">
+                            <small class="text-muted">اترك فارغًا للإبقاء على الصورة الحالية</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeUpdateCategoryModal()">إلغاء</button>
+                        <button type="submit" class="btn btn-primary" name="update_category">حفظ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Products Modal -->
+        <div class="modal" id="productsModal">
+            <div class="modal-dialog">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="productsModalTitle">المنتجات</h5>
+                    <button type="button" class="btn-close" onclick="closeProductsModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <button class="btn btn-primary mb-3" onclick="openAddProductModal()">إضافة منتج جديد</button>
+                    <div id="productsList"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeProductsModal()">إغلاق</button>
+                </div>
+            </div>
+        </div>
+        <!-- Add Product Modal -->
+        <div class="modal" id="addProductModal">
+            <div class="modal-dialog">
+                <form method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="category_id" id="addProductCategoryId">
+                    <div class="modal-header">
+                        <h5 class="modal-title">إضافة منتج جديد</h5>
+                        <button type="button" class="btn-close" onclick="closeAddProductModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="form-label">اسم المنتج *</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">الصورة</label>
+                            <input type="file" name="image" class="form-control" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeAddProductModal()">إلغاء</button>
+                        <button type="submit" class="btn btn-primary" name="add_product">حفظ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Update Product Modal -->
+        <div class="modal" id="updateProductModal">
+            <div class="modal-dialog">
+                <form method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="product_id" id="updateProductId">
+                    <input type="hidden" name="category_id" id="updateProductCategoryId">
+                    <input type="hidden" name="current_image" id="updateProductImage">
+                    <div class="modal-header">
+                        <h5 class="modal-title">تعديل المنتج</h5>
+                        <button type="button" class="btn-close" onclick="closeUpdateProductModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="form-label">اسم المنتج *</label>
+                            <input type="text" name="name" id="updateProductName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">الصورة</label>
+                            <input type="file" name="image" class="form-control" accept="image/*">
+                            <small class="text-muted">اترك فارغًا للإبقاء على الصورة الحالية</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeUpdateProductModal()">إلغاء</button>
+                        <button type="submit" class="btn btn-primary" name="update_product">حفظ</button>
                     </div>
                 </form>
             </div>
@@ -1209,6 +1559,10 @@ $total_pages = ceil($total_count / $page_size);
             document.getElementById('addCatalogModal').classList.add('show');
             document.body.style.overflow = 'hidden';
         }
+        function closeAddModal() {
+            document.getElementById('addCatalogModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
         function openUpdateModal(id, order, nameAr, nameEn, image, link, location) {
             document.getElementById('updateCatalogId').value = id;
             document.getElementById('updateCurrentImage').value = image;
@@ -1217,34 +1571,144 @@ $total_pages = ceil($total_count / $page_size);
             document.getElementById('updateHeaderSliderFields').classList.add('d-none');
             const nameArInput = document.querySelector('#updateCatalogFields input[name="name_ar"]');
             if (location === 'كتلوجات') {
-                document.getElementById('updateCatalogFields').classList.remove('d-none');
-                document.getElementById('updateNameAr').value = nameAr;
-                document.getElementById('updateNameEn').value = nameEn;
-                nameArInput.setAttribute('required', 'required');
-            } else {
-                nameArInput.removeAttribute('required');
-                if (location === 'سلايدر الهيدر') {
-                    document.getElementById('updateHeaderSliderFields').classList.remove('d-none');
-                    document.getElementById('updateLink').value = link;
-                    document.getElementById('updateOrder').value = order;
-                }
-            }
-            document.getElementById('updateCatalogModal').classList.add('show');
-            document.body.style.overflow = 'hidden';
+        document.getElementById('updateCatalogFields').classList.remove('d-none');
+        document.getElementById('updateNameAr').value = nameAr;
+        document.getElementById('updateNameEn').value = nameEn;
+        nameArInput.setAttribute('required', 'required');
+    } else {
+        nameArInput.removeAttribute('required');
+        if (location === 'سلايدر الهيدر') {
+            document.getElementById('updateHeaderSliderFields').classList.remove('d-none');
+            document.getElementById('updateLink').value = link;
+            document.getElementById('updateOrder').value = order;
         }
-        function closeAddModal() {
-            document.getElementById('addCatalogModal').classList.remove('show');
-            document.body.style.overflow = 'auto';
+    }
+    document.getElementById('updateCatalogModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeUpdateModal() {
+    document.getElementById('updateCatalogModal').classList.remove('show');
+    document.body.style.overflow = 'auto';
+}
+
+function openAddCategoryModal() {
+    document.getElementById('addCategoryModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAddCategoryModal() {
+    document.getElementById('addCategoryModal').classList.remove('show');
+    document.body.style.overflow = 'auto';
+}
+
+function openUpdateCategoryModal(id, name, image) {
+    document.getElementById('updateCategoryId').value = id;
+    document.getElementById('updateCategoryName').value = name;
+    document.getElementById('updateCategoryImage').value = image;
+    document.getElementById('updateCategoryModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeUpdateCategoryModal() {
+    document.getElementById('updateCategoryModal').classList.remove('show');
+    document.body.style.overflow = 'auto';
+}
+
+function openProductsModal(categoryId, categoryName) {
+    document.getElementById('productsModalTitle').textContent = `المنتجات في ${categoryName}`;
+    document.getElementById('productsModal').setAttribute('data-category-id', categoryId);
+    fetchProducts(categoryId);
+    document.getElementById('productsModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeProductsModal() {
+    document.getElementById('productsModal').classList.remove('show');
+    document.body.style.overflow = 'auto';
+}
+
+function openAddProductModal() {
+    const categoryId = document.getElementById('productsModal').getAttribute('data-category-id');
+    document.getElementById('addProductCategoryId').value = categoryId;
+    document.getElementById('addProductModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAddProductModal() {
+    document.getElementById('addProductModal').classList.remove('show');
+    document.body.style.overflow = 'auto';
+}
+
+function openUpdateProductModal(productId, categoryId, name, image) {
+    document.getElementById('updateProductId').value = productId;
+    document.getElementById('updateProductCategoryId').value = categoryId;
+    document.getElementById('updateProductName').value = name;
+    document.getElementById('updateProductImage').value = image;
+    document.getElementById('updateProductModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeUpdateProductModal() {
+    document.getElementById('updateProductModal').classList.remove('show');
+    document.body.style.overflow = 'auto';
+}
+
+async function fetchProducts(categoryId) {
+    showSpinner();
+    try {
+        const response = await fetch(`/fetch_products.php?category_id=${categoryId}`);
+        if (!response.ok) {
+            throw new Error('فشل جلب المنتجات');
         }
-        function closeUpdateModal() {
-            document.getElementById('updateCatalogModal').classList.remove('show');
-            document.body.style.overflow = 'auto';
+        const products = await response.json();
+        const productsList = document.getElementById('productsList');
+        productsList.innerHTML = '';
+        if (products.length === 0) {
+            productsList.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <h3>لا توجد منتجات</h3>
+                    <p>لا توجد منتجات في هذا القسم.</p>
+                </div>
+            `;
+        } else {
+            const ul = document.createElement('ul');
+            ul.className = 'products-list';
+            products.forEach(product => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <img src="${product.field_6748 || ''}" alt="${product.field_6747 || 'منتج'}" onerror="this.src='placeholder.png';">
+                    <span>${product.field_6747 || '---'}</span>
+                    <div class="actions">
+                        <button onclick="openUpdateProductModal(${product.id}, ${categoryId}, '${product.field_6747.replace(/'/g, "\\'")}', '${product.field_6748.replace(/'/g, "\\'")}')" class="btn btn-primary btn-sm rounded-circle">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف المنتج؟')">
+                            <input type="hidden" name="product_id" value="${product.id}">
+                            <input type="hidden" name="delete_product" value="1">
+                            <button type="submit" class="btn btn-secondary btn-sm rounded-circle">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                `;
+                ul.appendChild(li);
+            });
+            productsList.appendChild(ul);
         }
-        document.addEventListener('DOMContentLoaded', function () {
-            <?php if ($message): ?>
-                showToast('<?= addslashes($message) ?>', '<?= $message_type ?>');
-            <?php endif; ?>
-        });
+    } catch (error) {
+        showToast('فشل جلب المنتجات: ' + error.message, 'error');
+    } finally {
+        hideSpinner();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    <?php if ($message): ?>
+        showToast('<?= addslashes($message) ?>', '<?= $message_type ?>');
+    <?php endif; ?>
+});
     </script>
 </body>
 </html>
