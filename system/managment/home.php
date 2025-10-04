@@ -785,6 +785,14 @@ $total_pages = ceil($total_count / $page_size);
             background: #555;
             transform: translateY(-1px);
         }
+        .btn-danger {
+            background: var(--error);
+            color: var(--white);
+        }
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
         .btn-sm {
             padding: 10px 20px;
             font-size: 14px;
@@ -1222,10 +1230,10 @@ $total_pages = ceil($total_count / $page_size);
                                             <button onclick="openUpdateCategoryModal(<?= $category['id'] ?>, '<?= htmlspecialchars($category['field_7001'] ?? '') ?>', '<?= htmlspecialchars($category['field_7002'] ?? '') ?>'); event.stopPropagation();" class="btn btn-primary btn-sm rounded-circle">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف القسم؟')">
+                                            <form method="POST" style="display:inline;" id="deleteCategoryForm_<?= $category['id'] ?>">
                                                 <input type="hidden" name="category_id" value="<?= $category['id'] ?>">
                                                 <input type="hidden" name="delete_category" value="1">
-                                                <button type="submit" class="btn btn-secondary btn-sm rounded-circle" onclick="event.stopPropagation();">
+                                                <button type="button" class="btn btn-secondary btn-sm rounded-circle" onclick="showConfirm('هل أنت متأكد من حذف القسم؟', this.closest('form')); event.stopPropagation();">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>
@@ -1259,19 +1267,19 @@ $total_pages = ceil($total_count / $page_size);
                                         <div class="gallery-item-actions">
                                             <?php if (in_array($selected_location, ['سلايدر الهيدر', 'سلايدر العملاء'])): ?>
                                                 <div class="order-buttons">
-                                                    <form method="POST" style="display:inline;" onsubmit="return confirm('تحريك لأعلى؟')">
+                                                    <form method="POST" style="display:inline;" id="orderUpForm_<?= $catalog['id'] ?>">
                                                         <input type="hidden" name="catalog_id" value="<?= $catalog['id'] ?>">
                                                         <input type="hidden" name="direction" value="up">
                                                         <input type="hidden" name="change_order" value="1">
-                                                        <button type="submit" class="btn btn-secondary btn-sm rounded-circle">
+                                                        <button type="button" class="btn btn-secondary btn-sm rounded-circle" onclick="showConfirm('تحريك لأعلى؟', this.closest('form'));">
                                                             <i class="fas fa-arrow-up"></i>
                                                         </button>
                                                     </form>
-                                                    <form method="POST" style="display:inline;" onsubmit="return confirm('تحريك لأسفل؟')">
+                                                    <form method="POST" style="display:inline;" id="orderDownForm_<?= $catalog['id'] ?>">
                                                         <input type="hidden" name="catalog_id" value="<?= $catalog['id'] ?>">
                                                         <input type="hidden" name="direction" value="down">
                                                         <input type="hidden" name="change_order" value="1">
-                                                        <button type="submit" class="btn btn-secondary btn-sm rounded-circle">
+                                                        <button type="button" class="btn btn-secondary btn-sm rounded-circle" onclick="showConfirm('تحريك لأسفل؟', this.closest('form'));">
                                                             <i class="fas fa-arrow-down"></i>
                                                         </button>
                                                     </form>
@@ -1280,10 +1288,10 @@ $total_pages = ceil($total_count / $page_size);
                                             <button onclick="openUpdateModal(<?= $catalog['id'] ?>, '<?= htmlspecialchars($catalog['field_6759'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6754'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6762'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6755'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6757'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6756'] ?? '') ?>')" class="btn btn-primary btn-sm rounded-circle">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من الحذف؟')">
+                                            <form method="POST" style="display:inline;" id="deleteCatalogForm_<?= $catalog['id'] ?>">
                                                 <input type="hidden" name="catalog_id" value="<?= $catalog['id'] ?>">
                                                 <input type="hidden" name="delete_catalog" value="1">
-                                                <button type="submit" class="btn btn-secondary btn-sm rounded-circle">
+                                                <button type="button" class="btn btn-secondary btn-sm rounded-circle" onclick="showConfirm('هل أنت متأكد من الحذف؟', this.closest('form'));">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>
@@ -1507,6 +1515,22 @@ $total_pages = ceil($total_count / $page_size);
                 </form>
             </div>
         </div>
+        <!-- Confirm Modal -->
+        <div class="modal" id="confirmModal">
+            <div class="modal-dialog">
+                <div class="modal-header">
+                    <h5 class="modal-title">تأكيد العملية</h5>
+                    <button type="button" class="btn-close" onclick="closeConfirmModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()">إلغاء</button>
+                    <button type="button" class="btn btn-danger" id="confirmButton" onclick="confirmAction()">تأكيد</button>
+                </div>
+            </div>
+        </div>
         <!-- Toast Container -->
         <div class="toast-container"></div>
     </div>
@@ -1541,6 +1565,25 @@ $total_pages = ceil($total_count / $page_size);
                 const toasts = toastContainer.querySelectorAll('.toast');
                 if (toasts.length > 0) toasts[0].remove();
             }, 5000);
+        }
+        let currentForm = null;
+        function showConfirm(message, form) {
+            document.getElementById('confirmMessage').textContent = message;
+            currentForm = form;
+            document.getElementById('confirmModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+            currentForm = null;
+        }
+        function confirmAction() {
+            if (currentForm) {
+                showSpinner();
+                currentForm.submit();
+            }
+            closeConfirmModal();
         }
         function openAddModal(location) {
             document.getElementById('addLocationInput').value = location;
@@ -1685,10 +1728,10 @@ async function fetchProducts(categoryId) {
                         <button onclick="openUpdateProductModal(${product.id}, ${categoryId}, '${product.field_6747.replace(/'/g, "\\'")}', '${product.field_6748.replace(/'/g, "\\'")}')" class="btn btn-primary btn-sm rounded-circle">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف المنتج؟')">
+                        <form method="POST" style="display:inline;" id="deleteProductForm_${product.id}">
                             <input type="hidden" name="product_id" value="${product.id}">
                             <input type="hidden" name="delete_product" value="1">
-                            <button type="submit" class="btn btn-secondary btn-sm rounded-circle">
+                            <button type="button" class="btn btn-secondary btn-sm rounded-circle" onclick="showConfirm('هل أنت متأكد من حذف المنتج؟', this.closest('form'));">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </form>
