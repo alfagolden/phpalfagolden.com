@@ -1657,7 +1657,7 @@ function closeUpdateProductModal() {
 async function fetchProducts(categoryId) {
     showSpinner();
     try {
-        const response = await fetch(`/fetch_products.php?category_id=${categoryId}`);
+        const response = await fetch(`fetch_products.php?category_id=${categoryId}`);
         if (!response.ok) {
             throw new Error('فشل جلب المنتجات');
         }
