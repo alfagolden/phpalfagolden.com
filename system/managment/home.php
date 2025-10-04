@@ -1,3 +1,4 @@
+```php
 <?php
 // Configuration
 const API_TOKEN = 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy';
@@ -7,7 +8,6 @@ const PRODUCT_TABLE_ID = 696; // جدول المنتجات
 const BASE_URL = 'https://base.alfagolden.com/api/database/rows/table/';
 const UPLOAD_DIR = 'Uploads/';
 const UPLOAD_URL = 'https://alfagolden.com/system/managment/up.php';
-
 // Initialize upload directory
 function ensureUploadDirectory() {
     $dir = UPLOAD_DIR;
@@ -40,7 +40,6 @@ try {
 } catch (Exception $e) {
     error_log("❌ خطأ في إعداد مجلد الرفع: " . $e->getMessage());
 }
-
 // External image upload function
 function uploadImageExternal($file) {
     try {
@@ -89,7 +88,6 @@ function uploadImageExternal($file) {
         return uploadImageDirect($file);
     }
 }
-
 // Direct image upload function
 function uploadImageDirect($file) {
     try {
@@ -119,7 +117,6 @@ function uploadImageDirect($file) {
         return ['success' => false, 'message' => $e->getMessage()];
     }
 }
-
 // Initialize variables
 $message = '';
 $message_type = ''; // 'success' or 'error'
@@ -132,7 +129,6 @@ $total_count = 0;
 $next_page_url = null;
 $previous_page_url = null;
 $locations = ['كتلوجات', 'سلايدر العملاء', 'سلايدر الهيدر', 'المنتجات'];
-
 // =============== Handle Order Change for Catalogs ===============
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_order'])) {
     $catalog_id = (int)$_POST['catalog_id'];
@@ -206,7 +202,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_order'])) {
     $message_type = 'success';
 }
 skip_order:
-
 // =============== Handle Add Catalog ===============
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
     $location = $_POST['location'] ?? 'كتلوجات';
@@ -280,7 +275,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
         }
     }
 }
-
 // =============== Handle Update Catalog ===============
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
     $catalog_id = (int)$_POST['catalog_id'];
@@ -350,7 +344,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
         }
     }
 }
-
 // =============== Handle Delete Catalog ===============
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_catalog'])) {
     $catalog_id = (int)$_POST['catalog_id'];
@@ -375,7 +368,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_catalog'])) {
         error_log("❌ فشل حذف الكتالوج: HTTP $http_code, الاستجابة: $response");
     }
 }
-
 // =============== Handle Add Category ===============
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_category'])) {
     $name = $_POST['name'] ?? '';
@@ -427,7 +419,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_category'])) {
         }
     }
 }
-
 // =============== Handle Update Category ===============
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_category'])) {
     $category_id = (int)$_POST['category_id'];
@@ -479,7 +470,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_category'])) {
         }
     }
 }
-
 // =============== Handle Delete Category ===============
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_category'])) {
     $category_id = (int)$_POST['category_id'];
@@ -504,7 +494,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_category'])) {
         error_log("❌ فشل حذف القسم: HTTP $http_code, الاستجابة: $response");
     }
 }
-
 // =============== Handle Add Product ===============
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_product'])) {
     $category_id = (int)$_POST['category_id'];
@@ -554,7 +543,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_product'])) {
         }
     }
 }
-
 // =============== Handle Update Product ===============
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_product'])) {
     $product_id = (int)$_POST['product_id'];
@@ -605,7 +593,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_product'])) {
         }
     }
 }
-
 // =============== Handle Delete Product ===============
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product'])) {
     $product_id = (int)$_POST['product_id'];
@@ -630,7 +617,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product'])) {
         error_log("❌ فشل حذف المنتج: HTTP $http_code, الاستجابة: $response");
     }
 }
-
 // =============== Fetch Categories for المنتجات Tab ===============
 if ($selected_location === 'المنتجات') {
     $ch = curl_init(BASE_URL . CATEGORY_TABLE_ID . '/?user_field_names=false&size=100');
@@ -643,7 +629,6 @@ if ($selected_location === 'المنتجات') {
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curl_error = curl_error($ch);
     curl_close($ch);
-
     if ($http_code === 200) {
         $data = json_decode($response, true);
         $categories = $data['results'] ?? [];
@@ -657,7 +642,6 @@ if ($selected_location === 'المنتجات') {
         if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
     }
 }
-
 // =============== Fetch Catalogs for Other Tabs ===============
 if ($selected_location !== 'المنتجات') {
     $filter_param = 'filter__field_6756__contains=' . urlencode($selected_location);
@@ -689,10 +673,8 @@ if ($selected_location !== 'المنتجات') {
     }
     curl_close($ch);
 }
-
 $total_pages = ceil($total_count / $page_size);
 ?>
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -1222,7 +1204,7 @@ $total_pages = ceil($total_count / $page_size);
                                             <button onclick="openUpdateCategoryModal(<?= $category['id'] ?>, '<?= htmlspecialchars($category['field_7001'] ?? '') ?>', '<?= htmlspecialchars($category['field_7002'] ?? '') ?>'); event.stopPropagation();" class="btn btn-primary btn-sm rounded-circle">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف القسم؟')">
+                                            <form method="POST" style="display:inline;" onsubmit="openConfirmModal(event, 'هل أنت متأكد من حذف القسم؟', this)">
                                                 <input type="hidden" name="category_id" value="<?= $category['id'] ?>">
                                                 <input type="hidden" name="delete_category" value="1">
                                                 <button type="submit" class="btn btn-secondary btn-sm rounded-circle" onclick="event.stopPropagation();">
@@ -1259,7 +1241,7 @@ $total_pages = ceil($total_count / $page_size);
                                         <div class="gallery-item-actions">
                                             <?php if (in_array($selected_location, ['سلايدر الهيدر', 'سلايدر العملاء'])): ?>
                                                 <div class="order-buttons">
-                                                    <form method="POST" style="display:inline;" onsubmit="return confirm('تحريك لأعلى؟')">
+                                                    <form method="POST" style="display:inline;" onsubmit="openConfirmModal(event, 'تحريك لأعلى؟', this)">
                                                         <input type="hidden" name="catalog_id" value="<?= $catalog['id'] ?>">
                                                         <input type="hidden" name="direction" value="up">
                                                         <input type="hidden" name="change_order" value="1">
@@ -1267,7 +1249,7 @@ $total_pages = ceil($total_count / $page_size);
                                                             <i class="fas fa-arrow-up"></i>
                                                         </button>
                                                     </form>
-                                                    <form method="POST" style="display:inline;" onsubmit="return confirm('تحريك لأسفل؟')">
+                                                    <form method="POST" style="display:inline;" onsubmit="openConfirmModal(event, 'تحريك لأسفل؟', this)">
                                                         <input type="hidden" name="catalog_id" value="<?= $catalog['id'] ?>">
                                                         <input type="hidden" name="direction" value="down">
                                                         <input type="hidden" name="change_order" value="1">
@@ -1280,7 +1262,7 @@ $total_pages = ceil($total_count / $page_size);
                                             <button onclick="openUpdateModal(<?= $catalog['id'] ?>, '<?= htmlspecialchars($catalog['field_6759'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6754'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6762'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6755'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6757'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6756'] ?? '') ?>')" class="btn btn-primary btn-sm rounded-circle">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من الحذف؟')">
+                                            <form method="POST" style="display:inline;" onsubmit="openConfirmModal(event, 'هل أنت متأكد من الحذف؟', this)">
                                                 <input type="hidden" name="catalog_id" value="<?= $catalog['id'] ?>">
                                                 <input type="hidden" name="delete_catalog" value="1">
                                                 <button type="submit" class="btn btn-secondary btn-sm rounded-circle">
@@ -1507,6 +1489,22 @@ $total_pages = ceil($total_count / $page_size);
                 </form>
             </div>
         </div>
+        <!-- Confirmation Modal -->
+        <div class="modal" id="confirmModal">
+            <div class="modal-dialog">
+                <div class="modal-header">
+                    <h5 class="modal-title">تأكيد العملية</h5>
+                    <button type="button" class="btn-close" onclick="closeConfirmModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()">إلغاء</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmAction()">تأكيد</button>
+                </div>
+            </div>
+        </div>
         <!-- Toast Container -->
         <div class="toast-container"></div>
     </div>
@@ -1521,10 +1519,41 @@ $total_pages = ceil($total_count / $page_size);
         }
         // Attach spinner to form submissions
         document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', function () {
-                showSpinner();
+            form.addEventListener('submit', function (event) {
+                if (!form.classList.contains('confirm-modal-form')) {
+                    showSpinner();
+                }
             });
         });
+        // Variable to store the form to submit
+        let formToSubmit = null;
+        // Show confirmation modal
+        function openConfirmModal(event, message, form) {
+            event.preventDefault();
+            formToSubmit = form;
+            document.getElementById('confirmMessage').textContent = message;
+            document.getElementById('confirmModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+            form.classList.add('confirm-modal-form');
+        }
+        // Close confirmation modal
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+            if (formToSubmit) {
+                formToSubmit.classList.remove('confirm-modal-form');
+            }
+            formToSubmit = null;
+        }
+        // Confirm action and submit form
+        function confirmAction() {
+            if (formToSubmit) {
+                showSpinner();
+                formToSubmit.submit();
+            }
+            closeConfirmModal();
+        }
+        // Show toast
         function showToast(message, type = 'success') {
             const toastContainer = document.querySelector('.toast-container');
             const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
@@ -1540,176 +1569,166 @@ $total_pages = ceil($total_count / $page_size);
             setTimeout(() => {
                 const toasts = toastContainer.querySelectorAll('.toast');
                 if (toasts.length > 0) toasts[0].remove();
-            }, 5000);
+            }, 3000);
         }
+        // Show toast based on PHP message
+        <?php if ($message): ?>
+            showToast('<?= htmlspecialchars($message) ?>', '<?= $message_type ?>');
+        <?php endif; ?>
+        // Open add modal
+                // Open add modal
         function openAddModal(location) {
             document.getElementById('addLocationInput').value = location;
-            document.getElementById('catalogFields').classList.add('d-none');
-            document.getElementById('headerSliderFields').classList.add('d-none');
-            const nameArInput = document.querySelector('#catalogFields input[name="name_ar"]');
-            if (location === 'كتلوجات') {
-                document.getElementById('catalogFields').classList.remove('d-none');
-                nameArInput.setAttribute('required', 'required');
-            } else {
-                nameArInput.removeAttribute('required');
-                if (location === 'سلايدر الهيدر') {
-                    document.getElementById('headerSliderFields').classList.remove('d-none');
-                }
-            }
+            document.getElementById('catalogFields').classList.toggle('d-none', location !== 'كتلوجات');
+            document.getElementById('headerSliderFields').classList.toggle('d-none', location !== 'سلايدر الهيدر');
             document.getElementById('addCatalogModal').classList.add('show');
             document.body.style.overflow = 'hidden';
         }
+        // Close add modal
         function closeAddModal() {
             document.getElementById('addCatalogModal').classList.remove('show');
             document.body.style.overflow = 'auto';
+            document.querySelector('#addCatalogModal form').reset();
         }
+        // Open update modal
         function openUpdateModal(id, order, nameAr, nameEn, image, link, location) {
             document.getElementById('updateCatalogId').value = id;
             document.getElementById('updateCurrentImage').value = image;
             document.getElementById('updateLocationInput').value = location;
-            document.getElementById('updateCatalogFields').classList.add('d-none');
-            document.getElementById('updateHeaderSliderFields').classList.add('d-none');
-            const nameArInput = document.querySelector('#updateCatalogFields input[name="name_ar"]');
-            if (location === 'كتلوجات') {
-        document.getElementById('updateCatalogFields').classList.remove('d-none');
-        document.getElementById('updateNameAr').value = nameAr;
-        document.getElementById('updateNameEn').value = nameEn;
-        nameArInput.setAttribute('required', 'required');
-    } else {
-        nameArInput.removeAttribute('required');
-        if (location === 'سلايدر الهيدر') {
-            document.getElementById('updateHeaderSliderFields').classList.remove('d-none');
+            document.getElementById('updateNameAr').value = nameAr;
+            document.getElementById('updateNameEn').value = nameEn;
             document.getElementById('updateLink').value = link;
             document.getElementById('updateOrder').value = order;
+            document.getElementById('updateCatalogFields').classList.toggle('d-none', location !== 'كتلوجات');
+            document.getElementById('updateHeaderSliderFields').classList.toggle('d-none', location !== 'سلايدر الهيدر');
+            document.getElementById('updateCatalogModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
         }
-    }
-    document.getElementById('updateCatalogModal').classList.add('show');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeUpdateModal() {
-    document.getElementById('updateCatalogModal').classList.remove('show');
-    document.body.style.overflow = 'auto';
-}
-
-function openAddCategoryModal() {
-    document.getElementById('addCategoryModal').classList.add('show');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeAddCategoryModal() {
-    document.getElementById('addCategoryModal').classList.remove('show');
-    document.body.style.overflow = 'auto';
-}
-
-function openUpdateCategoryModal(id, name, image) {
-    document.getElementById('updateCategoryId').value = id;
-    document.getElementById('updateCategoryName').value = name;
-    document.getElementById('updateCategoryImage').value = image;
-    document.getElementById('updateCategoryModal').classList.add('show');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeUpdateCategoryModal() {
-    document.getElementById('updateCategoryModal').classList.remove('show');
-    document.body.style.overflow = 'auto';
-}
-
-function openProductsModal(categoryId, categoryName) {
-    document.getElementById('productsModalTitle').textContent = `المنتجات في ${categoryName}`;
-    document.getElementById('productsModal').setAttribute('data-category-id', categoryId);
-    fetchProducts(categoryId);
-    document.getElementById('productsModal').classList.add('show');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeProductsModal() {
-    document.getElementById('productsModal').classList.remove('show');
-    document.body.style.overflow = 'auto';
-}
-
-function openAddProductModal() {
-    const categoryId = document.getElementById('productsModal').getAttribute('data-category-id');
-    document.getElementById('addProductCategoryId').value = categoryId;
-    document.getElementById('addProductModal').classList.add('show');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeAddProductModal() {
-    document.getElementById('addProductModal').classList.remove('show');
-    document.body.style.overflow = 'auto';
-}
-
-function openUpdateProductModal(productId, categoryId, name, image) {
-    document.getElementById('updateProductId').value = productId;
-    document.getElementById('updateProductCategoryId').value = categoryId;
-    document.getElementById('updateProductName').value = name;
-    document.getElementById('updateProductImage').value = image;
-    document.getElementById('updateProductModal').classList.add('show');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeUpdateProductModal() {
-    document.getElementById('updateProductModal').classList.remove('show');
-    document.body.style.overflow = 'auto';
-}
-
-async function fetchProducts(categoryId) {
-    showSpinner();
-    try {
-
-        const response = await fetch(`fetch_products.php?category_id=${categoryId}`);
-        if (!response.ok) {
-            throw new Error('فشل جلب المنتجات');
+        // Close update modal
+        function closeUpdateModal() {
+            document.getElementById('updateCatalogModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+            document.querySelector('#updateCatalogModal form').reset();
         }
-        const products = await response.json();
-        const productsList = document.getElementById('productsList');
-        productsList.innerHTML = '';
-        if (products.length === 0) {
-            productsList.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-box-open"></i>
-                    <h3>لا توجد منتجات</h3>
-                    <p>لا توجد منتجات في هذا القسم.</p>
-                </div>
-            `;
-        } else {
-            const ul = document.createElement('ul');
-            ul.className = 'products-list';
-            products.forEach(product => {
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <img src="${product.field_6748 || ''}" alt="${product.field_6747 || 'منتج'}" onerror="this.src='placeholder.png';">
-                    <span>${product.field_6747 || '---'}</span>
-                    <div class="actions">
-                        <button onclick="openUpdateProductModal(${product.id}, ${categoryId}, '${product.field_6747.replace(/'/g, "\\'")}', '${product.field_6748.replace(/'/g, "\\'")}')" class="btn btn-primary btn-sm rounded-circle">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف المنتج؟')">
-                            <input type="hidden" name="product_id" value="${product.id}">
-                            <input type="hidden" name="delete_product" value="1">
-                            <button type="submit" class="btn btn-secondary btn-sm rounded-circle">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
-                    </div>
-                `;
-                ul.appendChild(li);
+        // Open add category modal
+        function openAddCategoryModal() {
+            document.getElementById('addCategoryModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        // Close add category modal
+        function closeAddCategoryModal() {
+            document.getElementById('addCategoryModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+            document.querySelector('#addCategoryModal form').reset();
+        }
+        // Open update category modal
+        function openUpdateCategoryModal(id, name, image) {
+            document.getElementById('updateCategoryId').value = id;
+            document.getElementById('updateCategoryName').value = name;
+            document.getElementById('updateCategoryImage').value = image;
+            document.getElementById('updateCategoryModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        // Close update category modal
+        function closeUpdateCategoryModal() {
+            document.getElementById('updateCategoryModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+            document.querySelector('#updateCategoryModal form').reset();
+        }
+        // Open products modal
+        function openProductsModal(categoryId, categoryName) {
+            document.getElementById('productsModalTitle').textContent = `المنتجات - ${categoryName}`;
+            document.getElementById('productsModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+            loadProducts(categoryId);
+        }
+        // Close products modal
+        function closeProductsModal() {
+            document.getElementById('productsModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+            document.getElementById('productsList').innerHTML = '';
+        }
+        // Open add product modal
+        function openAddProductModal(categoryId) {
+            document.getElementById('addProductCategoryId').value = categoryId || document.getElementById('updateProductCategoryId').value;
+            document.getElementById('addProductModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        // Close add product modal
+        function closeAddProductModal() {
+            document.getElementById('addProductModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+            document.querySelector('#addProductModal form').reset();
+        }
+        // Open update product modal
+        function openUpdateProductModal(productId, name, image, categoryId) {
+            document.getElementById('updateProductId').value = productId;
+            document.getElementById('updateProductName').value = name;
+            document.getElementById('updateProductImage').value = image;
+            document.getElementById('updateProductCategoryId').value = categoryId;
+            document.getElementById('updateProductModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        // Close update product modal
+        function closeUpdateProductModal() {
+            document.getElementById('updateProductModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+            document.querySelector('#updateProductModal form').reset();
+        }
+        // Load products via AJAX
+        function loadProducts(categoryId) {
+            showSpinner();
+            fetch(`?action=get_products&category_id=${categoryId}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('فشل جلب المنتجات');
+                return response.json();
+            })
+            .then(data => {
+                const productsList = document.getElementById('productsList');
+                if (data.products && data.products.length > 0) {
+                    let html = '<ul>';
+                    data.products.forEach(product => {
+                        html += `
+                            <li>
+                                ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '<i class="fas fa-image"></i>'}
+                                <span>${product.name}</span>
+                                <div class="actions">
+                                    <button class="btn btn-primary btn-sm rounded-circle" onclick="openUpdateProductModal(${product.id}, '${product.name}', '${product.image}', ${categoryId})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <form method="POST" style="display:inline;" onsubmit="openConfirmModal(event, 'هل أنت متأكد من حذف المنتج؟', this)">
+                                        <input type="hidden" name="product_id" value="${product.id}">
+                                        <input type="hidden" name="delete_product" value="1">
+                                        <button type="submit" class="btn btn-secondary btn-sm rounded-circle">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </li>
+                        `;
+                    });
+                    html += '</ul>';
+                    productsList.innerHTML = html;
+                } else {
+                    productsList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-box-open"></i>
+                            <h3>لا توجد منتجات</h3>
+                            <p>ابدأ بإضافة أول منتج في هذا القسم</p>
+                        </div>
+                    `;
+                }
+                hideSpinner();
+            })
+            .catch(error => {
+                showToast('خطأ في جلب المنتجات: ' + error.message, 'error');
+                hideSpinner();
             });
-            productsList.appendChild(ul);
         }
-    } catch (error) {
-        showToast('فشل جلب المنتجات: ' + error.message, 'error');
-    } finally {
-        hideSpinner();
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    <?php if ($message): ?>
-        showToast('<?= addslashes($message) ?>', '<?= $message_type ?>');
-    <?php endif; ?>
-});
     </script>
 </body>
 </html>
