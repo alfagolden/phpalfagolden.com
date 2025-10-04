@@ -638,7 +638,7 @@ usort($filteredQuotes, function($a, $b) use ($FIELDS, $sortBy, $sortDir) {
                                 ?>
                                 <tr class="table-row">
                                     <td class="table-cell">
-                                        <div class="quote-id">#<?=  $quoteNumber ?></div>
+                                        <div class="quote-id">#<?=  echo($quoteNumber) ?></div>
                                     </td>
                                     <td class="table-cell">
                                         <div class="quote-date"><?= $quoteDate ?></div>
