@@ -135,7 +135,6 @@ $locations = ['كتلوجات', 'سلايدر العملاء', 'سلايدر ا�
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_order'])) {
     $catalog_id = (int)$_POST['catalog_id'];
     $direction = $_POST['direction'] ?? 'down';
-
     // Fetch all items in the same location
     $ch = curl_init(BASE_URL . TABLE_ID . '/?filter__field_6756__contains=' . urlencode($selected_location) . '&user_field_names=false');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -144,23 +143,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_order'])) {
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curl_error = curl_error($ch);
     curl_close($ch);
-
     if ($curl_error || $http_code !== 200) {
         error_log("❌ فشل جلب البيانات لتغيير الترتيب: HTTP $http_code, خطأ cURL: $curl_error");
         $message = 'فشل جلب البيانات لتغيير الترتيب.';
         $message_type = 'error';
         goto skip_order;
     }
-
     $all = json_decode($response, true)['results'] ?? [];
-
     // Sort by order as number, handle non-numeric values
     usort($all, function($a, $b) {
         $oa = is_numeric($a['field_6759']) ? (float)$a['field_6759'] : 999999;
         $ob = is_numeric($b['field_6759']) ? (float)$b['field_6759'] : 999999;
         return $oa <=> $ob;
     });
-
     // Find current index
     $currentIndex = null;
     foreach ($all as $index => $item) {
@@ -169,14 +164,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_order'])) {
             break;
         }
     }
-
     if ($currentIndex === null) {
         error_log("❌ العنصر غير موجود: ID $catalog_id");
         $message = 'العنصر غير موجود.';
         $message_type = 'error';
         goto skip_order;
     }
-
     // Determine target index
     $targetIndex = $direction === 'up' ? $currentIndex - 1 : $currentIndex + 1;
     if ($targetIndex < 0 || $targetIndex >= count($all)) {
@@ -185,16 +178,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_order'])) {
         $message_type = 'error';
         goto skip_order;
     }
-
     // Move the item in the array
     $itemToMove = array_splice($all, $currentIndex, 1)[0];
     array_splice($all, $targetIndex, 0, [$itemToMove]);
-
     // Reassign order values starting from 1
     foreach ($all as $index => &$item) {
         $newOrder = $index + 1; // Start from 1
         $item['field_6759'] = (string)$newOrder;
-
         // Update the item in Baserow
         $patchData = ['field_6759' => $item['field_6759']];
         $ch = curl_init(BASE_URL . TABLE_ID . '/' . $item['id'] . '/');
@@ -209,7 +199,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_order'])) {
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curl_error = curl_error($ch);
         curl_close($ch);
-
         if ($curl_error || $http_code !== 200) {
             error_log("❌ فشل تحديث الترتيب للعنصر " . $item['id'] . ": HTTP $http_code, خطأ cURL: $curl_error");
             $message = 'فشل تحديث الترتيب.';
@@ -217,7 +206,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_order'])) {
             goto skip_order;
         }
     }
-
     error_log("✅ تم إعادة ترتيب العناصر بنجاح: ID $catalog_id إلى الموقع $targetIndex");
     $message = 'تم تحديث الترتيب بنجاح!';
     $message_type = 'success';
@@ -232,7 +220,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
     $link = '';
     $order = '';
     $catalog_image = '';
-
     if ($location === 'كتلوجات') {
         $name_ar = $_POST['name_ar'] ?? '';
         if (!$name_ar) {
@@ -244,7 +231,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
         $link = $_POST['link'] ?? '';
         $order = $_POST['order'] ?? '1';
     }
-
     if (!$message) {
         if (isset($_FILES['catalog_image']) && $_FILES['catalog_image']['error'] === UPLOAD_ERR_OK) {
             $uploadResult = uploadImageExternal($_FILES['catalog_image']);
@@ -259,7 +245,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
             $message_type = 'error';
         }
     }
-
     if (!$message) {
         $data = [
             'field_6754' => $name_ar,
@@ -276,7 +261,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
             'field_7076' => '',
             'field_7077' => ''
         ];
-
         $ch = curl_init(BASE_URL . TABLE_ID . '/?user_field_names=false');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
@@ -311,7 +295,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
     $link = '';
     $order = '';
     $catalog_image = $_POST['current_image'] ?? '';
-
     if ($location === 'كتلوجات') {
         $name_ar = $_POST['name_ar'] ?? '';
         if (!$name_ar) {
@@ -323,7 +306,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
         $link = $_POST['link'] ?? '';
         $order = $_POST['order'] ?? '1';
     }
-
     if (isset($_FILES['catalog_image']) && $_FILES['catalog_image']['error'] === UPLOAD_ERR_OK) {
         $uploadResult = uploadImageExternal($_FILES['catalog_image']);
         if ($uploadResult['success']) {
@@ -333,7 +315,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
             $message_type = 'error';
         }
     }
-
     if (!$message) {
         $data = [
             'field_6754' => $name_ar,
@@ -350,7 +331,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
             'field_7076' => '',
             'field_7077' => ''
         ];
-
         $ch = curl_init(BASE_URL . TABLE_ID . '/' . $catalog_id . '/?user_field_names=true');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
@@ -431,7 +411,6 @@ if ($http_code < 210) {
     if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
 }
 curl_close($ch);
-
 $total_pages = ceil($total_count / $page_size);
 ?>
 
@@ -811,6 +790,33 @@ $total_pages = ceil($total_count / $page_size);
             flex-direction: column;
             gap: 4px;
         }
+        /* Spinner styles */
+        .spinner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1200;
+            display: none;
+        }
+        .spinner::after {
+            content: '';
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
         @media (max-width: 768px) {
             .container {
                 padding: 16px;
@@ -837,6 +843,8 @@ $total_pages = ceil($total_count / $page_size);
 </head>
 <body>
     <div class="container">
+        <!-- Spinner -->
+        <div class="spinner" id="spinner"></div>
         <!-- Header -->
         <div class="card">
             <div class="card-header">
@@ -848,7 +856,6 @@ $total_pages = ceil($total_count / $page_size);
                 </div>
             </div>
         </div>
-
         <!-- Tabs -->
         <div class="tabs">
             <?php foreach ($locations as $loc): ?>
@@ -857,7 +864,6 @@ $total_pages = ceil($total_count / $page_size);
                 </a>
             <?php endforeach; ?>
         </div>
-
         <!-- Pagination -->
         <div class="d-flex justify-content-between align-items-center mb-3">
             <a href="?location=<?= urlencode($selected_location) ?>&page=<?= $page - 1 ?>&page_size=<?= $page_size ?>" class="btn btn-primary <?= $previous_page_url ? '' : 'd-none' ?>">
@@ -880,7 +886,6 @@ $total_pages = ceil($total_count / $page_size);
                 الصفحة التالية<i class="fas fa-chevron-left ms-2"></i>
             </a>
         </div>
-
         <!-- Grid -->
         <div class="card">
             <div class="card-body">
@@ -943,7 +948,6 @@ $total_pages = ceil($total_count / $page_size);
                 <?php endif; ?>
             </div>
         </div>
-
         <!-- Add Modal -->
         <div class="modal" id="addCatalogModal">
             <div class="modal-dialog">
@@ -986,7 +990,6 @@ $total_pages = ceil($total_count / $page_size);
                 </form>
             </div>
         </div>
-
         <!-- Update Modal -->
         <div class="modal" id="updateCatalogModal">
             <div class="modal-dialog">
@@ -1032,12 +1035,27 @@ $total_pages = ceil($total_count / $page_size);
                 </form>
             </div>
         </div>
-
         <!-- Toast Container -->
         <div class="toast-container"></div>
     </div>
-
     <script>
+        // Show spinner
+        function showSpinner() {
+            document.getElementById('spinner').style.display = 'flex';
+        }
+
+        // Hide spinner
+        function hideSpinner() {
+            document.getElementById('spinner').style.display = 'none';
+        }
+
+        // Attach spinner to form submissions
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function () {
+                showSpinner();
+            });
+        });
+
         function showToast(message, type = 'success') {
             const toastContainer = document.querySelector('.toast-container');
             const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
@@ -1055,56 +1073,54 @@ $total_pages = ceil($total_count / $page_size);
                 if (toasts.length > 0) toasts[0].remove();
             }, 5000);
         }
-function openAddModal(location) {
-    document.getElementById('addLocationInput').value = location;
-    document.getElementById('catalogFields').classList.add('d-none');
-    document.getElementById('headerSliderFields').classList.add('d-none');
-    const nameArInput = document.querySelector('#catalogFields input[name="name_ar"]');
-    
-    if (location === 'كتلوجات') {
-        document.getElementById('catalogFields').classList.remove('d-none');
-        nameArInput.setAttribute('required', 'required'); // إضافة required عند الظهور
-    } else {
-        nameArInput.removeAttribute('required'); // إزالة required عند الإخفاء
-        if (location === 'سلايدر الهيدر') {
-            document.getElementById('headerSliderFields').classList.remove('d-none');
-        }
-    }
-    document.getElementById('addCatalogModal').classList.add('show');
-    document.body.style.overflow = 'hidden';
-}
 
-function openUpdateModal(id, order, nameAr, nameEn, image, link, location) {
-    document.getElementById('updateCatalogId').value = id;
-    document.getElementById('updateCurrentImage').value = image;
-    document.getElementById('updateLocationInput').value = location;
-    document.getElementById('updateCatalogFields').classList.add('d-none');
-    document.getElementById('updateHeaderSliderFields').classList.add('d-none');
-    const nameArInput = document.querySelector('#updateCatalogFields input[name="name_ar"]');
-    
-    if (location === 'كتلوجات') {
-        document.getElementById('updateCatalogFields').classList.remove('d-none');
-        document.getElementById('updateNameAr').value = nameAr;
-        document.getElementById('updateNameEn').value = nameEn;
-        nameArInput.setAttribute('required', 'required'); // إضافة required عند الظهور
-    } else {
-        nameArInput.removeAttribute('required'); // إزالة required عند الإخفاء
-        if (location === 'سلايدر الهيدر') {
-            document.getElementById('updateHeaderSliderFields').classList.remove('d-none');
-            document.getElementById('updateLink').value = link;
-            document.getElementById('updateOrder').value = order;
+        function openAddModal(location) {
+            document.getElementById('addLocationInput').value = location;
+            document.getElementById('catalogFields').classList.add('d-none');
+            document.getElementById('headerSliderFields').classList.add('d-none');
+            const nameArInput = document.querySelector('#catalogFields input[name="name_ar"]');
+            if (location === 'كتلوجات') {
+                document.getElementById('catalogFields').classList.remove('d-none');
+                nameArInput.setAttribute('required', 'required');
+            } else {
+                nameArInput.removeAttribute('required');
+                if (location === 'سلايدر الهيدر') {
+                    document.getElementById('headerSliderFields').classList.remove('d-none');
+                }
+            }
+            document.getElementById('addCatalogModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
         }
-    }
-    document.getElementById('updateCatalogModal').classList.add('show');
-    document.body.style.overflow = 'hidden';
-}
-     
+
+        function openUpdateModal(id, order, nameAr, nameEn, image, link, location) {
+            document.getElementById('updateCatalogId').value = id;
+            document.getElementById('updateCurrentImage').value = image;
+            document.getElementById('updateLocationInput').value = location;
+            document.getElementById('updateCatalogFields').classList.add('d-none');
+            document.getElementById('updateHeaderSliderFields').classList.add('d-none');
+            const nameArInput = document.querySelector('#updateCatalogFields input[name="name_ar"]');
+            if (location === 'كتلوجات') {
+                document.getElementById('updateCatalogFields').classList.remove('d-none');
+                document.getElementById('updateNameAr').value = nameAr;
+                document.getElementById('updateNameEn').value = nameEn;
+                nameArInput.setAttribute('required', 'required');
+            } else {
+                nameArInput.removeAttribute('required');
+                if (location === 'سلايدر الهيدر') {
+                    document.getElementById('updateHeaderSliderFields').classList.remove('d-none');
+                    document.getElementById('updateLink').value = link;
+                    document.getElementById('updateOrder').value = order;
+                }
+            }
+            document.getElementById('updateCatalogModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
         function closeAddModal() {
             document.getElementById('addCatalogModal').classList.remove('show');
             document.body.style.overflow = 'auto';
         }
 
-      
         function closeUpdateModal() {
             document.getElementById('updateCatalogModal').classList.remove('show');
             document.body.style.overflow = 'auto';
