@@ -11,7 +11,7 @@ if (!isset($_GET['category_id'])) {
 }
 
 $category_id = (int)$_GET['category_id'];
-$ch = curl_init(BASE_URL . PRODUCT_TABLE_ID . '/?filter__field_7126__equals=' . $category_id . '&user_field_names=false');
+$ch = curl_init(BASE_URL . PRODUCT_TABLE_ID . '/?filter__field_7126__link_row_contains=' . $category_id . '&user_field_names=false');
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'Authorization: Token ' . API_TOKEN,
