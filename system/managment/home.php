@@ -1471,24 +1471,22 @@ $total_pages = ceil($total_count / $page_size);
                 });
         }
 
-        // Update image order
-        function updateImageOrder(imageId, order) {
-            const formData = new FormData();
-            formData.append('image_id', imageId);
-            formData.append('order', order);
-            formData.append('update_image_order', '1');
+function updateImageOrder(imageId, order) {
+    const formData = new FormData();
+    formData.append('image_id', imageId);
+    formData.append('order', order);
+    formData.append('update_image_order', '1');
 
-            fetch('', { method: 'POST', body: formData })
-                .then(response => response.text())
-                .then(() => {
-                    showToast('تم تحديث ترتيب الصورة بنجاح', 'success');
-                    fetchCatalogImages(document.getElementById('catalogImageId').value);
-                })
-                .catch(error => {
-                    showToast('خطأ في تحديث ترتيب الصورة', 'error');
-                });
-        }
-
+    fetch('', { method: 'POST', body: formData })
+        .then(response => response.text())
+        .then(() => {
+            showToast('تم تحديث ترتيب الصورة بنجاح', 'success');
+            fetchCatalogImages(document.getElementById('catalogImageId').value);
+        })
+        .catch(error => {
+            showToast('خطأ في تحديث ترتيب الصورة', 'error');
+        });
+}
         // Move image up or down
         function moveImage(imageId, direction) {
             const imagesList = document.getElementById('imagesList');
