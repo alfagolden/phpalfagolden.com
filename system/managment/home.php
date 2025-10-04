@@ -468,8 +468,8 @@ $statuses = ['نشط', 'غير نشط'];
         }
         .catalog-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1.5rem;
+         gap: 20px; /* المسافة بين العناصر */
+  grid-template-columns: repeat(3, 1fr); /* 3 أعمدة على الكبير */
             padding: 1rem;
         }
         .catalog-card {
