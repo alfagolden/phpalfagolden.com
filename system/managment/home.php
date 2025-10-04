@@ -131,7 +131,7 @@ $next_page_url = null;
 $previous_page_url = null;
 $locations = ['كتلوجات', 'سلايدر العملاء', 'سلايدر الهيدر'];
 
-// =============== Handle Order Change (POST) ===============
+// =============== Handle Order Change ===============
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_order'])) {
     $catalog_id = (int)$_POST['catalog_id'];
     $direction = $_POST['direction'] ?? 'down';
@@ -144,7 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_order'])) {
     curl_close($ch);
     $all = json_decode($response, true)['results'] ?? [];
 
-    // Convert order to float and sort
+    // Sort by order as number
     usort($all, function($a, $b) {
         $oa = is_numeric($a['field_6759']) ? (float)$a['field_6759'] : 999999;
         $ob = is_numeric($b['field_6759']) ? (float)$b['field_6759'] : 999999;
@@ -173,14 +173,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_order'])) {
         goto skip_order;
     }
 
-    // Swap using midpoint (e.g., 10, 20 → new = 15)
+    // Swap using midpoint
     $currentOrder = is_numeric($all[$currentIndex]['field_6759']) ? (float)$all[$currentIndex]['field_6759'] : 999999;
     $targetOrder = is_numeric($all[$targetIndex]['field_6759']) ? (float)$all[$targetIndex]['field_6759'] : 999999;
 
     if ($direction === 'up') {
         $newOrder = $targetOrder - 10;
         if ($newOrder <= 0) {
-            // Re-normalize all: 10, 20, 30...
+            // Re-normalize all
             foreach ($all as $i => $item) {
                 $newVal = ($i + 1) * 10;
                 $patch = ['field_6759' => (string)$newVal];
@@ -218,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_order'])) {
 }
 skip_order:
 
-// =============== Handle Add Catalog (POST) ===============
+// =============== Handle Add Catalog ===============
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
     $location = $_POST['location'] ?? 'كتلوجات';
     $name_ar = '';
@@ -229,29 +229,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
 
     if ($location === 'كتلوجات') {
         $name_ar = $_POST['name_ar'] ?? '';
-        $name_en = $_POST['name_en'] ?? '';
         if (!$name_ar) {
-            $message = 'اسم الكتالوج (بالعربية) مطلوب.';
+            $message = 'اسم الكتالوج (عربي) مطلوب.';
             $message_type = 'error';
         }
+        $name_en = $_POST['name_en'] ?? '';
     } elseif ($location === 'سلايدر الهيدر') {
         $link = $_POST['link'] ?? '';
         $order = $_POST['order'] ?? '1';
     }
-    // سلايدر العملاء: لا حقول نصية
 
-    // Handle image
-    if (isset($_FILES['catalog_image']) && $_FILES['catalog_image']['error'] === UPLOAD_ERR_OK) {
-        $uploadResult = uploadImageExternal($_FILES['catalog_image']);
-        if ($uploadResult['success']) {
-            $catalog_image = $uploadResult['url'];
+    if (!$message) {
+        if (isset($_FILES['catalog_image']) && $_FILES['catalog_image']['error'] === UPLOAD_ERR_OK) {
+            $uploadResult = uploadImageExternal($_FILES['catalog_image']);
+            if ($uploadResult['success']) {
+                $catalog_image = $uploadResult['url'];
+            } else {
+                $message = $uploadResult['message'];
+                $message_type = 'error';
+            }
         } else {
-            $message = $uploadResult['message'];
-            $message_type = 'error';
-        }
-    } else {
-        // Image is required for all types
-        if (!$catalog_image) {
             $message = 'الصورة مطلوبة.';
             $message_type = 'error';
         }
@@ -299,7 +296,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
     }
 }
 
-// =============== Handle Update Catalog (POST) ===============
+// =============== Handle Update Catalog ===============
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
     $catalog_id = (int)$_POST['catalog_id'];
     $location = $_POST['location'] ?? 'كتلوجات';
@@ -311,11 +308,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
 
     if ($location === 'كتلوجات') {
         $name_ar = $_POST['name_ar'] ?? '';
-        $name_en = $_POST['name_en'] ?? '';
         if (!$name_ar) {
-            $message = 'اسم الكتالوج (بالعربية) مطلوب.';
+            $message = 'اسم الكتالوج (عربي) مطلوب.';
             $message_type = 'error';
         }
+        $name_en = $_POST['name_en'] ?? '';
     } elseif ($location === 'سلايدر الهيدر') {
         $link = $_POST['link'] ?? '';
         $order = $_POST['order'] ?? '1';
@@ -373,7 +370,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
     }
 }
 
-// =============== Handle Delete Catalog (POST) ===============
+// =============== Handle Delete Catalog ===============
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_catalog'])) {
     $catalog_id = (int)$_POST['catalog_id'];
     $ch = curl_init(BASE_URL . TABLE_ID . '/' . $catalog_id . '/');
@@ -412,7 +409,7 @@ $curl_error = curl_error($ch);
 if ($http_code < 210) {
     $data = json_decode($response, true);
     $catalogs = $data['results'] ?? [];
-    // Sort by order (field_6759) as number
+    // Sort by order
     usort($catalogs, function($a, $b) {
         $oa = is_numeric($a['field_6759']) ? (float)$a['field_6759'] : 999999;
         $ob = is_numeric($b['field_6759']) ? (float)$b['field_6759'] : 999999;
@@ -562,22 +559,6 @@ $total_pages = ceil($total_count / $page_size);
             border-color: var(--gold);
             box-shadow: 0 0 0 3px var(--gold-light);
         }
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            margin: 0;
-            padding: 0;
-            list-style: none;
-            font-size: 14px;
-        }
-        .breadcrumb-link {
-            color: var(--medium-gray);
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-        .breadcrumb-link:hover {
-            color: var(--gold);
-        }
         .gallery-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -647,18 +628,6 @@ $total_pages = ceil($total_count / $page_size);
             object-fit: contain;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-        }
-        .spinner {
-            width: 24px;
-            height: 24px;
-            border: 2px solid var(--border-color);
-            border-top: 2px solid var(--gold);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
         .modal {
             display: none;
@@ -738,27 +707,6 @@ $total_pages = ceil($total_count / $page_size);
         .toast.error {
             border-color: var(--error);
             color: var(--error);
-        }
-        .image-upload-area {
-            border: 2px dashed var(--border-color);
-            border-radius: 8px;
-            padding: 30px;
-            text-align: center;
-            transition: all 0.3s ease;
-            background: var(--light-gray);
-            cursor: pointer;
-        }
-        .image-upload-area:hover {
-            border-color: var(--gold);
-            background: var(--gold-light);
-        }
-        .image-upload-text {
-            font-size: 16px;
-            margin-bottom: 8px;
-        }
-        .image-upload-hint {
-            font-size: 14px;
-            color: var(--medium-gray);
         }
         .empty-state {
             text-align: center;
@@ -883,32 +831,19 @@ $total_pages = ceil($total_count / $page_size);
 </head>
 <body>
     <div class="container">
-        <!-- Breadcrumb and Header -->
+        <!-- Header -->
         <div class="card">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb mb-2">
-                                <li class="breadcrumb-item">
-                                    <a href="#" class="breadcrumb-link">
-                                        <i class="fas fa-layer-group me-1"></i>الكتلوجات
-                                    </a>
-                                </li>
-                            </ol>
-                        </nav>
-                        <h1 class="card-title">إدارة الصفحة الرئيسية</h1>
-                    </div>
-                    <div>
-                        <button class="btn btn-primary" onclick="openAddModal('<?= htmlspecialchars($selected_location) ?>')">
-                            <i class="fas fa-plus me-2"></i>إضافة جديد
-                        </button>
-                    </div>
+                    <h1 class="card-title">إدارة الصفحة الرئيسية</h1>
+                    <button class="btn btn-primary" onclick="openAddModal('<?= htmlspecialchars($selected_location) ?>')">
+                        <i class="fas fa-plus me-2"></i>إضافة جديد
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Tabs for Locations -->
+        <!-- Tabs -->
         <div class="tabs">
             <?php foreach ($locations as $loc): ?>
                 <a href="?location=<?= urlencode($loc) ?>&page=1&page_size=<?= $page_size ?>" class="tab <?= $selected_location === $loc ? 'active' : '' ?>">
@@ -940,11 +875,8 @@ $total_pages = ceil($total_count / $page_size);
             </a>
         </div>
 
-        <!-- Catalogs Grid -->
+        <!-- Grid -->
         <div class="card">
-            <div class="card-header">
-                <h2 class="card-title"><?= htmlspecialchars($selected_location) ?></h2>
-            </div>
             <div class="card-body">
                 <?php if (empty($catalogs)): ?>
                     <div class="empty-state">
@@ -965,7 +897,7 @@ $total_pages = ceil($total_count / $page_size);
                                     <div class="gallery-placeholder"><i class="fas fa-folder"></i></div>
                                 <?php endif; ?>
                                 <div class="gallery-item-content">
-                                    <h3 class="gallery-item-title"><?= htmlspecialchars($catalog['field_6754'] ?? 'غير متوفر') ?></h3>
+                                    <h3 class="gallery-item-title"><?= htmlspecialchars($catalog['field_6754'] ?? '---') ?></h3>
                                     <div class="gallery-item-actions">
                                         <?php if (in_array($selected_location, ['سلايدر الهيدر', 'سلايدر العملاء'])): ?>
                                             <div class="order-buttons">
@@ -1006,7 +938,7 @@ $total_pages = ceil($total_count / $page_size);
             </div>
         </div>
 
-        <!-- Modal: Add Catalog -->
+        <!-- Add Modal -->
         <div class="modal" id="addCatalogModal">
             <div class="modal-dialog">
                 <form method="POST" enctype="multipart/form-data">
@@ -1028,7 +960,7 @@ $total_pages = ceil($total_count / $page_size);
                         </div>
                         <div id="headerSliderFields" class="d-none">
                             <div class="form-group">
-                                <label class="form-label">الرابط (اختياري)</label>
+                                <label class="form-label">الرابط</label>
                                 <input type="url" name="link" class="form-control">
                             </div>
                             <div class="form-group">
@@ -1049,7 +981,7 @@ $total_pages = ceil($total_count / $page_size);
             </div>
         </div>
 
-        <!-- Modal: Update Catalog -->
+        <!-- Update Modal -->
         <div class="modal" id="updateCatalogModal">
             <div class="modal-dialog">
                 <form method="POST" enctype="multipart/form-data">
@@ -1084,7 +1016,7 @@ $total_pages = ceil($total_count / $page_size);
                         <div class="form-group">
                             <label class="form-label">الصورة</label>
                             <input type="file" name="catalog_image" class="form-control" accept="image/*">
-                            <small class="text-muted">اترك فارغًا للحفاظ على الصورة الحالية</small>
+                            <small class="text-muted">اترك فارغًا للإبقاء على الصورة الحالية</small>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -1108,7 +1040,7 @@ $total_pages = ceil($total_count / $page_size);
                 <div class="toast ${className}">
                     <i class="fas ${icon}"></i>
                     <span>${message}</span>
-                    <button type="button" class="btn-close" onclick="this.parentElement.remove()" style="margin-right: auto;">&times;</button>
+                    <button type="button" class="btn-close" onclick="this.parentElement.remove()">&times;</button>
                 </div>
             `;
             toastContainer.insertAdjacentHTML('beforeend', toastHtml);
@@ -1127,7 +1059,6 @@ $total_pages = ceil($total_count / $page_size);
             } else if (location === 'سلايدر الهيدر') {
                 document.getElementById('headerSliderFields').classList.remove('d-none');
             }
-            document.getElementById('addCatalogForm').reset();
             document.getElementById('addCatalogModal').classList.add('show');
             document.body.style.overflow = 'hidden';
         }
@@ -1166,7 +1097,7 @@ $total_pages = ceil($total_count / $page_size);
 
         document.addEventListener('DOMContentLoaded', function () {
             <?php if ($message): ?>
-                showToast('<?= htmlspecialchars($message) ?>', '<?= $message_type ?>');
+                showToast('<?= addslashes($message) ?>', '<?= $message_type ?>');
             <?php endif; ?>
         });
     </script>
