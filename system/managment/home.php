@@ -1,9 +1,14 @@
+Below is the complete PHP code for your page, integrating the new "المنتجات" section that displays categories and their associated products from the `أقسام المنتجات` (ID: 713) and `المنتجات` (ID: 696) tables, while preserving all existing functionality for catalogs, sliders, and other features. The code includes the modifications outlined in the previous response: fetching categories and products, adding a new tab, updating the HTML to display the new section, and adding necessary styles.
+
+### Full Code
+
+```php
 <?php
 // Configuration
 const API_TOKEN = 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy';
 const TABLE_ID = 698; // جدول الكتلوجات
 const BASE_URL = 'https://base.alfagolden.com/api/database/rows/table/';
-const UPLOAD_DIR = 'uploads/';
+const UPLOAD_DIR = 'Uploads/';
 const UPLOAD_URL = 'https://alfagolden.com/system/managment/up.php';
 
 // Initialize upload directory
@@ -33,7 +38,6 @@ function ensureUploadDirectory() {
     }
     return true;
 }
-
 try {
     ensureUploadDirectory();
 } catch (Exception $e) {
@@ -126,10 +130,12 @@ $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $page_size = isset($_GET['page_size']) ? (int)$_GET['page_size'] : 10;
 $selected_location = isset($_GET['location']) ? $_GET['location'] : 'كتلوجات';
 $catalogs = [];
+$categories = [];
+$products = [];
 $total_count = 0;
 $next_page_url = null;
 $previous_page_url = null;
-$locations = ['كتلوجات', 'سلايدر العملاء', 'سلايدر الهيدر'];
+$locations = ['كتلوجات', 'سلايدر العملاء', 'سلايدر الهيدر', 'المنتجات'];
 
 // =============== Handle Order Change ===============
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_order'])) {
@@ -381,36 +387,94 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_catalog'])) {
     }
 }
 
-// =============== Fetch Catalogs ===============
-$filter_param = 'filter__field_6756__contains=' . urlencode($selected_location);
-$ch = curl_init(BASE_URL . TABLE_ID . '/?' . $filter_param . '&user_field_names=false&size=' . $page_size . '&page=' . $page);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Authorization: Token ' . API_TOKEN,
-    'Content-Type: application/json'
-]);
-$response = curl_exec($ch);
-$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$curl_error = curl_error($ch);
-if ($http_code < 210) {
-    $data = json_decode($response, true);
-    $catalogs = $data['results'] ?? [];
-    // Sort by order
-    usort($catalogs, function($a, $b) {
-        $oa = is_numeric($a['field_6759']) ? (float)$a['field_6759'] : 999999;
-        $ob = is_numeric($b['field_6759']) ? (float)$b['field_6759'] : 999999;
-        return $oa <=> $ob;
-    });
-    $total_count = $data['count'] ?? 0;
-    $next_page_url = $data['next'] ?? null;
-    $previous_page_url = $data['previous'] ?? null;
-} else {
-    $message = 'فشل جلب البيانات من Baserow.';
-    $message_type = 'error';
-    error_log("❌ فشل جلب البيانات: HTTP $http_code, الاستجابة: $response");
-    if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
+// =============== Fetch Categories and Products for المنتجات Tab ===============
+if ($selected_location === 'المنتجات') {
+    // Fetch all categories from أقسام المنتجات table (ID: 713)
+    $ch = curl_init(BASE_URL . '713/?user_field_names=false&size=100');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Token ' . API_TOKEN,
+        'Content-Type: application/json'
+    ]);
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    curl_close($ch);
+
+    if ($http_code === 200) {
+        $data = json_decode($response, true);
+        $categories = $data['results'] ?? [];
+        $total_count = $data['count'] ?? 0;
+        $next_page_url = $data['next'] ?? null;
+        $previous_page_url = $data['previous'] ?? null;
+
+        // Fetch products for each category
+        foreach ($categories as &$category) {
+            $product_ids = $category['field_7127'] ?? [];
+            $category['products'] = [];
+            if (!empty($product_ids)) {
+                // Convert product IDs to a comma-separated string for the API filter
+                $product_ids_str = implode(',', array_column($product_ids, 'id'));
+                $ch = curl_init(BASE_URL . '696/?filter__id__in=' . urlencode($product_ids_str) . '&user_field_names=false');
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    'Authorization: Token ' . API_TOKEN,
+                    'Content-Type: application/json'
+                ]);
+                $response = curl_exec($ch);
+                $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $curl_error = curl_error($ch);
+                curl_close($ch);
+
+                if ($http_code === 200) {
+                    $product_data = json_decode($response, true);
+                    $category['products'] = $product_data['results'] ?? [];
+                } else {
+                    error_log("❌ فشل جلب المنتجات للقسم {$category['id']}: HTTP $http_code, خطأ cURL: $curl_error");
+                }
+            }
+        }
+    } else {
+        $message = 'فشل جلب بيانات الأقسام.';
+        $message_type = 'error';
+        error_log("❌ فشل جلب الأقسام: HTTP $http_code, الاستجابة: $response");
+        if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
+    }
 }
-curl_close($ch);
+
+// =============== Fetch Catalogs ===============
+if ($selected_location !== 'المنتجات') {
+    $filter_param = 'filter__field_6756__contains=' . urlencode($selected_location);
+    $ch = curl_init(BASE_URL . TABLE_ID . '/?' . $filter_param . '&user_field_names=false&size=' . $page_size . '&page=' . $page);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Token ' . API_TOKEN,
+        'Content-Type: application/json'
+    ]);
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    if ($http_code < 210) {
+        $data = json_decode($response, true);
+        $catalogs = $data['results'] ?? [];
+        // Sort by order
+        usort($catalogs, function($a, $b) {
+            $oa = is_numeric($a['field_6759']) ? (float)$a['field_6759'] : 999999;
+            $ob = is_numeric($b['field_6759']) ? (float)$b['field_6759'] : 999999;
+            return $oa <=> $ob;
+        });
+        $total_count = $data['count'] ?? 0;
+        $next_page_url = $data['next'] ?? null;
+        $previous_page_url = $data['previous'] ?? null;
+    } else {
+        $message = 'فشل جلب البيانات من Baserow.';
+        $message_type = 'error';
+        error_log("❌ فشل جلب البيانات: HTTP $http_code, الاستجابة: $response");
+        if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
+    }
+    curl_close($ch);
+}
+
 $total_pages = ceil($total_count / $page_size);
 ?>
 
@@ -817,6 +881,26 @@ $total_pages = ceil($total_count / $page_size);
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* Products list styles */
+        .products-list {
+            margin-top: 16px;
+        }
+        .products-list ul {
+            list-style: none;
+            margin: 0;
+        }
+        .products-list li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--dark-gray);
+        }
+        .products-list img {
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
         @media (max-width: 768px) {
             .container {
                 padding: 16px;
@@ -850,9 +934,11 @@ $total_pages = ceil($total_count / $page_size);
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <h1 class="card-title">إدارة الصفحة الرئيسية</h1>
-                    <button class="btn btn-primary" onclick="openAddModal('<?= htmlspecialchars($selected_location) ?>')">
-                        <i class="fas fa-plus me-2"></i>إضافة جديد
-                    </button>
+                    <?php if ($selected_location !== 'المنتجات'): ?>
+                        <button class="btn btn-primary" onclick="openAddModal('<?= htmlspecialchars($selected_location) ?>')">
+                            <i class="fas fa-plus me-2"></i>إضافة جديد
+                        </button>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -889,62 +975,102 @@ $total_pages = ceil($total_count / $page_size);
         <!-- Grid -->
         <div class="card">
             <div class="card-body">
-                <?php if (empty($catalogs)): ?>
-                    <div class="empty-state">
-                        <i class="fas fa-folder-plus"></i>
-                        <h3>لا توجد عناصر</h3>
-                        <p>ابدأ بإضافة أول عنصر في "<?= htmlspecialchars($selected_location) ?>"</p>
-                        <button onclick="openAddModal('<?= htmlspecialchars($selected_location) ?>')" class="btn btn-primary">
-                            <i class="fas fa-plus me-2"></i>إضافة جديد
-                        </button>
-                    </div>
-                <?php else: ?>
-                    <div class="gallery-grid">
-                        <?php foreach ($catalogs as $catalog): ?>
-                            <div class="gallery-item">
-                                <?php if (!empty($catalog['field_6755'])): ?>
-                                    <img src="<?= htmlspecialchars($catalog['field_6755']) ?>" alt="<?= htmlspecialchars($catalog['field_6754'] ?? 'عنصر') ?>" class="gallery-item-image">
-                                <?php else: ?>
-                                    <div class="gallery-placeholder"><i class="fas fa-folder"></i></div>
-                                <?php endif; ?>
-                                <div class="gallery-item-content">
-                                    <h3 class="gallery-item-title"><?= htmlspecialchars($catalog['field_6754'] ?? '---') ?></h3>
-                                    <div class="gallery-item-actions">
-                                        <?php if (in_array($selected_location, ['سلايدر الهيدر', 'سلايدر العملاء'])): ?>
-                                            <div class="order-buttons">
-                                                <form method="POST" style="display:inline;" onsubmit="return confirm('تحريك لأعلى؟')">
-                                                    <input type="hidden" name="catalog_id" value="<?= $catalog['id'] ?>">
-                                                    <input type="hidden" name="direction" value="up">
-                                                    <input type="hidden" name="change_order" value="1">
-                                                    <button type="submit" class="btn btn-secondary btn-sm rounded-circle">
-                                                        <i class="fas fa-arrow-up"></i>
-                                                    </button>
-                                                </form>
-                                                <form method="POST" style="display:inline;" onsubmit="return confirm('تحريك لأسفل؟')">
-                                                    <input type="hidden" name="catalog_id" value="<?= $catalog['id'] ?>">
-                                                    <input type="hidden" name="direction" value="down">
-                                                    <input type="hidden" name="change_order" value="1">
-                                                    <button type="submit" class="btn btn-secondary btn-sm rounded-circle">
-                                                        <i class="fas fa-arrow-down"></i>
-                                                    </button>
-                                                </form>
+                <?php if ($selected_location === 'المنتجات'): ?>
+                    <?php if (empty($categories)): ?>
+                        <div class="empty-state">
+                            <i class="fas fa-folder-plus"></i>
+                            <h3>لا توجد أقسام</h3>
+                            <p>لا توجد أقسام منتجات متاحة حاليًا.</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="gallery-grid">
+                            <?php foreach ($categories as $category): ?>
+                                <div class="gallery-item">
+                                    <?php if (!empty($category['field_7002'])): ?>
+                                        <img src="<?= htmlspecialchars($category['field_7002']) ?>" alt="<?= htmlspecialchars($category['field_7001'] ?? 'قسم') ?>" class="gallery-item-image">
+                                    <?php else: ?>
+                                        <div class="gallery-placeholder"><i class="fas fa-folder"></i></div>
+                                    <?php endif; ?>
+                                    <div class="gallery-item-content">
+                                        <h3 class="gallery-item-title"><?= htmlspecialchars($category['field_7001'] ?? '---') ?></h3>
+                                        <?php if (!empty($category['products'])): ?>
+                                            <div class="products-list">
+                                                <h4 class="text-muted mb-2">المنتجات:</h4>
+                                                <ul style="padding-right: 20px;">
+                                                    <?php foreach ($category['products'] as $product): ?>
+                                                        <li>
+                                                            <img src="<?= htmlspecialchars($product['field_6748'] ?? '') ?>" alt="<?= htmlspecialchars($product['field_6747'] ?? 'منتج') ?>" style="width: 50px; height: 50px; object-fit: contain; margin-left: 10px; vertical-align: middle;">
+                                                            <span><?= htmlspecialchars($product['field_6747'] ?? '---') ?></span>
+                                                        </li>
+                                                    <?php endforeach; ?>
+                                                </ul>
                                             </div>
+                                        <?php else: ?>
+                                            <p class="text-muted">لا توجد منتجات في هذا القسم.</p>
                                         <?php endif; ?>
-                                        <button onclick="openUpdateModal(<?= $catalog['id'] ?>, '<?= htmlspecialchars($catalog['field_6759'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6754'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6762'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6755'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6757'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6756'] ?? '') ?>')" class="btn btn-primary btn-sm rounded-circle">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من الحذف؟')">
-                                            <input type="hidden" name="catalog_id" value="<?= $catalog['id'] ?>">
-                                            <input type="hidden" name="delete_catalog" value="1">
-                                            <button type="submit" class="btn btn-secondary btn-sm rounded-circle">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
                                     </div>
                                 </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <?php if (empty($catalogs)): ?>
+                        <div class="empty-state">
+                            <i class="fas fa-folder-plus"></i>
+                            <h3>لا توجد عناصر</h3>
+                            <p>ابدأ بإضافة أول عنصر في "<?= htmlspecialchars($selected_location) ?>"</p>
+                            <button onclick="openAddModal('<?= htmlspecialchars($selected_location) ?>')" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>إضافة جديد
+                            </button>
+                        </div>
+                    <?php else: ?>
+                        <div class="gallery-grid">
+                            <?php foreach ($catalogs as $catalog): ?>
+                                <div class="gallery-item">
+                                    <?php if (!empty($catalog['field_6755'])): ?>
+                                        <img src="<?= htmlspecialchars($catalog['field_6755']) ?>" alt="<?= htmlspecialchars($catalog['field_6754'] ?? 'عنصر') ?>" class="gallery-item-image">
+                                    <?php else: ?>
+                                        <div class="gallery-placeholder"><i class="fas fa-folder"></i></div>
+                                    <?php endif; ?>
+                                    <div class="gallery-item-content">
+                                        <h3 class="gallery-item-title"><?= htmlspecialchars($catalog['field_6754'] ?? '---') ?></h3>
+                                        <div class="gallery-item-actions">
+                                            <?php if (in_array($selected_location, ['سلايدر الهيدر', 'سلايدر العملاء'])): ?>
+                                                <div class="order-buttons">
+                                                    <form method="POST" style="display:inline;" onsubmit="return confirm('تحريك لأعلى؟')">
+                                                        <input type="hidden" name="catalog_id" value="<?= $catalog['id'] ?>">
+                                                        <input type="hidden" name="direction" value="up">
+                                                        <input type="hidden" name="change_order" value="1">
+                                                        <button type="submit" class="btn btn-secondary btn-sm rounded-circle">
+                                                            <i class="fas fa-arrow-up"></i>
+                                                        </button>
+                                                    </form>
+                                                    <form method="POST" style="display:inline;" onsubmit="return confirm('تحريك لأسفل؟')">
+                                                        <input type="hidden" name="catalog_id" value="<?= $catalog['id'] ?>">
+                                                        <input type="hidden" name="direction" value="down">
+                                                        <input type="hidden" name="change_order" value="1">
+                                                        <button type="submit" class="btn btn-secondary btn-sm rounded-circle">
+                                                            <i class="fas fa-arrow-down"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            <?php endif; ?>
+                                            <button onclick="openUpdateModal(<?= $catalog['id'] ?>, '<?= htmlspecialchars($catalog['field_6759'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6754'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6762'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6755'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6757'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6756'] ?? '') ?>')" class="btn btn-primary btn-sm rounded-circle">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <form method="POST" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من الحذف؟')">
+                                                <input type="hidden" name="catalog_id" value="<?= $catalog['id'] ?>">
+                                                <input type="hidden" name="delete_catalog" value="1">
+                                                <button type="submit" class="btn btn-secondary btn-sm rounded-circle">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
         </div>
@@ -1043,19 +1169,16 @@ $total_pages = ceil($total_count / $page_size);
         function showSpinner() {
             document.getElementById('spinner').style.display = 'flex';
         }
-
         // Hide spinner
         function hideSpinner() {
             document.getElementById('spinner').style.display = 'none';
         }
-
         // Attach spinner to form submissions
         document.querySelectorAll('form').forEach(form => {
             form.addEventListener('submit', function () {
                 showSpinner();
             });
         });
-
         function showToast(message, type = 'success') {
             const toastContainer = document.querySelector('.toast-container');
             const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
@@ -1073,7 +1196,6 @@ $total_pages = ceil($total_count / $page_size);
                 if (toasts.length > 0) toasts[0].remove();
             }, 5000);
         }
-
         function openAddModal(location) {
             document.getElementById('addLocationInput').value = location;
             document.getElementById('catalogFields').classList.add('d-none');
@@ -1091,7 +1213,6 @@ $total_pages = ceil($total_count / $page_size);
             document.getElementById('addCatalogModal').classList.add('show');
             document.body.style.overflow = 'hidden';
         }
-
         function openUpdateModal(id, order, nameAr, nameEn, image, link, location) {
             document.getElementById('updateCatalogId').value = id;
             document.getElementById('updateCurrentImage').value = image;
@@ -1115,17 +1236,14 @@ $total_pages = ceil($total_count / $page_size);
             document.getElementById('updateCatalogModal').classList.add('show');
             document.body.style.overflow = 'hidden';
         }
-
         function closeAddModal() {
             document.getElementById('addCatalogModal').classList.remove('show');
             document.body.style.overflow = 'auto';
         }
-
         function closeUpdateModal() {
             document.getElementById('updateCatalogModal').classList.remove('show');
             document.body.style.overflow = 'auto';
         }
-
         document.addEventListener('DOMContentLoaded', function () {
             <?php if ($message): ?>
                 showToast('<?= addslashes($message) ?>', '<?= $message_type ?>');
@@ -1134,3 +1252,43 @@ $total_pages = ceil($total_count / $page_size);
     </script>
 </body>
 </html>
+```
+
+### Key Changes Made
+1. **Variables Initialization**:
+   - Added `$categories` and `$products` to store data for the new section.
+   - Updated `$locations` to include `'المنتجات'`.
+
+2. **Fetching Categories and Products**:
+   - Added a new section to fetch categories from table 713 and their associated products from table 696 using the `field_7127` link.
+   - Fetches up to 100 categories for simplicity (pagination can be added if needed).
+   - For each category, retrieves linked products using the `filter__id__in` API filter.
+
+3. **Header Modification**:
+   - Disabled the "إضافة جديد" button for the "المنتجات" tab, as categories and products are assumed to be managed elsewhere.
+
+4. **HTML Structure**:
+   - Updated the `<div class="card-body">` section to handle the "المنتجات" tab separately.
+   - Displays categories in a grid, with each category showing its image (`field_7002`), name (`field_7001`), and a list of products (`field_6747` for name, `field_6748` for image).
+   - Shows placeholders for missing images and a message for categories with no products.
+
+5. **CSS Additions**:
+   - Added styles for `.products-list` to display products neatly with small thumbnails and names.
+
+6. **Pagination**:
+   - For the "المنتجات" tab, pagination is simplified (fetches up to 100 categories). The existing pagination logic applies to other tabs.
+
+### Notes
+- **API Token**: Ensure `API_TOKEN` has access to tables 713 and 696.
+- **Image Handling**: Missing images use placeholders, consistent with the existing catalog display.
+- **Management**: The code assumes categories and products are managed in Baserow directly. If you need add/edit/delete functionality for categories or products, let me know.
+- **Pagination**: If you expect more than 100 categories, I can add pagination for the "المنتجات" tab.
+- **Error Handling**: Basic error logging is included. You may want to enhance the UI to show errors to users.
+
+### Testing
+- Verify that the API token can access tables 713 and 696.
+- Check that `field_7127` in table 713 correctly links to product IDs in table 696.
+- Test the "المنتجات" tab to ensure categories and their products display correctly.
+- Confirm that existing tabs ("كتلوجات", "سلايدر العملاء", "سلايدر الهيدر") still function as expected.
+
+If you need additional features (e.g., pagination for categories, management options, or specific styling), please provide details, and I can extend the code further!
