@@ -1049,47 +1049,56 @@ $total_pages = ceil($total_count / $page_size);
                 if (toasts.length > 0) toasts[0].remove();
             }, 5000);
         }
-
-        function openAddModal(location) {
-            document.getElementById('addLocationInput').value = location;
-            document.getElementById('catalogFields').classList.add('d-none');
-            document.getElementById('headerSliderFields').classList.add('d-none');
-            if (location === 'كتلوجات') {
-                document.getElementById('catalogFields').classList.remove('d-none');
-            } else if (location === 'سلايدر الهيدر') {
-                document.getElementById('headerSliderFields').classList.remove('d-none');
-            }
-            document.getElementById('addCatalogModal').classList.add('show');
-            document.body.style.overflow = 'hidden';
+function openAddModal(location) {
+    document.getElementById('addLocationInput').value = location;
+    document.getElementById('catalogFields').classList.add('d-none');
+    document.getElementById('headerSliderFields').classList.add('d-none');
+    const nameArInput = document.querySelector('#catalogFields input[name="name_ar"]');
+    
+    if (location === 'كتلوجات') {
+        document.getElementById('catalogFields').classList.remove('d-none');
+        nameArInput.setAttribute('required', 'required'); // إضافة required عند الظهور
+    } else {
+        nameArInput.removeAttribute('required'); // إزالة required عند الإخفاء
+        if (location === 'سلايدر الهيدر') {
+            document.getElementById('headerSliderFields').classList.remove('d-none');
         }
+    }
+    document.getElementById('addCatalogModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
 
+function openUpdateModal(id, order, nameAr, nameEn, image, link, location) {
+    document.getElementById('updateCatalogId').value = id;
+    document.getElementById('updateCurrentImage').value = image;
+    document.getElementById('updateLocationInput').value = location;
+    document.getElementById('updateCatalogFields').classList.add('d-none');
+    document.getElementById('updateHeaderSliderFields').classList.add('d-none');
+    const nameArInput = document.querySelector('#updateCatalogFields input[name="name_ar"]');
+    
+    if (location === 'كتلوجات') {
+        document.getElementById('updateCatalogFields').classList.remove('d-none');
+        document.getElementById('updateNameAr').value = nameAr;
+        document.getElementById('updateNameEn').value = nameEn;
+        nameArInput.setAttribute('required', 'required'); // إضافة required عند الظهور
+    } else {
+        nameArInput.removeAttribute('required'); // إزالة required عند الإخفاء
+        if (location === 'سلايدر الهيدر') {
+            document.getElementById('updateHeaderSliderFields').classList.remove('d-none');
+            document.getElementById('updateLink').value = link;
+            document.getElementById('updateOrder').value = order;
+        }
+    }
+    document.getElementById('updateCatalogModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+     
         function closeAddModal() {
             document.getElementById('addCatalogModal').classList.remove('show');
             document.body.style.overflow = 'auto';
         }
 
-        function openUpdateModal(id, order, nameAr, nameEn, image, link, location) {
-            document.getElementById('updateCatalogId').value = id;
-            document.getElementById('updateCurrentImage').value = image;
-            document.getElementById('updateLocationInput').value = location;
-
-            document.getElementById('updateCatalogFields').classList.add('d-none');
-            document.getElementById('updateHeaderSliderFields').classList.add('d-none');
-
-            if (location === 'كتلوجات') {
-                document.getElementById('updateCatalogFields').classList.remove('d-none');
-                document.getElementById('updateNameAr').value = nameAr;
-                document.getElementById('updateNameEn').value = nameEn;
-            } else if (location === 'سلايدر الهيدر') {
-                document.getElementById('updateHeaderSliderFields').classList.remove('d-none');
-                document.getElementById('updateLink').value = link;
-                document.getElementById('updateOrder').value = order;
-            }
-
-            document.getElementById('updateCatalogModal').classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-
+      
         function closeUpdateModal() {
             document.getElementById('updateCatalogModal').classList.remove('show');
             document.body.style.overflow = 'auto';
