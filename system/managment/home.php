@@ -1,8 +1,8 @@
 <?php
 // Configuration
 const API_TOKEN = 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy';
-const TABLE_ID = 698; // جدول الكتلوجات
-const TABLE_ID_IMAGES = 699; // جدول صور الكتلوجات
+const TABLE_ID = 698; // جدول الكتالوجات
+const TABLE_ID_IMAGES = 699; // جدول صور الكتالوجات
 const BASE_URL = 'https://base.alfagolden.com/api/database/rows/table/';
 const UPLOAD_DIR = 'Uploads/';
 const UPLOAD_URL = 'https://alfagolden.com/system/managment/up.php';
@@ -125,16 +125,16 @@ $message = '';
 $message_type = '';
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $page_size = isset($_GET['page_size']) ? (int)$_GET['page_size'] : 10;
-$selected_location = isset($_GET['location']) ? $_GET['location'] : 'كتلوجات';
+$selected_location = isset($_GET['location']) ? $_GET['location'] : 'كتالوجات';
 $catalogs = [];
 $total_count = 0;
 $next_page_url = null;
 $previous_page_url = null;
-$locations = ['كتلوجات', 'سلايدر العملاء', 'سلايدر الهيدر', 'عملاؤنا'];
+$locations = ['كتالوجات', 'سلايدر العملاء', 'سلايدر الهيدر', 'عملاؤنا'];
 
 // Handle form submission for adding a catalog
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
-    $location = $_POST['location'] ?? 'كتلوجات';
+    $location = $_POST['location'] ?? 'كتالوجات';
     $catalog_image = '';
     $data = [];
 
@@ -163,11 +163,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
                     'field_6756' => $location
                 ];
             }
-        } elseif ($location === 'كتلوجات') {
+        } elseif ($location === 'كتالوجات') {
             $name_ar = $_POST['name_ar'] ?? '';
             $name_en = $_POST['name_en'] ?? '';
             if (!$name_ar || !$catalog_image) {
-                $message = 'الاسم (بالعربية) والصورة مطلوبان للكتلوجات.';
+                $message = 'الاسم (بالعربية) والصورة مطلوبان للكتالوجات.';
                 $message_type = 'error';
             } else {
                 $data = [
@@ -218,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
 // Handle catalog update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
     $catalog_id = (int)$_POST['catalog_id'];
-    $location = $_POST['location'] ?? 'كتلوجات';
+    $location = $_POST['location'] ?? 'كتالوجات';
     $catalog_image = $_POST['current_image'] ?? '';
     $data = [];
 
@@ -247,11 +247,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
                     'field_6756' => $location
                 ];
             }
-        } elseif ($location === 'كتلوجات') {
+        } elseif ($location === 'كتالوجات') {
             $name_ar = $_POST['name_ar'] ?? '';
             $name_en = $_POST['name_en'] ?? '';
             if (!$name_ar || !$catalog_image) {
-                $message = 'الاسم (بالعربية) والصورة مطلوبان للكتلوجات.';
+                $message = 'الاسم (بالعربية) والصورة مطلوبان للكتالوجات.';
                 $message_type = 'error';
             } else {
                 $data = [
@@ -367,47 +367,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog_image']))
     }
 }
 
+// Handle updating catalog image order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_image_order'])) {
     $image_id = (int)$_POST['image_id'];
     $order = $_POST['order'] ?? '0';
-    $catalog_id = (int)$_POST['catalog_id']; // Added to filter images by catalog
 
-    // Fetch all images for the catalog to manage order conflicts
-    $ch = curl_init(BASE_URL . TABLE_ID_IMAGES . '/?filter__field_catalog_id__equal=' . $catalog_id . '&user_field_names=true');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Token ' . API_TOKEN]);
-    $response = curl_exec($ch);
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $data = json_decode($response, true);
-    curl_close($ch);
-
-    if ($http_code !== 200) {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'فشل جلب الصور']);
-        exit;
-    }
-
-    $images = $data['results'] ?? [];
-    $new_order = (string)$order; // Convert to string for Baserow
-
-    // Update conflicting orders
-    foreach ($images as $image) {
-        if ($image['id'] != $image_id && (int)$image['field_order'] === (int)$new_order) {
-            $ch = curl_init(BASE_URL . TABLE_ID_IMAGES . '/' . $image['id'] . '/?user_field_names=true');
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Authorization: Token ' . API_TOKEN,
-                'Content-Type: application/json'
-            ]);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['field_order' => (string)((int)$new_order + 1)]));
-            curl_exec($ch);
-            curl_close($ch);
-        }
-    }
-
-    // Update the current image order
-    $data = ['field_order' => $new_order];
+    $data = [
+        'field_order' => $order
+    ];
     $ch = curl_init(BASE_URL . TABLE_ID_IMAGES . '/' . $image_id . '/?user_field_names=true');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
@@ -420,10 +387,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_image_order'])
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    header('Content-Type: application/json');
-    echo json_encode(['success' => $http_code === 200]);
-    exit;
+    if ($http_code === 200) {
+        $message = 'تم تحديث ترتيب الصورة بنجاح!';
+        $message_type = 'success';
+    } else {
+        $message = 'فشل تحديث ترتيب الصورة.';
+        $message_type = 'error';
+    }
 }
+
+// Handle updating catalog order
 if (isset($_GET['action']) && $_GET['action'] === 'update_order') {
     $catalog_id = (int)$_GET['catalog_id'];
     $direction = $_GET['direction'];
@@ -463,6 +436,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'update_order') {
         exit;
     }
 }
+
 // Fetch catalog images
 if (isset($_GET['action']) && $_GET['action'] === 'get_images') {
     $catalog_id = (int)$_GET['catalog_id'];
@@ -983,7 +957,7 @@ $total_pages = ceil($total_count / $page_size);
                             <ol class="breadcrumb mb-2">
                                 <li class="breadcrumb-item">
                                     <a href="#" class="breadcrumb-link">
-                                        <i class="fas fa-layer-group me-1"></i>الكتلوجات
+                                        <i class="fas fa-layer-group me-1"></i>الكتالوجات
                                     </a>
                                 </li>
                             </ol>
@@ -1045,7 +1019,7 @@ $total_pages = ceil($total_count / $page_size);
                 <?php else: ?>
                     <div class="gallery-grid">
                         <?php foreach ($catalogs as $catalog): ?>
-                            <div class="gallery-item" <?php if ($selected_location === 'كتلوجات'): ?>onclick="openImagesModal(<?= $catalog['id'] ?>, '<?= htmlspecialchars($catalog['field_6754'] ?? '') ?>')"<?php endif; ?>>
+                            <div class="gallery-item" <?php if ($selected_location === 'كتالوجات'): ?>onclick="openImagesModal(<?= $catalog['id'] ?>, '<?= htmlspecialchars($catalog['field_6754'] ?? '') ?>')"<?php endif; ?>>
                                 <?php if (!empty($catalog['field_6755'])): ?>
                                     <img src="<?= htmlspecialchars($catalog['field_6755']) ?>" alt="<?= htmlspecialchars($catalog['field_6754'] ?? 'عنصر') ?>" class="gallery-item-image">
                                 <?php else: ?>
@@ -1053,7 +1027,7 @@ $total_pages = ceil($total_count / $page_size);
                                 <?php endif; ?>
                                 <div class="gallery-item-content">
                                     <h3 class="gallery-item-title">
-                                        <?= htmlspecialchars($catalog['field_6754'] ?? ($selected_location === 'كتلوجات' ? 'غير متوفر' : ($catalog['field_6757'] ?? 'عنصر'))) ?>
+                                        <?= htmlspecialchars($catalog['field_6754'] ?? ($selected_location === 'كتالوجات' ? 'غير متوفر' : ($catalog['field_6757'] ?? 'عنصر'))) ?>
                                     </h3>
                                     <div class="gallery-item-actions">
                                         <?php if ($selected_location === 'سلايدر العملاء' || $selected_location === 'سلايدر الهيدر'): ?>
@@ -1114,7 +1088,7 @@ $total_pages = ceil($total_count / $page_size);
                                     <label for="addLink" class="form-label">الرابط (اختياري)</label>
                                     <input type="url" class="form-control" id="addLink" name="link">
                                 </div>
-                            <?php elseif ($selected_location === 'كتلوجات'): ?>
+                            <?php elseif ($selected_location === 'كتالوجات'): ?>
                                 <div class="form-group">
                                     <label for="addNameAr" class="form-label">الاسم (بالعربية)</label>
                                     <input type="text" class="form-control" id="addNameAr" name="name_ar" required>
@@ -1210,7 +1184,7 @@ $total_pages = ceil($total_count / $page_size);
                                     <label for="updateLink" class="form-label">الرابط (اختياري)</label>
                                     <input type="url" class="form-control" id="updateLink" name="link">
                                 </div>
-                            <?php elseif ($selected_location === 'كتلوجات'): ?>
+                            <?php elseif ($selected_location === 'كتالوجات'): ?>
                                 <div class="form-group">
                                     <label for="updateNameAr" class="form-label">الاسم (بالعربية)</label>
                                     <input type="text" class="form-control" id="updateNameAr" name="name_ar" required>
@@ -1417,7 +1391,7 @@ $total_pages = ceil($total_count / $page_size);
             if (location === 'سلايدر العملاء' || location === 'سلايدر الهيدر') {
                 document.getElementById('updateOrder').value = order || '';
                 document.getElementById('updateLink').value = link || '';
-            } else if (location === 'كتلوجات') {
+            } else if (location === 'كتالوجات') {
                 document.getElementById('updateNameAr').value = nameAr || '';
                 document.getElementById('updateNameEn').value = nameEn || '';
             }
@@ -1499,50 +1473,55 @@ $total_pages = ceil($total_count / $page_size);
                 });
         }
 
-function updateImageOrder(imageId, order) {
-    const formData = new FormData();
-    formData.append('image_id', imageId);
-    formData.append('order', order);
-    formData.append('update_image_order', '1');
+        // Update image order
+        function updateImageOrder(imageId, order) {
+            const formData = new FormData();
+            formData.append('image_id', imageId);
+            formData.append('order', order);
+            formData.append('update_image_order', '1');
 
-    fetch('', { method: 'POST', body: formData })
-        .then(response => response.text())
-        .then(() => {
-            showToast('تم تحديث ترتيب الصورة بنجاح', 'success');
-            fetchCatalogImages(document.getElementById('catalogImageId').value);
-        })
-        .catch(error => {
-            showToast('خطأ في تحديث ترتيب الصورة', 'error');
-        });
-}
+            fetch('', { method: 'POST', body: formData })
+                .then(response => response.text())
+                .then(() => {
+                    showToast('تم تحديث ترتيب الصورة بنجاح', 'success');
+                    fetchCatalogImages(document.getElementById('catalogImageId').value);
+                })
+                .catch(error => {
+                    showToast('خطأ في تحديث ترتيب الصورة', 'error');
+                });
+        }
+
         // Move image up or down
-        
-// Move image up or down
-function moveImage(imageId, direction) {
-    const imagesList = document.getElementById('imagesList');
-    const items = imagesList.querySelectorAll('.image-list-item');
-    const index = Array.from(items).findIndex(item => item.querySelector('input').getAttribute('onchange').includes(imageId));
-    let currentOrder = parseInt(items[index].querySelector('input').value) || 0;
-    const newOrder = direction === 'up' ? Math.max(0, currentOrder - 1) : currentOrder + 1;
-    updateImageOrder(imageId, newOrder);
-}
-```
-        // Update catalog order
-    function updateOrder(catalogId, direction) {
-    fetch(`?action=update_order&catalog_id=${catalogId}&direction=${direction}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast('تم تحديث الترتيب بنجاح', 'success');
-                window.location.reload();
+        function moveImage(imageId, direction) {
+            const imagesList = document.getElementById('imagesList');
+            const items = imagesList.querySelectorAll('.image-list-item');
+            const index = Array.from(items).findIndex(item => item.querySelector('input').getAttribute('onchange').includes(imageId));
+            let currentOrder = parseInt(items[index].querySelector('input').value);
+            if (direction === 'up') {
+                currentOrder = Math.max(0, currentOrder - 1);
             } else {
-                showToast('فشل تحديث الترتيب', 'error');
+                currentOrder++;
             }
-        })
-        .catch(error => {
-            showToast('خطأ في تحديث الترتيب', 'error');
-        });
-}
+            updateImageOrder(imageId, currentOrder);
+        }
+
+        // Update catalog order
+        function updateOrder(catalogId, direction) {
+            fetch(`?action=update_order&catalog_id=${catalogId}&direction=${direction}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('تم تحديث الترتيب بنجاح', 'success');
+                        window.location.reload();
+                    } else {
+                        showToast('فشل تحديث الترتيب', 'error');
+                    }
+                })
+                .catch(error => {
+                    showToast('خطأ في تحديث الترتيب', 'error');
+                });
+        }
+
         // Remove image preview for add form
         function removeAddImagePreview() {
             const preview = document.getElementById('addImagePreview');
@@ -1609,79 +1588,8 @@ function moveImage(imageId, direction) {
                 reader.readAsDataURL(file);
             }
         }
-// Setup image upload
-function setupImageUpload(inputId, previewId, dropZoneId) {
-    const input = document.getElementById(inputId);
-    const preview = document.getElementById(previewId);
-    const dropZone = document.getElementById(dropZoneId);
 
-    // Check if elements exist to avoid errors
-    if (!input || !preview || !dropZone) {
-        console.error(`Element not found: ${inputId}, ${previewId}, or ${dropZoneId}`);
-        return;
-    }
-
-    // Handle file selection via input
-    input.addEventListener('change', (e) => {
-        handleImageUpload(e.target.files[0], preview, dropZone);
-    });
-
-    // Trigger file input click when drop zone is clicked
-    dropZone.addEventListener('click', () => input.click());
-
-    // Handle dragover to highlight drop zone
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.style.borderColor = 'var(--gold)';
-        dropZone.style.background = 'var(--gold-light)';
-    });
-
-    // Handle dragleave to reset drop zone style
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.style.borderColor = 'var(--border-color)';
-        dropZone.style.background = 'var(--light-gray)';
-    });
-
-    // Handle drop to process the dropped file
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.style.borderColor = 'var(--border-color)';
-        dropZone.style.background = 'var(--light-gray)';
-        const file = e.dataTransfer.files[0];
-        input.files = e.dataTransfer.files;
-        handleImageUpload(file, preview, dropZone);
-    });
-}
-        // Initialize image upload for all forms
-        setupImageUpload('addCatalogImage', 'addImagePreview', 'addDropZone');
-        setupImageUpload('updateCatalogImage', 'updateImagePreview', 'updateDropZone');
-        setupImageUpload('newCatalogImage', 'imagesPreview', 'imagesDropZone');
-
-        // Form submission handlers
-        document.getElementById('addCatalogForm').addEventListener('submit', function(e) {
-            const button = this.querySelector('button[type="submit"]');
-            showLoading(button);
-        });
-
-        document.getElementById('updateCatalogForm').addEventListener('submit', function(e) {
-            const button = this.querySelector('button[type="submit"]');
-            showLoading(button);
-        });
-
-        document.getElementById('deleteCatalogForm').addEventListener('submit', function(e) {
-            const button = this.querySelector('button[type="submit"]');
-            showLoading(button);
-        });
-
-        document.getElementById('addCatalogImageForm').addEventListener('submit', function(e) {
-            const button = this.querySelector('button[type="submit"]');
-            showLoading(button);
-        });
-
-        // Show toast if there's a server message
-        <?php if ($message): ?>
-            showToast(<?= json_encode($message) ?>, '<?= $message_type ?>');
-        <?php endif; ?>
-    </script>
-</body>
-</html>
+        // Setup image upload
+        function setupImageUpload(inputId, previewId, dropZoneId) {
+            const input = document.getElementById(inputId);
+            const preview =
