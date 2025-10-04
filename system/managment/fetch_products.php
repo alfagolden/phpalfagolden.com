@@ -11,7 +11,7 @@ if (!isset($_GET['category_id'])) {
 }
 
 $category_id = (int)$_GET['category_id'];
-$ch = curl_init(BASE_URL . PRODUCT_TABLE_ID . '/?filter__field_7126__contains=' . $category_id . '&user_field_names=false');
+$ch = curl_init(BASE_URL . PRODUCT_TABLE_ID . '/?filter__field_7126__equals=' . $category_id . '&user_field_names=false');
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'Authorization: Token ' . API_TOKEN,
@@ -22,7 +22,7 @@ $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 $curl_error = curl_error($ch);
 curl_close($ch);
 
-if ($http_code < 301) {
+if ($http_code === 200) {
     $data = json_decode($response, true);
     echo json_encode($data['results'] ?? []);
 } else {
