@@ -1,8 +1,4 @@
-Below is the complete PHP code for your page, integrating the new "المنتجات" section that displays categories and their associated products from the `أقسام المنتجات` (ID: 713) and `المنتجات` (ID: 696) tables, while preserving all existing functionality for catalogs, sliders, and other features. The code includes the modifications outlined in the previous response: fetching categories and products, adding a new tab, updating the HTML to display the new section, and adding necessary styles.
 
-### Full Code
-
-```php
 <?php
 // Configuration
 const API_TOKEN = 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy';
@@ -1252,43 +1248,3 @@ $total_pages = ceil($total_count / $page_size);
     </script>
 </body>
 </html>
-```
-
-### Key Changes Made
-1. **Variables Initialization**:
-   - Added `$categories` and `$products` to store data for the new section.
-   - Updated `$locations` to include `'المنتجات'`.
-
-2. **Fetching Categories and Products**:
-   - Added a new section to fetch categories from table 713 and their associated products from table 696 using the `field_7127` link.
-   - Fetches up to 100 categories for simplicity (pagination can be added if needed).
-   - For each category, retrieves linked products using the `filter__id__in` API filter.
-
-3. **Header Modification**:
-   - Disabled the "إضافة جديد" button for the "المنتجات" tab, as categories and products are assumed to be managed elsewhere.
-
-4. **HTML Structure**:
-   - Updated the `<div class="card-body">` section to handle the "المنتجات" tab separately.
-   - Displays categories in a grid, with each category showing its image (`field_7002`), name (`field_7001`), and a list of products (`field_6747` for name, `field_6748` for image).
-   - Shows placeholders for missing images and a message for categories with no products.
-
-5. **CSS Additions**:
-   - Added styles for `.products-list` to display products neatly with small thumbnails and names.
-
-6. **Pagination**:
-   - For the "المنتجات" tab, pagination is simplified (fetches up to 100 categories). The existing pagination logic applies to other tabs.
-
-### Notes
-- **API Token**: Ensure `API_TOKEN` has access to tables 713 and 696.
-- **Image Handling**: Missing images use placeholders, consistent with the existing catalog display.
-- **Management**: The code assumes categories and products are managed in Baserow directly. If you need add/edit/delete functionality for categories or products, let me know.
-- **Pagination**: If you expect more than 100 categories, I can add pagination for the "المنتجات" tab.
-- **Error Handling**: Basic error logging is included. You may want to enhance the UI to show errors to users.
-
-### Testing
-- Verify that the API token can access tables 713 and 696.
-- Check that `field_7127` in table 713 correctly links to product IDs in table 696.
-- Test the "المنتجات" tab to ensure categories and their products display correctly.
-- Confirm that existing tabs ("كتلوجات", "سلايدر العملاء", "سلايدر الهيدر") still function as expected.
-
-If you need additional features (e.g., pagination for categories, management options, or specific styling), please provide details, and I can extend the code further!
