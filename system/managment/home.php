@@ -1745,7 +1745,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_products' && isset($_GET[
         'Authorization: Token ' . API_TOKEN,
         'Content-Type: application/json'
     ]);
-    echo(API_TOKEN);
+    // echo(API_TOKEN);
     $response = curl_exec($ch);
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curl_error = curl_error($ch);
