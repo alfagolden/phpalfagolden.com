@@ -226,7 +226,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $filteredQuotes = array_filter($quotes, function($quote) use ($activeFilters, $users, $FIELDS) {
             // فلتر رقم العرض
             if (!empty($activeFilters['number'])) {
-                $quoteNumber = convertToEnglishNumbers((string)($quote[$FIELDS['quotes']['quoteNumber']['value']] ?? $quote['id']));
+                $quoteNumber = convertToEnglishNumbers((string)($quote[$FIELDS['quotes']['quoteNumber']] ?? $quote['id']));
                 if (!in_array($quoteNumber, $activeFilters['number'])) return false;
             }
             
@@ -627,10 +627,8 @@ usort($filteredQuotes, function($a, $b) use ($FIELDS, $sortBy, $sortDir) {
                             </tr>
                         <?php else: ?>
                             <?php foreach ($filteredQuotes as $quote): ?>
-
                                 <?php
-                                                            echo ($quote[0] );
-                                $quoteNumber =  $quote[$FIELDS['quoteNumber']['value']] ?? $quote['id'];
+                                // $quoteNumber = $quote[$FIELDS['quotes']['quoteNumber']] ?? $quote['id'];
                                 $quoteDate = formatDate($quote[$FIELDS['quotes']['date']]);
                                 $clientName = getClientName($quote[$FIELDS['quotes']['client']]);
                                 $totalPrice = formatPrice($quote[$FIELDS['quotes']['totalPrice']]);
@@ -640,7 +638,7 @@ usort($filteredQuotes, function($a, $b) use ($FIELDS, $sortBy, $sortDir) {
                                 ?>
                                 <tr class="table-row">
                                     <td class="table-cell">
-                                        <div class="quote-id">#<?= $quoteNumber ?></div>
+                                        <div class="quote-id">#<?= convertToEnglishNumbers($quoteNumber) ?></div>
                                     </td>
                                     <td class="table-cell">
                                         <div class="quote-date"><?= $quoteDate ?></div>
