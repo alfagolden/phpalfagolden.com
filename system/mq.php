@@ -627,6 +627,7 @@ usort($filteredQuotes, function($a, $b) use ($FIELDS, $sortBy, $sortDir) {
                             </tr>
                         <?php else: ?>
                             <?php foreach ($filteredQuotes as $quote): ?>
+                            echo (quote[$FIELDS['quoteNumber']['value']] );
                                 <?php
                                 $quoteNumber =  $quote[$FIELDS['quoteNumber']['value']] ?? $quote['id'];
                                 $quoteDate = formatDate($quote[$FIELDS['quotes']['date']]);
