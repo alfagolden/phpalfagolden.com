@@ -3,7 +3,7 @@
 const API_TOKEN = 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy';
 const TABLE_ID = 698; // جدول الكتالوجات
 const BASE_URL = 'https://base.alfagolden.com/api/database/rows/table/';
-const UPLOAD_DIR = 'uploads/';
+const UPLOAD_DIR = 'Uploads/';
 const UPLOAD_URL = 'https://alfagolden.com/system/m/up.php';
 // Initialize upload directory
 function ensureUploadDirectory() {
@@ -466,24 +466,42 @@ $statuses = ['نشط', 'غير نشط'];
         .tab:hover {
             color: #1e3a8a;
         }
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            border-radius: 0.5rem;
-            overflow: hidden;
+        .catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem;
         }
-        th, td {
+        .catalog-card {
+            background: #ffffff;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
             padding: 1rem;
             text-align: right;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        th {
-            background: #f8fafc;
-            font-weight: 600;
+        .catalog-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+        .catalog-card img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .catalog-card p {
+            margin: 0.5rem 0;
+            font-size: 0.875rem;
             color: #1e293b;
         }
-        tr:hover {
-            background: #f1f5f9;
+        .catalog-card a {
+            color: #1e40af;
+            text-decoration: underline;
+        }
+        .catalog-card a:hover {
+            color: #1e3a8a;
         }
         @media (max-width: 640px) {
             .container {
@@ -498,9 +516,18 @@ $statuses = ['نشط', 'غير نشط'];
             .input, .select, .textarea {
                 font-size: 0.85rem;
             }
-            th, td {
+            .catalog-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 1rem;
+            }
+            .catalog-card {
                 padding: 0.75rem;
-                font-size: 0.85rem;
+            }
+            .catalog-card img {
+                height: 100px;
+            }
+            .catalog-card p {
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -643,58 +670,40 @@ $statuses = ['نشط', 'غير نشط'];
                 </form>
             </div>
         </div>
-        <!-- Catalogs table -->
+        <!-- Catalogs Grid -->
         <div class="card p-6">
             <h2 class="text-xl font-semibold text-gray-700 mb-6"><?= htmlspecialchars($selected_location) ?></h2>
-            <div class="overflow-x-auto">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ترتيب</th>
-                            <th>الاسم (عربي)</th>
-                            <th>الاسم (إنجليزي)</th>
-                            <th>الموقع</th>
-                            <th>الحالة</th>
-                            <th>الصورة</th>
-                            <th>الرابط</th>
-                            <th>إجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (empty($catalogs)): ?>
-                            <tr><td colspan="8" class="text-center text-gray-600 py-4">لا توجد بيانات متاحة لموقع "<?= htmlspecialchars($selected_location) ?>"</td></tr>
-                        <?php else: ?>
-                            <?php foreach ($catalogs as $catalog): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($catalog['field_6759'] ?? 'غير متوفر') ?></td>
-                                    <td><?= htmlspecialchars($catalog['field_6754'] ?? 'غير متوفر') ?></td>
-                                    <td><?= htmlspecialchars($catalog['field_6762'] ?? 'غير متوفر') ?></td>
-                                    <td><?= htmlspecialchars($catalog['field_6756'] ?? 'غير متوفر') ?></td>
-                                    <td><?= htmlspecialchars($catalog['field_7072'] ?? 'غير متوفر') ?></td>
-                                    <td>
-                                        <?php if (!empty($catalog['field_6755'])): ?>
-                                            <img src="<?= htmlspecialchars($catalog['field_6755']) ?>" alt="<?= htmlspecialchars($catalog['field_6754'] ?? 'كتالوج') ?>" class="w-12 h-12 object-cover rounded-lg">
-                                        <?php else: ?>
-                                            غير متوفر
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <?php if (!empty($catalog['field_6757'])): ?>
-                                            <a href="<?= htmlspecialchars($catalog['field_6757']) ?>" target="_blank" class="text-blue-600 hover:underline">عرض الرابط</a>
-                                        <?php else: ?>
-                                            غير متوفر
-                                        <?php endif; ?>
-                                    </td>
-                                    <td class="flex gap-2">
-                                        <button type="button" onclick="openUpdateModal(<?= $catalog['id'] ?>, '<?= htmlspecialchars($catalog['field_6759'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6760'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6754'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6762'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6761'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7075'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7072'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6755'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6757'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6758'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7076'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7077'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6756'] ?? '') ?>')" class="btn btn-primary">تحرير</button>
-                                        <button type="button" onclick="openDeleteModal(<?= $catalog['id'] ?>)" class="btn btn-danger">حذف</button>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
+            <?php if (empty($catalogs)): ?>
+                <p class="text-center text-gray-600 py-4">لا توجد بيانات متاحة لموقع "<?= htmlspecialchars($selected_location) ?>"</p>
+            <?php else: ?>
+                <div class="catalog-grid">
+                    <?php foreach ($catalogs as $catalog): ?>
+                        <div class="catalog-card">
+                            <?php if (!empty($catalog['field_6755'])): ?>
+                                <img src="<?= htmlspecialchars($catalog['field_6755']) ?>" alt="<?= htmlspecialchars($catalog['field_6754'] ?? 'كتالوج') ?>">
+                            <?php else: ?>
+                                <p>الصورة: غير متوفر</p>
+                            <?php endif; ?>
+                            <p><strong>ترتيب:</strong> <?= htmlspecialchars($catalog['field_6759'] ?? 'غير متوفر') ?></p>
+                            <p><strong>الاسم (عربي):</strong> <?= htmlspecialchars($catalog['field_6754'] ?? 'غير متوفر') ?></p>
+                            <p><strong>الاسم (إنجليزي):</strong> <?= htmlspecialchars($catalog['field_6762'] ?? 'غير متوفر') ?></p>
+                            <p><strong>الموقع:</strong> <?= htmlspecialchars($catalog['field_6756'] ?? 'غير متوفر') ?></p>
+                            <p><strong>الحالة:</strong> <?= htmlspecialchars($catalog['field_7072'] ?? 'غير متوفر') ?></p>
+                            <p><strong>الرابط:</strong> 
+                                <?php if (!empty($catalog['field_6757'])): ?>
+                                    <a href="<?= htmlspecialchars($catalog['field_6757']) ?>" target="_blank">عرض الرابط</a>
+                                <?php else: ?>
+                                    غير متوفر
+                                <?php endif; ?>
+                            </p>
+                            <div class="flex gap-2 mt-4">
+                                <button type="button" onclick="openUpdateModal(<?= $catalog['id'] ?>, '<?= htmlspecialchars($catalog['field_6759'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6760'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6754'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6762'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6761'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7075'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7072'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6755'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6757'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6758'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7076'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_7077'] ?? '') ?>', '<?= htmlspecialchars($catalog['field_6756'] ?? '') ?>')" class="btn btn-primary">تحرير</button>
+                                <button type="button" onclick="openDeleteModal(<?= $catalog['id'] ?>)" class="btn btn-danger">حذف</button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
         <!-- Toast Notification -->
         <div id="toast" class="toast"></div>
