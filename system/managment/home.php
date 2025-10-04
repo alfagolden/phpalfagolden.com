@@ -1506,22 +1506,21 @@ $total_pages = ceil($total_count / $page_size);
         }
 
         // Update catalog order
-        function updateOrder(catalogId, direction) {
-            fetch(`?action=update_order&catalog_id=${catalogId}&direction=${direction}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showToast('تم تحديث الترتيب بنجاح', 'success');
-                        window.location.reload();
-                    } else {
-                        showToast('فشل تحديث الترتيب', 'error');
-                    }
-                })
-                .catch(error => {
-                    showToast('خطأ في تحديث الترتيب', 'error');
-                });
-        }
-
+    function updateOrder(catalogId, direction) {
+    fetch(`?action=update_order&catalog_id=${catalogId}&direction=${direction}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('تم تحديث الترتيب بنجاح', 'success');
+                window.location.reload();
+            } else {
+                showToast('فشل تحديث الترتيب', 'error');
+            }
+        })
+        .catch(error => {
+            showToast('خطأ في تحديث الترتيب', 'error');
+        });
+}
         // Remove image preview for add form
         function removeAddImagePreview() {
             const preview = document.getElementById('addImagePreview');
