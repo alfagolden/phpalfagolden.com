@@ -284,7 +284,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
         $curl_error = curl_error($ch);
         curl_close($ch);
         error_log("📤 إضافة: HTTP $http_code, البيانات: " . json_encode($data));
-        if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
+        if ($curl_error) {
+            error_log('CURL Error in POST handler: ' . $curl_error . ' for operation: ' . $_SERVER['REQUEST_METHOD']);
+            echo json_encode(['error' => 'POST request failed due to: ' . $curl_error]);
+            exit;
+        }
         if ($http_code === 200) {
             $message = 'تم الإضافة بنجاح!';
             $message_type = 'success';
@@ -358,7 +362,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
         $curl_error = curl_error($ch);
         curl_close($ch);
         error_log("📤 تحديث: HTTP $http_code, البيانات: " . json_encode($data));
-        if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
+        if ($curl_error) {
+            error_log('CURL Error in POST handler: ' . $curl_error . ' for operation: ' . $_SERVER['REQUEST_METHOD']);
+            echo json_encode(['error' => 'POST request failed due to: ' . $curl_error]);
+            exit;
+        }
         if ($http_code === 200) {
             $message = 'تم التحديث بنجاح!';
             $message_type = 'success';
@@ -384,7 +392,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_catalog'])) {
     $curl_error = curl_error($ch);
     curl_close($ch);
     error_log("📤 حذف: ID $catalog_id, HTTP $http_code");
-    if ($curl_error) error_log("❌ خطأ cURL: $curl_error");
+    if ($curl_error) {
+        error_log('CURL Error in POST handler: ' . $curl_error . ' for operation: ' . $_SERVER['REQUEST_METHOD']);
+        echo json_encode(['error' => 'POST request failed due to: ' . $curl_error]);
+        exit;
+    }
     if ($http_code === 204) {
         $message = 'تم الحذف بنجاح!';
         $message_type = 'success';
