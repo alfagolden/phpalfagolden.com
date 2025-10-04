@@ -226,7 +226,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $filteredQuotes = array_filter($quotes, function($quote) use ($activeFilters, $users, $FIELDS) {
             // فلتر رقم العرض
             if (!empty($activeFilters['number'])) {
-                $quoteNumber = convertToEnglishNumbers((string)($quote[$FIELDS['quotes']['quoteNumber']] ?? $quote['id']));
+                $quoteNumber = convertToEnglishNumbers((string)($quote[$FIELDS['quotes']['quoteNumber'][value]] ?? $quote['id']));
                 if (!in_array($quoteNumber, $activeFilters['number'])) return false;
             }
             
