@@ -628,7 +628,7 @@ usort($filteredQuotes, function($a, $b) use ($FIELDS, $sortBy, $sortDir) {
                         <?php else: ?>
                             <?php foreach ($filteredQuotes as $quote): ?>
                                 <?php
-                                $quoteNumber =  $quote[$FIELDS['quoteNumber']['value']] ?? $quote['id'];
+                                $quoteNumber = echo( $quote[$FIELDS); ?? $quote['id'];
                                 $quoteDate = formatDate($quote[$FIELDS['quotes']['date']]);
                                 $clientName = getClientName($quote[$FIELDS['quotes']['client']]);
                                 $totalPrice = formatPrice($quote[$FIELDS['quotes']['totalPrice']]);
