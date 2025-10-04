@@ -1733,6 +1733,15 @@ $total_pages = ceil($total_count / $page_size);
 </body>
 </html>
 <?php
+
+const API_TOKEN = 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy';
+const TABLE_ID = 698; // جدول الكتلوجات
+const CATEGORY_TABLE_ID = 713; // جدول أقسام المنتجات
+const PRODUCT_TABLE_ID = 696; // جدول المنتجات
+const BASE_URL = 'https://base.alfagolden.com/api/database/rows/table/';
+const UPLOAD_DIR = 'Uploads/';
+const UPLOAD_URL = 'https://alfagolden.com/system/managment/up.php';
+
 // Handle AJAX request for products
 if (isset($_GET['action']) && $_GET['action'] === 'get_products' && isset($_GET['category_id'])) {
     header('Content-Type: application/json');
