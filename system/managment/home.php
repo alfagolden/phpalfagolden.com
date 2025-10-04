@@ -367,14 +367,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog_image']))
     }
 }
 
-// Handle updating catalog image order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_image_order'])) {
     $image_id = (int)$_POST['image_id'];
     $order = $_POST['order'] ?? '0';
+    $catalog_id = (int)$_POST['catalog_id']; // Added to filter images by catalog
 
-    $data = [
-        'field_order' => $order
-    ];
+    // Fetch all images for the catalog to manage order conflicts
+    $ch = curl_init(BASE_URL . TABLE_ID_IMAGES . '/?filter__field_catalog_id__equal=' . $catalog_id . '&user_field_names=true');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Token ' . API_TOKEN]);
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $data = json_decode($response, true);
+    curl_close($ch);
+
+    if ($http_code !== 200) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'فشل جلب الصور']);
+        exit;
+    }
+
+    $images = $data['results'] ?? [];
+    $new_order = (string)$order; // Convert to string for Baserow
+
+    // Update conflicting orders
+    foreach ($images as $image) {
+        if ($image['id'] != $image_id && (int)$image['field_order'] === (int)$new_order) {
+            $ch = curl_init(BASE_URL . TABLE_ID_IMAGES . '/' . $image['id'] . '/?user_field_names=true');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Authorization: Token ' . API_TOKEN,
+                'Content-Type: application/json'
+            ]);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['field_order' => (string)((int)$new_order + 1)]));
+            curl_exec($ch);
+            curl_close($ch);
+        }
+    }
+
+    // Update the current image order
+    $data = ['field_order' => $new_order];
     $ch = curl_init(BASE_URL . TABLE_ID_IMAGES . '/' . $image_id . '/?user_field_names=true');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
@@ -387,15 +420,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_image_order'])
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    if ($http_code === 200) {
-        $message = 'تم تحديث ترتيب الصورة بنجاح!';
-        $message_type = 'success';
-    } else {
-        $message = 'فشل تحديث ترتيب الصورة.';
-        $message_type = 'error';
-    }
+    header('Content-Type: application/json');
+    echo json_encode(['success' => $http_code === 200]);
+    exit;
 }
-
 if (isset($_GET['action']) && $_GET['action'] === 'update_order') {
     $catalog_id = (int)$_GET['catalog_id'];
     $direction = $_GET['direction'];
@@ -1488,19 +1516,17 @@ function updateImageOrder(imageId, order) {
         });
 }
         // Move image up or down
-        function moveImage(imageId, direction) {
-            const imagesList = document.getElementById('imagesList');
-            const items = imagesList.querySelectorAll('.image-list-item');
-            const index = Array.from(items).findIndex(item => item.querySelector('input').getAttribute('onchange').includes(imageId));
-            let currentOrder = parseInt(items[index].querySelector('input').value);
-            if (direction === 'up') {
-                currentOrder = Math.max(0, currentOrder - 1);
-            } else {
-                currentOrder++;
-            }
-            updateImageOrder(imageId, currentOrder);
-        }
-
+        
+// Move image up or down
+function moveImage(imageId, direction) {
+    const imagesList = document.getElementById('imagesList');
+    const items = imagesList.querySelectorAll('.image-list-item');
+    const index = Array.from(items).findIndex(item => item.querySelector('input').getAttribute('onchange').includes(imageId));
+    let currentOrder = parseInt(items[index].querySelector('input').value) || 0;
+    const newOrder = direction === 'up' ? Math.max(0, currentOrder - 1) : currentOrder + 1;
+    updateImageOrder(imageId, newOrder);
+}
+```
         // Update catalog order
     function updateOrder(catalogId, direction) {
     fetch(`?action=update_order&catalog_id=${catalogId}&direction=${direction}`)
