@@ -1,7 +1,7 @@
 <?php
 // Configuration
 const API_TOKEN = 'h5qAt85gtiJDAzpH51WrXPywhmnhrPWy';
-const TABLE_ID = 698; // جدول الكتالوجات
+const TABLE_ID = 698; // جدول الكتلوجات
 const BASE_URL = 'https://base.alfagolden.com/api/database/rows/table/';
 const UPLOAD_DIR = 'uploads/';
 const UPLOAD_URL = 'https://alfagolden.com/system/managment/up.php';
@@ -138,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_catalog'])) {
     $description_en = $_POST['description_en'] ?? '';
     $link = $_POST['link'] ?? '';
     $file_id = $_POST['file_id'] ?? '';
-    $location = $_POST['location'] ?? 'كتالوجات';
+    $location = $_POST['location'] ?? 'كتلوجات';
     $catalog_image = '';
     // Handle image upload
     if (isset($_FILES['catalog_image']) && $_FILES['catalog_image']['error'] === UPLOAD_ERR_OK) {
@@ -207,7 +207,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_catalog'])) {
     $description_en = $_POST['description_en'] ?? '';
     $link = $_POST['link'] ?? '';
     $file_id = $_POST['file_id'] ?? '';
-    $location = $_POST['location'] ?? 'كتالوجات';
+    $location = $_POST['location'] ?? 'كتلوجات';
     $catalog_image = $_POST['current_image'] ?? '';
     // Handle image upload
     if (isset($_FILES['catalog_image']) && $_FILES['catalog_image']['error'] === UPLOAD_ERR_OK) {
@@ -770,7 +770,7 @@ $statuses = ['نشط', 'غير نشط'];
                             <ol class="breadcrumb mb-2">
                                 <li class="breadcrumb-item">
                                     <a href="#" class="breadcrumb-link">
-                                        <i class="fas fa-layer-group me-1"></i>الكتالوجات
+                                        <i class="fas fa-layer-group me-1"></i>الكتلوجات
                                     </a>
                                 </li>
                             </ol>
@@ -801,7 +801,7 @@ $statuses = ['نشط', 'غير نشط'];
             <div class="d-flex align-items-center gap-4">
                 <form method="GET" class="d-flex align-items-center">
                     <input type="hidden" name="location" value="<?= htmlspecialchars($selected_location) ?>">
-                    <label for="page_size" class="form-label me-2">عدد الكتالوجات في الصفحة:</label>
+                    <label for="page_size" class="form-label me-2">عدد الكتلوجات في الصفحة:</label>
                     <select name="page_size" onchange="this.form.submit()" class="form-control">
                         <option value="10" <?= $page_size == 10 ? 'selected' : '' ?>>10</option>
                         <option value="20" <?= $page_size == 20 ? 'selected' : '' ?>>20</option>
@@ -809,7 +809,7 @@ $statuses = ['نشط', 'غير نشط'];
                         <option value="100" <?= $page_size == 100 ? 'selected' : '' ?>>100</option>
                     </select>
                 </form>
-                <span class="text-muted">الصفحة <?= $page ?> من <?= $total_pages ?> (إجمالي الكتالوجات: <?= $total_count ?>)</span>
+                <span class="text-muted">الصفحة <?= $page ?> من <?= $total_pages ?> (إجمالي الكتلوجات: <?= $total_count ?>)</span>
             </div>
             <a href="?location=<?= urlencode($selected_location) ?>&page=<?= $page + 1 ?>&page_size=<?= $page_size ?>" class="btn btn-primary <?= $next_page_url ? '' : 'd-none' ?>">
                 الصفحة التالية<i class="fas fa-chevron-left ms-2"></i>
@@ -824,7 +824,7 @@ $statuses = ['نشط', 'غير نشط'];
                 <?php if (empty($catalogs)): ?>
                     <div class="empty-state">
                         <i class="fas fa-folder-plus"></i>
-                        <h3>لا توجد كتالوجات</h3>
+                        <h3>لا توجد كتلوجات</h3>
                         <p>ابدأ بإضافة أول كتالوج في "<?= htmlspecialchars($selected_location) ?>"</p>
                         <button onclick="openAddModal()" class="btn btn-primary">
                             <i class="fas fa-plus me-2"></i>إضافة أول كتالوج
